@@ -14,7 +14,7 @@ pipeline {
         
         // EC2 Deployment
         EC2_HOST = credentials('ec2-host')
-        EC2_USER = 'ec2-user'
+        EC2_USER = 'ubuntu'
         EC2_KEY = credentials('ec2-ssh-key')
         
         // Image tags
