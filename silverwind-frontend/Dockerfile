@@ -26,7 +26,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Copy built Angular app to nginx html directory
-COPY --from=build /app/dist/solventek-silverwind/browser /usr/share/nginx/html
+COPY --from=build /app/dist/silverwind/browser /usr/share/nginx/html
 
 # Add non-root user
 RUN addgroup -S nginx-group && adduser -S nginx-user -G nginx-group

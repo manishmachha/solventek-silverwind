@@ -159,6 +159,13 @@ sudo systemctl restart jenkins
 
 # Verify Jenkins is running
 sudo systemctl status jenkins
+
+> **Troubleshooting**: If you see `permission denied` for `/var/run/docker.sock`, verify group membership:
+> `groups jenkins`
+> If correctly added but still failing, try restarting Docker too:
+> `sudo systemctl restart docker`
+> `sudo systemctl restart jenkins`
+> Also check socket permissions: `sudo chmod 666 /var/run/docker.sock` (Use with caution in production)
 ```
 
 ### 4.4 Initial Jenkins Setup
