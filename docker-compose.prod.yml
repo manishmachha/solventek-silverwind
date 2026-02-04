@@ -1,6 +1,6 @@
 # Docker Compose for Silverwind - Production Environment
 # Uses pre-built images from container registry
-version: "3.8"
+      start_period: 120s
 
 services:
   # Spring Boot Backend
