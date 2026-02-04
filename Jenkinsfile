@@ -125,17 +125,17 @@ pipeline {
                     sh """
                         scp -i ${EC2_KEY} -o StrictHostKeyChecking=no \
                             docker-compose.prod.yml \
-                            ${EC2_USER}@${EC2_HOST}:/home/${EC2_USER}/silverwind/
+                            ${EC2_USER}@${EC2_HOST}:/home/${EC2_USER}/solventek-silverwind/
                         
                         scp -i ${EC2_KEY} -o StrictHostKeyChecking=no \
                             scripts/deploy.sh \
-                            ${EC2_USER}@${EC2_HOST}:/home/${EC2_USER}/silverwind/
+                            ${EC2_USER}@${EC2_HOST}:/home/${EC2_USER}/solventek-silverwind/
                     """
                     
                     // Execute deployment
                     sh """
                         ssh -i ${EC2_KEY} -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} \
-                            'cd /home/${EC2_USER}/silverwind && \
+                            'cd /home/${EC2_USER}/solventek-silverwind && \
                              export DOCKER_REGISTRY=${DOCKER_REGISTRY} && \
                              export IMAGE_TAG=${IMAGE_TAG} && \
                              chmod +x deploy.sh && \

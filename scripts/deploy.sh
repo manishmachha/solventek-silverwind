@@ -13,8 +13,9 @@ echo "Image Tag: ${IMAGE_TAG:-latest}"
 echo ""
 
 # Configuration
-COMPOSE_FILE="/home/ec2-user/silverwind/docker-compose.prod.yml"
-ENV_FILE="/home/ec2-user/silverwind/.env"
+DEPLOY_DIR="$(pwd)"
+COMPOSE_FILE="${DEPLOY_DIR}/docker-compose.prod.yml"
+ENV_FILE="${DEPLOY_DIR}/.env"
 
 # Check if .env file exists
 if [ ! -f "$ENV_FILE" ]; then
