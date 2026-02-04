@@ -69,6 +69,34 @@ This guide covers deploying Silverwind to AWS EC2 with Jenkins CI/CD.
    - `s3:DeleteObject`
    - `s3:HeadObject`
 
+   > **Note**: For ECR, ensure the user has `AmazonEC2ContainerRegistryPowerUser` policy or inline equivalent:
+
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Action": [
+           "ecr:GetAuthorizationToken",
+           "ecr:BatchCheckLayerAvailability",
+           "ecr:GetDownloadUrlForLayer",
+           "ecr:GetRepositoryPolicy",
+           "ecr:DescribeRepositories",
+           "ecr:ListImages",
+           "ecr:DescribeImages",
+           "ecr:BatchGetImage",
+           "ecr:InitiateLayerUpload",
+           "ecr:UploadLayerPart",
+           "ecr:CompleteLayerUpload",
+           "ecr:PutImage"
+         ],
+         "Resource": "*"
+       }
+     ]
+   }
+   ```
+
 ## Step 2: EC2 Instance Setup
 
 1. Launch Ubuntu/Amazon Linux 2 instance (t3.medium minimum)

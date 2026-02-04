@@ -113,12 +113,6 @@ pipeline {
 }
 
         stage('Deploy to EC2') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                }
-            }
             steps {
                 script {
                     // Copy docker-compose and deploy script to EC2
