@@ -1,0 +1,171 @@
+<!-- Hero Section -->
+<div class="relative pt-32 pb-20 bg-slate-900 overflow-hidden">
+  <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+    <div class="absolute bottom-0 left-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/4 right-0 w-72 h-72 bg-blue-600/20 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="container mx-auto px-6 relative z-10 text-center">
+    <span class="text-green-400 font-bold tracking-wider uppercase mb-4 block">Join Us</span>
+    <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+      Build the
+      <span class="text-transparent bg-clip-text bg-linear-to-r from-green-400 to-blue-500"
+        >Future</span
+      >
+      With Us
+    </h1>
+    <p class="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
+      Be part of a team that thrives on innovation, collaboration, and solving the world's toughest
+      challenges.
+    </p>
+  </div>
+</div>
+
+<!-- Benefits Section -->
+<section class="py-20 bg-slate-900 border-b border-slate-800">
+  <div class="container mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div
+        class="p-8 rounded-2xl bg-slate-800/50 border border-slate-700 hover:bg-slate-800 transition-colors"
+      >
+        <mat-icon class="text-green-400! w-10! h-10! text-[2.5rem]! mb-6">work_outline</mat-icon>
+        <h3 class="text-xl font-bold text-white mb-3">Meaningful Work</h3>
+        <p class="text-slate-400">
+          Work on projects that impact millions of lives and transform industries.
+        </p>
+      </div>
+      <div
+        class="p-8 rounded-2xl bg-slate-800/50 border border-slate-700 hover:bg-slate-800 transition-colors"
+      >
+        <mat-icon class="text-blue-400! w-10! h-10! text-[2.5rem]! mb-6">school</mat-icon>
+        <h3 class="text-xl font-bold text-white mb-3">Continuous Learning</h3>
+        <p class="text-slate-400">
+          Access to premium courses, certifications, and mentorship programs.
+        </p>
+      </div>
+      <div
+        class="p-8 rounded-2xl bg-slate-800/50 border border-slate-700 hover:bg-slate-800 transition-colors"
+      >
+        <mat-icon class="text-purple-400! w-10! h-10! text-[2.5rem]! mb-6"
+          >favorite_border</mat-icon
+        >
+        <h3 class="text-xl font-bold text-white mb-3">Well-being</h3>
+        <p class="text-slate-400">
+          Comprehensive health benefits, flexible hours, and remote work options.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Open Positions -->
+<div class="bg-slate-900 min-h-screen py-12">
+  <div class="container mx-auto px-6">
+    <div class="relative bg-slate-900 sm:py-24 lg:py-32 overflow-hidden rounded-3xl">
+      <div class="absolute inset-0"></div>
+      <div class="relative mx-auto max-w-7xl px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">Join Our Team</h2>
+          <p class="mt-4 text-lg leading-8 text-gray-600">
+            Build the future of technology with us. We're looking for passionate individuals to join
+            our growing team.
+          </p>
+        </div>
+
+        <!-- Job Listings Grid -->
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          @for (job of jobs(); track job.id) {
+            <div
+              class="group relative bg-slate-800 border border-slate-700 rounded-2xl p-6 hover:border-blue-500/50 hover:shadow-xl transition-all duration-300 flex flex-col h-full active:scale-[0.99]"
+            >
+              <!-- Card Header -->
+              <div class="mb-5">
+                <div class="flex items-center justify-between mb-3">
+                  <span
+                    class="px-3 py-1 text-xs font-semibold tracking-wide text-blue-400 bg-blue-400/10 rounded-full border border-blue-400/20 uppercase"
+                  >
+                    Software
+                  </span>
+                  <span class="flex items-center text-xs text-slate-400 font-medium">
+                    <mat-icon class="w-3.5! h-3.5! text-[14px]! mr-1.5 text-slate-500"
+                      >schedule</mat-icon
+                    >
+                    Full-time
+                  </span>
+                </div>
+                <h3
+                  class="text-xl font-bold text-slate-100 group-hover:text-blue-400 transition-colors leading-snug"
+                >
+                  {{ job.title }}
+                </h3>
+              </div>
+
+              <!-- Card Content -->
+              <div class="grow mb-6">
+                <div class="flex items-center text-slate-400 mb-3 text-sm">
+                  <mat-icon class="w-4! h-4! text-[16px]! mr-2 text-slate-500"
+                    >location_on</mat-icon
+                  >
+                  {{ job.location }}
+                </div>
+                <p class="text-slate-400 text-sm line-clamp-3 leading-relaxed">
+                  {{
+                    job.description ||
+                      'Join our team as a ' +
+                        job.title +
+                        ' and build the future with us. We are looking for passionate individuals to join our growing team.'
+                  }}
+                </p>
+              </div>
+
+              <!-- Card Actions -->
+              <div
+                class="mt-auto pt-5 border-t border-slate-700/50 flex items-center justify-between"
+              >
+                <button
+                  (click)="openJobDetails(job)"
+                  class="text-blue-400 text-sm font-semibold hover:text-blue-300 transition-colors flex items-center group/btn"
+                >
+                  View Details
+                  <mat-icon
+                    class="w-4! h-4! text-[16px]! ml-1 transition-transform group-hover/btn:translate-x-1"
+                    >arrow_forward</mat-icon
+                  >
+                </button>
+                <!-- Optional Apply Button could go here -->
+              </div>
+            </div>
+          } @empty {
+            <div
+              class="col-span-full text-center py-20 bg-slate-800/50 rounded-3xl border border-dashed border-slate-700"
+            >
+              <div
+                class="bg-slate-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+              >
+                <mat-icon class="w-8! h-8! text-[32px]! text-slate-500">search_off</mat-icon>
+              </div>
+              <h3 class="text-xl font-bold text-white mb-2">No Open Positions</h3>
+              <p class="text-slate-400 max-w-md mx-auto">
+                We don't have any open roles right now, but we're always looking for talent. Check
+                back soon!
+              </p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-20 text-center">
+      <p class="text-slate-400 mb-6">
+        Don't see a role that fits? We're always looking for talent.
+      </p>
+      <a
+        mat-stroked-button
+        color="primary"
+        class="px-8! border-slate-600! text-slate-300! hover:bg-slate-800!"
+        routerLink="/contact"
+        >Contact Us</a
+      >
+    </div>
+  </div>
+</div>

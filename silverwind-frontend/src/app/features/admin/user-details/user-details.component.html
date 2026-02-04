@@ -1,0 +1,487 @@
+<div class="p-6 max-w-7xl mx-auto">
+  <!-- Back Button & Header -->
+  <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex items-center gap-4">
+      <button
+        *ngIf="!isMe()"
+        routerLink="/admin/employees"
+        class="h-10 w-10 shrink-0 rounded-xl bg-white border border-slate-200 grid place-items-center text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition shadow-sm"
+      >
+        <span class="material-icons">arrow_back</span>
+      </button>
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900">
+          {{ isMe() ? 'My Profile' : 'User Profile' }}
+        </h1>
+        <p class="text-sm text-slate-500">View and manage {{ isMe() ? 'your' : 'user' }} details</p>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-3 sm:self-center self-start">
+      <button
+        (click)="openEditUserDialog()"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 font-semibold hover:bg-indigo-100 transition"
+      >
+        <span class="material-icons text-[18px]">edit</span>
+        Edit Profile
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="h-96 w-full grid place-items-center text-slate-500">
+    <div class="flex flex-col items-center gap-2">
+      <span
+        class="animate-spin h-8 w-8 border-2 border-indigo-600 border-t-transparent rounded-full"
+      ></span>
+      <p>Loading profile...</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div
+    *ngIf="!isLoading() && user()"
+    class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in-up"
+  >
+    <!-- LEFT COLUMN: Profile Card -->
+    <div class="space-y-6">
+      <!-- Profile Card -->
+      <div
+        class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden text-center relative"
+      >
+        <div class="h-32 bg-linear-to-br from-indigo-500 to-purple-600"></div>
+        <div class="px-6 pb-6 relative">
+          <div
+            class="relative -mt-16 mb-4 inline-block group cursor-pointer"
+            (click)="openChangePhotoDialog()"
+          >
+            <div
+              class="h-32 w-32 rounded-full border-4 border-white bg-slate-100 shadow-md grid place-items-center text-4xl font-bold text-slate-400 overflow-hidden relative group-hover:opacity-90 transition"
+            >
+              <img
+                *ngIf="profilePhotoUrl()"
+                [src]="profilePhotoUrl()"
+                class="h-full w-full object-cover"
+                alt="Profile"
+              />
+              <span *ngIf="!profilePhotoUrl()">{{ user()?.firstName?.charAt(0) }}</span>
+
+              <!-- Hover Overlay -->
+              <div
+                class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition backdrop-blur-sm"
+              >
+                <span class="material-icons text-white">camera_alt</span>
+              </div>
+            </div>
+            <div
+              class="absolute bottom-2 right-2 h-5 w-5 rounded-full border-2 border-white"
+              [ngClass]="user()?.employmentStatus === 'ACTIVE' ? 'bg-emerald-500' : 'bg-rose-500'"
+            ></div>
+          </div>
+
+          <h2 class="text-xl font-bold text-slate-900">
+            {{ user()?.firstName }} {{ user()?.lastName }}
+          </h2>
+          <p class="text-indigo-600 font-medium">{{ user()?.designation }}</p>
+          <p class="text-slate-500 text-sm mt-1 mb-4 flex items-center justify-center gap-1">
+            <span class="material-icons text-[16px]">domain</span>
+            {{ user()?.department }}
+          </p>
+
+          <div class="flex w-full border-t border-slate-100 pt-4 mt-2">
+            <div class="flex-1 border-r border-slate-100">
+              <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Type</p>
+              <p class="text-slate-700 font-medium">{{ user()?.employmentType }}</p>
+            </div>
+            <div class="flex-1">
+              <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Code</p>
+              <p class="text-slate-700 font-medium">{{ user()?.employeeCode }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+          <span class="material-icons text-slate-400">contact_mail</span>
+          Contact Information
+        </h3>
+
+        <div class="space-y-4">
+          <div class="flex items-start gap-3">
+            <span class="material-icons text-slate-400 mt-0.5 text-[20px]">mail</span>
+            <div>
+              <p class="text-xs text-slate-500">Email Address</p>
+              <a
+                [href]="'mailto:' + user()?.email"
+                class="text-indigo-600 hover:underline text-sm font-medium break-all"
+                >{{ user()?.email }}</a
+              >
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <span class="material-icons text-slate-400 mt-0.5 text-[20px]">call</span>
+            <div>
+              <p class="text-xs text-slate-500">Phone Number</p>
+              <a [href]="'tel:' + user()?.phone" class="text-slate-800 text-sm font-medium">{{
+                user()?.phone
+              }}</a>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <span class="material-icons text-slate-400 mt-0.5 text-[20px]">place</span>
+            <div>
+              <p class="text-xs text-slate-500">Work Location</p>
+              <p class="text-slate-800 text-sm font-medium">
+                {{ user()?.workLocation || 'Not Assigned' }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Detailed Info -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- General Information -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div class="flex flex-wrap items-center justify-between mb-6 gap-4">
+          <h3 class="font-bold text-slate-900 text-lg">General Information</h3>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded">
+              Joined: {{ user()?.dateOfJoining | date }}
+            </span>
+
+            <!-- Status Dropdown -->
+            <button
+              [matMenuTriggerFor]="statusMenu"
+              class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition"
+              [ngClass]="
+                user()?.employmentStatus === 'ACTIVE'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : 'bg-rose-50 text-rose-700 border-rose-200'
+              "
+            >
+              {{ user()?.employmentStatus }}
+              <mat-icon class="text-[16px] h-4 w-4">expand_more</mat-icon>
+            </button>
+            <mat-menu #statusMenu="matMenu" class="rounded-xl! min-w-[150px]! bg-white!">
+              <button mat-menu-item (click)="updateStatus('ACTIVE')">
+                <span class="h-2 w-2 rounded-full bg-emerald-500 mr-2"></span> Active
+              </button>
+              <button mat-menu-item (click)="updateStatus('INACTIVE')">
+                <span class="h-2 w-2 rounded-full bg-rose-500 mr-2"></span> Inactive
+              </button>
+              <button mat-menu-item (click)="updateStatus('ON_LEAVE')">
+                <span class="h-2 w-2 rounded-full bg-amber-500 mr-2"></span> On Leave
+              </button>
+              <button mat-menu-item (click)="updateStatus('TERMINATED')">
+                <span class="h-2 w-2 rounded-full bg-slate-500 mr-2"></span> Terminated
+              </button>
+            </mat-menu>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
+          <div>
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">
+              Date of Birth
+            </p>
+            <p class="text-slate-900 font-medium">{{ user()?.dateOfBirth | date }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">Gender</p>
+            <p class="text-slate-900 font-medium">{{ user()?.gender || 'N/A' }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">
+              Grade Level
+            </p>
+            <p class="text-slate-900 font-medium">{{ user()?.gradeLevel || 'N/A' }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">
+              User Role
+            </p>
+            <span
+              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100"
+            >
+              {{ user()?.role?.name }}
+            </span>
+          </div>
+
+          <!-- Manager -->
+          <div class="col-span-1 sm:col-span-2 border-t border-slate-100 pt-4">
+            <div class="flex items-center justify-between mb-1">
+              <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">
+                Reporting Manager
+              </p>
+              <button
+                *ngIf="!editingManager"
+                (click)="editingManager = true"
+                class="text-indigo-600 text-xs font-semibold hover:underline"
+              >
+                Change
+              </button>
+            </div>
+
+            <div *ngIf="!editingManager">
+              <p class="text-slate-900 font-mono text-sm flex items-center gap-2">
+                <mat-icon class="text-slate-400 text-[18px]">supervisor_account</mat-icon>
+                {{ user()?.managerId || 'No Manager Assigned' }}
+              </p>
+            </div>
+
+            <div *ngIf="editingManager" class="flex gap-2 items-center mt-2 animate-fade-in-up">
+              <input
+                #managerInput
+                [value]="user()?.managerId || ''"
+                placeholder="Enter Manager UUID"
+                class="flex-1 px-3 py-1.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-100 outline-none w-full max-w-xs font-mono"
+              />
+              <button
+                (click)="updateManager(managerInput.value)"
+                class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700"
+              >
+                Save
+              </button>
+              <button
+                (click)="editingManager = false"
+                class="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two Columns: Security & Address -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Access & Security -->
+        <div
+          class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 relative overflow-hidden"
+          *ngIf="canManage() || isMe()"
+        >
+          <h3 class="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
+            <mat-icon class="text-slate-400">security</mat-icon>
+            {{ canManage() ? 'Access Control' : 'Security' }}
+          </h3>
+
+          <div class="space-y-4">
+            <!-- Account Enabled Toggle (Admin Only) -->
+            <div
+              *ngIf="canManage()"
+              class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100"
+            >
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Account Access</p>
+                <p class="text-xs text-slate-500">Allow user to login</p>
+              </div>
+              <div
+                class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in"
+              >
+                <input
+                  type="checkbox"
+                  [checked]="user()?.enabled"
+                  (change)="toggleAccess('ENABLED', $any($event.target).checked)"
+                  class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300"
+                  [ngClass]="
+                    user()?.enabled ? 'right-0 border-emerald-500' : 'left-0 border-slate-300'
+                  "
+                />
+                <label
+                  class="toggle-label block overflow-hidden h-5 rounded-full cursor-pointer"
+                  [ngClass]="user()?.enabled ? 'bg-emerald-200' : 'bg-slate-300'"
+                ></label>
+              </div>
+            </div>
+
+            <!-- Account Locked Toggle (Admin Only) -->
+            <div
+              *ngIf="canManage()"
+              class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100"
+            >
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Account Lock</p>
+                <p class="text-xs text-slate-500">Lock user out temporarily</p>
+              </div>
+              <div
+                class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in"
+              >
+                <input
+                  type="checkbox"
+                  [checked]="user()?.accountLocked"
+                  (change)="toggleAccess('LOCKED', $any($event.target).checked)"
+                  class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300"
+                  [ngClass]="
+                    user()?.accountLocked ? 'right-0 border-rose-500' : 'left-0 border-slate-300'
+                  "
+                />
+                <label
+                  class="toggle-label block overflow-hidden h-5 rounded-full cursor-pointer"
+                  [ngClass]="user()?.accountLocked ? 'bg-rose-200' : 'bg-slate-300'"
+                ></label>
+              </div>
+            </div>
+
+            <!-- Security Info -->
+            <div class="pt-2 space-y-2 text-xs text-slate-500">
+              <p *ngIf="user()?.lastLoginAt">
+                <strong>Last Login:</strong> {{ user()?.lastLoginAt | date: 'medium' }}
+              </p>
+              <p *ngIf="user()?.failedLoginAttempts && canManage()">
+                <strong>Failed Attempts:</strong> {{ user()?.failedLoginAttempts }}
+              </p>
+            </div>
+
+            <!-- Change Password -->
+            <div class="pt-4 border-t border-slate-100">
+              <button
+                *ngIf="!changingPassword"
+                (click)="changingPassword = true"
+                class="w-full py-2 border border-slate-200 rounded-xl text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:text-slate-900 flex items-center justify-center gap-2"
+              >
+                <mat-icon class="text-[18px]">key</mat-icon> Change Password
+              </button>
+
+              <div
+                *ngIf="changingPassword"
+                class="space-y-3 animate-fade-in-up bg-slate-50 p-3 rounded-xl"
+              >
+                <p class="text-xs font-semibold text-slate-700">Set New Password</p>
+                <input
+                  #newPass
+                  type="password"
+                  placeholder="New password"
+                  class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-100 outline-none bg-white"
+                />
+                <div class="flex gap-2">
+                  <button
+                    (click)="changePassword(newPass.value)"
+                    class="flex-1 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700"
+                  >
+                    Update
+                  </button>
+                  <button
+                    (click)="changingPassword = false"
+                    class="px-3 py-1.5 bg-white border border-slate-300 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-100"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Address -->
+        <div
+          class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
+          *ngIf="user()?.address as addr"
+        >
+          <h3 class="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
+            <mat-icon class="text-slate-400">home</mat-icon> Address
+          </h3>
+          <div class="flex items-start gap-4">
+            <div
+              class="h-10 w-10 rounded-full bg-slate-100 shrink-0 grid place-items-center text-slate-500"
+            >
+              <span class="material-icons">place</span>
+            </div>
+            <div>
+              <p class="text-slate-900 font-medium">{{ addr.street }}</p>
+              <p class="text-slate-600 text-sm mt-1">
+                {{ addr.city }}, {{ addr.state }}, {{ addr.country }} -
+                <span class="font-semibold">{{ addr.zipCode }}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two Columns: Bank & Emergency -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Bank Details -->
+        <div
+          class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 h-full relative overflow-hidden"
+          *ngIf="user()?.bankDetails as bank"
+        >
+          <div class="absolute -top-6 -right-6 h-24 w-24 bg-emerald-50 rounded-full blur-2xl"></div>
+          <h3 class="font-bold text-slate-900 text-lg mb-4 relative">Bank Details</h3>
+
+          <div class="space-y-4 relative">
+            <div *ngIf="bank.bankName">
+              <p class="text-xs text-slate-500 font-medium uppercase tracking-wider mb-0.5">
+                Bank Name
+              </p>
+              <p class="text-slate-900 font-semibold">{{ bank.bankName }}</p>
+            </div>
+            <div *ngIf="bank.accountNumber">
+              <p class="text-xs text-slate-500 font-medium uppercase tracking-wider mb-0.5">
+                Account Number
+              </p>
+              <p class="text-slate-900 font-mono">{{ bank.accountNumber }}</p>
+            </div>
+            <div *ngIf="bank.ifscCode">
+              <p class="text-xs text-slate-500 font-medium uppercase tracking-wider mb-0.5">
+                IFSC Code
+              </p>
+              <p class="text-slate-900 font-mono">{{ bank.ifscCode }}</p>
+            </div>
+            <div *ngIf="user()?.taxIdPan">
+              <p class="text-xs text-slate-500 font-medium uppercase tracking-wider mb-0.5">
+                PAN (Tax ID)
+              </p>
+              <p class="text-slate-900 font-mono">{{ user()?.taxIdPan }}</p>
+            </div>
+            <div *ngIf="!bank.bankName && !bank.accountNumber">
+              <p class="text-sm text-slate-400 italic">No bank details added.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Emergency Contact -->
+        <div
+          class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 h-full relative overflow-hidden"
+          *ngIf="user()?.emergencyContact as emer"
+        >
+          <div class="absolute -bottom-6 -left-6 h-24 w-24 bg-rose-50 rounded-full blur-2xl"></div>
+
+          <h3 class="font-bold text-slate-900 text-lg mb-4 relative">Emergency Contact</h3>
+
+          <div class="space-y-4 relative">
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 rounded-full bg-rose-50 text-rose-600 grid place-items-center">
+                <span class="material-icons">emergency</span>
+              </div>
+              <div>
+                <p class="text-slate-900 font-bold">{{ emer.contactName }}</p>
+                <p
+                  class="text-slate-500 text-xs font-semibold uppercase tracking-wide bg-slate-100 inline-block px-1.5 rounded mt-0.5"
+                >
+                  {{ emer.relationship }}
+                </p>
+              </div>
+            </div>
+
+            <div class="pl-12">
+              <p class="text-slate-500 text-xs mb-1">Phone Number</p>
+              <a
+                [href]="'tel:' + emer.contactPhone"
+                class="text-slate-900 font-medium flex items-center gap-2 hover:text-indigo-600 transition"
+              >
+                <span class="material-icons text-[16px]">call</span>
+                {{ emer.contactPhone }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

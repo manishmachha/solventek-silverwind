@@ -1,0 +1,278 @@
+<div class="space-y-6 p-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:tracking-tight">
+        Users
+      </h1>
+      <p class="mt-1 text-sm text-gray-500">Manage your organization's users.</p>
+    </div>
+    <div class="flex-none">
+      <button
+        (click)="openAddUserDialog()"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-semibold"
+      >
+        <mat-icon>add</mat-icon> Add User
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+    <form [formGroup]="filterForm" class="grid grid-cols-1 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+      <div class="sm:col-span-2 lg:col-span-3">
+        <div class="relative">
+          <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</mat-icon>
+          <input
+            formControlName="q"
+            placeholder="Search by name or email..."
+            class="block w-full rounded-md border-0 py-2.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm"
+          />
+        </div>
+      </div>
+      <div class="lg:col-span-1">
+        <select
+          formControlName="status"
+          class="block w-full rounded-md border-0 py-2.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm"
+        >
+          <option value="">All Statuses</option>
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+          <option value="TERMINATED">Terminated</option>
+          <option value="RESIGNED">Resigned</option>
+          <option value="ON_LEAVE">On Leave</option>
+        </select>
+      </div>
+      <div class="lg:col-span-2">
+        <select
+          formControlName="department"
+          class="block w-full rounded-md border-0 py-2.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm"
+        >
+          <option value="">All Departments</option>
+          <option value="Engineering">Engineering</option>
+          <option value="Product">Product</option>
+          <option value="HR">HR</option>
+          <option value="Sales">Sales</option>
+        </select>
+      </div>
+    </form>
+  </div>
+
+  <!-- Content Area -->
+  <div class="bg-white shadow sm:rounded-lg overflow-hidden">
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="p-6 space-y-4">
+      <div class="h-12 bg-gray-100 rounded animate-pulse" *ngFor="let i of [1, 2, 3, 4, 5]"></div>
+    </div>
+
+    <!-- Data Loaded State -->
+    <div *ngIf="!loading()">
+      <!-- DESKTOP TABLE VIEW -->
+      <div class="hidden md:block overflow-x-auto">
+        <table
+          mat-table
+          [dataSource]="dataSource"
+          matSort
+          (matSortChange)="onSortChange($event)"
+          class="w-full"
+        >
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+            <td mat-cell *matCellDef="let user">
+              <div class="flex items-center py-2">
+                <div class="h-10 w-10 shrink-0">
+                  <img
+                    class="h-10 w-10 rounded-full bg-gray-100 object-cover"
+                    [src]="
+                      photoUrls()[user.id] ||
+                      user.profilePhotoUrl ||
+                      'https://ui-avatars.com/api/?name=' +
+                        user.firstName +
+                        '+' +
+                        user.lastName +
+                        '&background=random'
+                    "
+                    alt=""
+                  />
+                </div>
+                <div class="ml-4">
+                  <div class="font-medium text-gray-900">
+                    {{ user.firstName }} {{ user.lastName }}
+                  </div>
+                  <div class="text-gray-500 text-sm">{{ user.email }}</div>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Designation Column -->
+          <ng-container matColumnDef="designation">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Designation</th>
+            <td mat-cell *matCellDef="let user">
+              <div class="text-gray-900">{{ user.designation }}</div>
+              <div class="text-gray-500 text-sm">{{ user.department }}</div>
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+            <td mat-cell *matCellDef="let user">
+              <span
+                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                [ngClass]="{
+                  'bg-green-100 text-green-800':
+                    getStatusVariant(user.employmentStatus) === 'success',
+                  'bg-red-100 text-red-800': getStatusVariant(user.employmentStatus) === 'error',
+                  'bg-yellow-100 text-yellow-800':
+                    getStatusVariant(user.employmentStatus) === 'warning',
+                  'bg-gray-100 text-gray-800':
+                    getStatusVariant(user.employmentStatus) === 'default',
+                }"
+              >
+                {{ user.employmentStatus }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Role Column -->
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Role</th>
+            <td mat-cell *matCellDef="let user">
+              <span
+                class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10"
+              >
+                {{ user.role?.name }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Actions</th>
+            <td mat-cell *matCellDef="let user" class="text-right">
+              <div class="flex justify-end gap-2">
+                <a
+                  [routerLink]="['/admin/employees', user.id]"
+                  class="text-sky-600 hover:text-sky-900 cursor-pointer p-1"
+                  title="View Details"
+                >
+                  <mat-icon>visibility</mat-icon>
+                </a>
+                <button
+                  (click)="openEditUserDialog(user)"
+                  class="text-indigo-600 hover:text-indigo-900 p-1"
+                  title="Edit"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            class="hover:bg-slate-50 transition-colors"
+          ></tr>
+        </table>
+      </div>
+
+      <!-- MOBILE CARD VIEW -->
+      <div class="md:hidden grid grid-cols-1 gap-4 p-4 bg-gray-50">
+        <div
+          *ngFor="let user of users()"
+          class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3"
+        >
+          <div class="flex items-start justify-between">
+            <div class="flex items-center gap-3">
+              <img
+                class="h-12 w-12 rounded-full bg-gray-100 object-cover border border-gray-100"
+                [src]="
+                  photoUrls()[user.id] ||
+                  user.profilePhotoUrl ||
+                  'https://ui-avatars.com/api/?name=' +
+                    user.firstName +
+                    '+' +
+                    user.lastName +
+                    '&background=random'
+                "
+                alt=""
+              />
+              <div>
+                <h3 class="font-bold text-gray-900">{{ user.firstName }} {{ user.lastName }}</h3>
+                <p class="text-sm text-gray-500">{{ user.designation }}</p>
+              </div>
+            </div>
+            <span
+              class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+              [ngClass]="{
+                'bg-green-100 text-green-800':
+                  getStatusVariant(user.employmentStatus) === 'success',
+                'bg-red-100 text-red-800': getStatusVariant(user.employmentStatus) === 'error',
+                'bg-yellow-100 text-yellow-800':
+                  getStatusVariant(user.employmentStatus) === 'warning',
+                'bg-gray-100 text-gray-800': getStatusVariant(user.employmentStatus) === 'default',
+              }"
+            >
+              {{ user.employmentStatus }}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-sm mt-1">
+            <div>
+              <span class="text-xs text-gray-400 uppercase font-semibold">Department</span>
+              <p class="text-gray-700">{{ user.department }}</p>
+            </div>
+            <div>
+              <span class="text-xs text-gray-400 uppercase font-semibold">Role</span>
+              <p class="text-gray-700">{{ user.role.name }}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-3 mt-1 border-t border-gray-100">
+            <span class="text-xs text-gray-400 truncate max-w-[150px]">{{ user.email }}</span>
+            <div class="flex gap-1">
+              <a
+                [routerLink]="['/admin/employees', user.id]"
+                class="px-3 py-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                >View</a
+              >
+              <button
+                (click)="openEditUserDialog(user)"
+                class="px-3 py-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"
+              >
+                Edit
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="users().length === 0" class="p-8 text-center">
+        <mat-icon class="text-6xl text-gray-300">people</mat-icon>
+        <h3 class="mt-2 text-sm font-semibold text-gray-900">No users found</h3>
+        <p class="mt-1 text-sm text-gray-500">Try adjusting your search or filters.</p>
+        <button
+          (click)="clearFilters()"
+          class="mt-4 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Clear Filters
+        </button>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator
+        [length]="totalElements()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="[5, 10, 25, 100]"
+        (page)="onPageChange($event)"
+        class="border-t border-gray-200"
+      >
+      </mat-paginator>
+    </div>
+  </div>
+</div>

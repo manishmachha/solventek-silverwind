@@ -1,0 +1,74 @@
+package com.solventek.silverwind.org;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.solventek.silverwind.common.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "organizations")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+public class Organization extends BaseEntity {
+
+    @Column(nullable = false, unique = true)
+    private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrganizationType type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrganizationStatus status;
+
+    // --- Company Details ---
+    private String legalName; // Legal registered name
+    private String registrationNumber; // CIN/GSTIN/Company Registration
+    private String taxId; // Tax ID / PAN
+    private String website;
+    private String industry; // IT, Healthcare, Finance, etc.
+
+    @Column(length = 2000)
+    private String description; // Company description
+
+    // --- Contact Information ---
+    private String email; // Primary contact email
+    private String phone; // Primary contact phone
+    private String addressLine1;
+    private String addressLine2;
+    private String city;
+    private String state;
+    private String country;
+    private String postalCode;
+
+    // --- Primary Contact Person ---
+    private String contactPersonName;
+    private String contactPersonEmail;
+    private String contactPersonPhone;
+    private String contactPersonDesignation;
+
+    // --- Business Details ---
+    private Integer employeeCount; // Number of employees
+    private Integer yearsInBusiness; // Years of operation
+    @Column(length = 1000)
+    private String serviceOfferings; // Comma-separated services offered
+    @Column(length = 1000)
+    private String keyClients; // Notable clients (optional)
+
+    // --- Documents ---
+    private String logoUrl;
+    private String registrationDocUrl; // Certificate of Incorporation
+    private String taxDocUrl; // Tax registration document
+
+    // --- Additional Metadata ---
+    private String referralSource; // How did they find us
+    private String notes; // Internal notes (Solventek admin)
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private String adminPasswordHash; // Temporary storage for admin password during registration
+}

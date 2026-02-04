@@ -1,0 +1,766 @@
+<div class="min-h-screen p-6" *ngIf="application() as app; else loadingTemplate">
+  <div class="max-w-7xl mx-auto space-y-6">
+    <!-- Header Profile Card -->
+    <div class="card-modern p-6 md:p-8 relative overflow-hidden">
+      <!-- Background Decoration -->
+      <div
+        class="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-50 pointer-events-none"
+      ></div>
+
+      <div
+        class="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+      >
+        <div class="flex items-center gap-6 w-full md:w-auto">
+          <div
+            class="h-20 w-20 md:h-24 md:w-24 rounded-full bg-linear-to-br from-indigo-100 to-violet-100 text-indigo-600 flex items-center justify-center font-bold text-3xl shadow-sm border border-white ring-4 ring-white/50"
+          >
+            {{ app.firstName.charAt(0) }}
+          </div>
+          <div class="min-w-0 flex-1">
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight mb-2">
+              {{ app.firstName }} {{ app.lastName }}
+            </h1>
+            <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600">
+              <span
+                class="flex items-center gap-1.5 hover:text-indigo-600 transition-colors cursor-pointer"
+              >
+                <mat-icon class="text-blue-600! text-[18px] w-[18px] h-[18px]">email</mat-icon>
+                {{ app.email }}
+              </span>
+              <span class="flex items-center gap-1.5" *ngIf="app.phone">
+                <mat-icon class="text-green-600! text-[18px] w-[18px] h-[18px]">phone</mat-icon>
+                {{ app.phone }}
+              </span>
+              <span class="flex items-center gap-1.5">
+                <mat-icon class="text-yellow-600! text-[18px] w-[18px] h-[18px]">business</mat-icon>
+                {{ app.currentTitle }} at {{ app.currentCompany }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <div class="relative min-w-[160px]" *ngIf="isManager()">
+            <select
+              [ngModel]="app.status"
+              (ngModelChange)="updateStatus($event)"
+              class="input-modern bg-gray-50/50 font-medium"
+            >
+              <option value="APPLIED">Applied</option>
+              <option value="SHORTLISTED">Shortlisted</option>
+              <option value="INTERVIEW_SCHEDULED">Interview</option>
+              <option value="OFFERED">Offered</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
+
+          <button
+            mat-stroked-button
+            color="primary"
+            (click)="runAnalysis()"
+            [disabled]="analyzing()"
+            *ngIf="isManager()"
+            class="h-[46px]! rounded-xl! px-6! flex-1 sm:flex-none"
+          >
+            <mat-icon class="mr-2">{{ analyzing() ? 'sync' : 'analytics' }}</mat-icon>
+            {{ analyzing() ? 'Analyzing...' : 'Run Analysis' }}
+          </button>
+
+          <button
+            mat-stroked-button
+            (click)="downloadResume()"
+            class="h-[46px]! rounded-xl! px-4! border-2! border-indigo-100! text-indigo-600! hover:bg-indigo-50! flex-1 sm:flex-none"
+          >
+            <mat-icon>download</mat-icon>
+            Resume
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Left Column: Risk Profile (Manager Only) -->
+      <div class="lg:col-span-4 space-y-6" *ngIf="isManager()">
+        <!-- Risk Analysis Card -->
+        <div class="card-modern p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">Risk Profile</h3>
+            <span
+              *ngIf="analysis() as analysisData"
+              class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200"
+            >
+              v{{ analysisData.id }}
+            </span>
+          </div>
+
+          <div *ngIf="analysis(); else noAnalysis" class="relative h-64 w-full mb-6">
+            <canvas
+              baseChart
+              [data]="radarChartData"
+              [options]="radarChartOptions"
+              [type]="radarChartType"
+            >
+            </canvas>
+          </div>
+
+          <!-- Key Metrics -->
+          <div *ngIf="analysis() as analysisData" class="grid grid-cols-2 gap-4">
+            <div
+              class="p-4 rounded-xl border bg-red-50/50 border-red-100 flex flex-col items-center"
+            >
+              <span class="text-xs text-red-600 font-bold uppercase tracking-wider mb-1">Risk</span>
+              <span class="text-3xl font-extrabold text-red-700"
+                >{{ analysisData.overallRiskScore || 0 }}%</span
+              >
+            </div>
+            <div
+              class="p-4 rounded-xl border bg-blue-50/50 border-blue-100 flex flex-col items-center"
+            >
+              <span class="text-xs text-blue-600 font-bold uppercase tracking-wider mb-1"
+                >Consistency</span
+              >
+              <span class="text-3xl font-extrabold text-blue-700"
+                >{{ analysisData.overallConsistencyScore || 0 }}%</span
+              >
+            </div>
+          </div>
+
+          <ng-template #noAnalysis>
+            <div
+              class="flex flex-col items-center justify-center h-64 text-gray-400 bg-gray-50/50 rounded-xl border-2 border-dashed border-gray-200 mb-6"
+            >
+              <mat-icon class="text-4xl mb-3 opacity-30">analytics</mat-icon>
+              <p class="text-sm font-medium">No analysis generated</p>
+              <button mat-button color="primary" class="mt-2" (click)="runAnalysis()">
+                Generate Now
+              </button>
+            </div>
+          </ng-template>
+
+          <!-- Score Guide Accordion -->
+          <mat-accordion
+            class="block mt-6 rounded-xl overflow-hidden border border-gray-100 bg-gray-50/30"
+          >
+            <mat-expansion-panel class="shadow-none! bg-transparent!">
+              <mat-expansion-panel-header class="px-4! h-[48px]!">
+                <mat-panel-title
+                  class="text-xs font-bold text-gray-500! uppercase tracking-wide flex items-center gap-2"
+                >
+                  <mat-icon class="text-blue-500! icon-sm">info</mat-icon> Score Breakdown
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+
+              <div class="grid gap-3 p-4 pt-0">
+                <div
+                  *ngFor="let def of riskDefinitions"
+                  class="flex gap-3 items-start p-2 rounded hover:bg-white/50 transition-colors"
+                >
+                  <div
+                    [class]="
+                      'h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ' +
+                      def.bgColor +
+                      ' ' +
+                      def.color
+                    "
+                  >
+                    <mat-icon class="text-lg">{{ def.icon }}</mat-icon>
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-bold text-gray-900">{{ def.title }}</h4>
+                    <p class="text-[10px] text-gray-500 leading-snug">{{ def.description }}</p>
+                  </div>
+                </div>
+              </div>
+            </mat-expansion-panel>
+          </mat-accordion>
+        </div>
+
+        <!-- Executive Summary -->
+        <div class="card-modern p-6" *ngIf="analysis() as analysisData">
+          <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <mat-icon class="text-violet-500!">summarize</mat-icon> Executive Summary
+          </h3>
+          <div
+            class="prose prose-sm prose-indigo text-gray-600 leading-relaxed bg-violet-50/30 p-4 rounded-xl border border-violet-50"
+          >
+            {{ analysisData.summary }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Details -->
+      <div [class]="isManager() ? 'lg:col-span-8' : 'col-span-12'">
+        <div class="card-modern overflow-hidden min-h-[600px] flex flex-col">
+          <mat-tab-group
+            animationDuration="300ms"
+            mat-stretch-tabs="false"
+            mat-align-tabs="start"
+            class="flex-1"
+          >
+            <!-- Job & Info Tab -->
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <span class="flex items-center gap-2 px-2">
+                  <mat-icon class="text-teal-500!">business_center</mat-icon>
+                  <span class="font-semibold tracking-wide">Job Info</span>
+                </span>
+              </ng-template>
+
+              <div class="p-6 h-full bg-gray-50/30 overflow-y-auto">
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                  <!-- Left: Job Details -->
+                  <div class="xl:col-span-2 space-y-6">
+                    <!-- Job Header Card -->
+                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                      <div class="flex justify-between items-start mb-6">
+                        <div>
+                          <h3 class="text-xl font-bold text-gray-900 mb-3">{{ app.job.title }}</h3>
+                          <div class="flex flex-wrap gap-3">
+                            <span
+                              class="px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-bold uppercase tracking-wide border border-gray-200"
+                            >
+                              {{ app.job.employmentType }}
+                            </span>
+                            <span
+                              class="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wide border border-blue-100"
+                            >
+                              {{ app.job.status }}
+                            </span>
+                            <span
+                              class="px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 text-xs font-bold uppercase tracking-wide border border-purple-100"
+                              *ngIf="app.job.experience"
+                            >
+                              {{ app.job.experience }}+ Years Exp
+                            </span>
+                          </div>
+                        </div>
+                        <!-- Bill Rate (Manager Only) -->
+                        <div
+                          *ngIf="isManager()"
+                          class="text-right bg-green-50 px-4 py-2 rounded-xl border border-green-100"
+                        >
+                          <p
+                            class="text-[10px] text-green-600 font-bold uppercase tracking-wider mb-0.5"
+                          >
+                            Bill Rate
+                          </p>
+                          <p class="text-xl font-extrabold text-green-700">
+                            ${{ app.job.billRate
+                            }}<span class="text-sm font-medium text-green-600">/hr</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div class="space-y-6">
+                        <!-- Description -->
+                        <div>
+                          <h4 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                            <div class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+                              <mat-icon class="icon-sm">description</mat-icon>
+                            </div>
+                            Description
+                          </h4>
+                          <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line pl-1">
+                            {{ app.job.description }}
+                          </p>
+                        </div>
+
+                        <mat-divider></mat-divider>
+
+                        <!-- Requirements -->
+                        <div>
+                          <h4 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                            <div class="p-1.5 rounded-lg bg-amber-50 text-amber-600">
+                              <mat-icon class="icon-sm">task_alt</mat-icon>
+                            </div>
+                            Requirements
+                          </h4>
+                          <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line pl-1">
+                            {{ app.job.requirements }}
+                          </p>
+                        </div>
+
+                        <mat-divider *ngIf="app.job.rolesAndResponsibilities"></mat-divider>
+
+                        <!-- Roles -->
+                        <div *ngIf="app.job.rolesAndResponsibilities">
+                          <h4 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                            <div class="p-1.5 rounded-lg bg-cyan-50 text-cyan-600">
+                              <mat-icon class="icon-sm">badge</mat-icon>
+                            </div>
+                            Roles & Responsibilities
+                          </h4>
+                          <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line pl-1">
+                            {{ app.job.rolesAndResponsibilities }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right: Organizations -->
+                  <div class="space-y-6">
+                    <!-- Organization (Client) Card -->
+                    <div
+                      class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden group hover:border-indigo-300 transition-colors"
+                    >
+                      <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -mr-10 -mt-10 opacity-60 group-hover:opacity-80 transition-opacity"
+                      ></div>
+
+                      <h4
+                        class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 border-b border-gray-50 pb-2"
+                      >
+                        Hiring Organization
+                      </h4>
+
+                      <div class="flex items-center gap-4 mb-5 relative z-10">
+                        <app-organization-logo
+                          [org]="app.job.organization"
+                          [orgId]="app.job.organization?.id"
+                          size="custom"
+                          [rounded]="true"
+                          class="h-14 w-14 block shadow-sm rounded-2xl overflow-hidden bg-white border border-gray-100"
+                        ></app-organization-logo>
+                        <div>
+                          <h3 class="font-bold text-gray-900 text-lg leading-tight">
+                            {{ app.job.organization?.name }}
+                          </h3>
+                          <p
+                            class="text-xs text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded-full inline-block mt-1"
+                          >
+                            {{ app.job.organization?.industry || 'Technology' }}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div class="space-y-3 text-sm relative z-10">
+                        <div
+                          class="flex items-start gap-3 text-gray-600"
+                          *ngIf="app.job.organization?.city || app.job.organization?.country"
+                        >
+                          <mat-icon class="icon-sm text-gray-400 mt-0.5">place</mat-icon>
+                          <span class="font-medium">
+                            {{ app.job.organization?.city
+                            }}<span
+                              *ngIf="app.job.organization?.city && app.job.organization?.country"
+                              >, </span
+                            >{{ app.job.organization?.country }}
+                          </span>
+                        </div>
+                        <div
+                          class="flex items-start gap-3 text-gray-600"
+                          *ngIf="app.job.organization?.website"
+                        >
+                          <mat-icon class="icon-sm text-gray-400 mt-0.5">language</mat-icon>
+                          <a
+                            [href]="'https://' + app.job.organization?.website"
+                            target="_blank"
+                            class="text-indigo-600 hover:underline truncate font-medium"
+                          >
+                            {{ app.job.organization?.website }}
+                          </a>
+                        </div>
+                        <div
+                          class="flex items-start gap-3 text-gray-600"
+                          *ngIf="app.job.organization?.email"
+                        >
+                          <mat-icon class="icon-sm text-gray-400 mt-0.5">email</mat-icon>
+                          <span class="truncate font-medium">{{
+                            app.job.organization?.email
+                          }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Vendor Card (Manager Only) -->
+                    <div
+                      *ngIf="isManager() && app.vendor"
+                      class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden group hover:border-amber-300 transition-colors"
+                    >
+                      <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full blur-3xl -mr-10 -mt-10 opacity-60 group-hover:opacity-80 transition-opacity"
+                      ></div>
+
+                      <h4
+                        class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 border-b border-gray-50 pb-2"
+                      >
+                        Sourced By (Vendor)
+                      </h4>
+
+                      <div class="flex items-center gap-4 mb-5 relative z-10">
+                        <app-organization-logo
+                          [org]="app.vendor"
+                          [orgId]="app.vendor.id"
+                          size="custom"
+                          [rounded]="true"
+                          class="h-14 w-14 block shadow-sm rounded-2xl overflow-hidden bg-white border border-gray-100"
+                        ></app-organization-logo>
+                        <div>
+                          <h3 class="font-bold text-gray-900 text-lg leading-tight">
+                            {{ app.vendor.name }}
+                          </h3>
+                          <p
+                            class="text-xs text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded-full inline-block mt-1"
+                          >
+                            Service Provider
+                          </p>
+                        </div>
+                      </div>
+
+                      <div class="space-y-3 text-sm relative z-10">
+                        <div class="flex items-start gap-3 text-gray-600" *ngIf="app.vendor.email">
+                          <mat-icon class="icon-sm text-gray-400 mt-0.5">email</mat-icon>
+                          <span class="truncate font-medium">{{ app.vendor.email }}</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-gray-600" *ngIf="app.vendor.phone">
+                          <mat-icon class="icon-sm text-gray-400 mt-0.5">phone</mat-icon>
+                          <span class="font-medium">{{ app.vendor.phone }}</span>
+                        </div>
+                        <div
+                          class="flex items-start gap-3 text-gray-600"
+                          *ngIf="app.vendor.website"
+                        >
+                          <mat-icon class="icon-sm text-gray-400 mt-0.5">language</mat-icon>
+                          <a
+                            [href]="'https://' + app.vendor.website"
+                            target="_blank"
+                            class="text-indigo-600 hover:underline truncate font-medium"
+                          >
+                            {{ app.vendor.website }}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Skills Card -->
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                      <h4
+                        class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 border-b border-gray-50 pb-2"
+                      >
+                        Required Skills
+                      </h4>
+                      <div class="flex flex-wrap gap-2">
+                        <ng-container *ngFor="let skill of (app.job.skills || '').split(',')">
+                          <span
+                            class="px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold hover:bg-gray-100 transition-colors cursor-default"
+                            *ngIf="skill.trim()"
+                          >
+                            {{ skill.trim() }}
+                          </span>
+                        </ng-container>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </mat-tab>
+
+            <!-- Red Flags -->
+            <mat-tab *ngIf="isManager()">
+              <ng-template mat-tab-label>
+                <span class="flex items-center gap-2 px-2">
+                  <mat-icon class="text-red-500!">flag</mat-icon>
+                  <span class="font-semibold tracking-wide">Red Flags</span>
+                  <span
+                    class="bg-red-100! text-red-600! text-[10px] px-1.5 py-0.5 rounded-full font-bold"
+                    *ngIf="parsedRedFlags().length"
+                  >
+                    {{ parsedRedFlags().length }}
+                  </span>
+                </span>
+              </ng-template>
+
+              <div class="p-6 bg-gray-50/30 h-full space-y-4">
+                <!-- Empty State -->
+                <div
+                  *ngIf="parsedRedFlags().length === 0"
+                  class="flex flex-col items-center justify-center py-16 text-center"
+                >
+                  <div
+                    class="h-20 w-20 bg-green-50 rounded-full flex items-center justify-center text-green-500 mb-4 shadow-sm border border-green-100"
+                  >
+                    <mat-icon class="text-4xl">verified_user</mat-icon>
+                  </div>
+                  <h3 class="text-lg font-bold text-gray-900">Clean Profile</h3>
+                  <p class="text-gray-500 max-w-xs mx-auto">
+                    AI analysis detected no significant red flags in this application.
+                  </p>
+                </div>
+
+                <!-- Flags List -->
+                <div
+                  *ngFor="let flag of parsedRedFlags()"
+                  class="group bg-white rounded-xl border p-5 transition-all hover:shadow-md hover:border-red-200 relative overflow-hidden"
+                  [ngClass]="getSeverityClass(flag.severity)"
+                >
+                  <div
+                    class="absolute left-0 top-0 bottom-0 w-1"
+                    [ngClass]="{
+                      'bg-red-500': flag.severity === 'HIGH',
+                      'bg-orange-500': flag.severity === 'MEDIUM',
+                    }"
+                  ></div>
+
+                  <div class="flex items-start gap-4">
+                    <div class="mt-1 p-2 rounded-lg bg-red-50 text-red-600">
+                      <mat-icon>warning</mat-icon>
+                    </div>
+                    <div class="flex-1">
+                      <div class="flex justify-between items-center mb-1">
+                        <h4 class="font-bold text-gray-900 capitalize">{{ flag.category }}</h4>
+                        <span
+                          class="text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider bg-white/50"
+                        >
+                          {{ flag.severity }} Level
+                        </span>
+                      </div>
+                      <p class="text-sm text-gray-600">{{ flag.description }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Evidence Section -->
+                <div class="mt-8" *ngIf="parsedEvidence().length">
+                  <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 pl-1">
+                    Evidence Snippets
+                  </h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div
+                      *ngFor="let item of parsedEvidence()"
+                      class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"
+                    >
+                      <div class="text-xs text-indigo-500 font-bold mb-2 uppercase tracking-wide">
+                        {{ item.category }}
+                      </div>
+                      <p
+                        class="text-sm text-gray-600 italic border-l-2 border-indigo-100 pl-3 leading-relaxed"
+                      >
+                        "{{ item.excerpt }}"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </mat-tab>
+
+            <!-- Interview Guide -->
+            <mat-tab *ngIf="isManager()">
+              <ng-template mat-tab-label>
+                <span class="flex items-center gap-2 px-2">
+                  <mat-icon class="text-indigo-500!">quiz</mat-icon>
+                  <span class="font-semibold tracking-wide">Interview</span>
+                </span>
+              </ng-template>
+
+              <div class="p-8 bg-gray-50/30 h-full">
+                <div *ngFor="let category of questionCategories()" class="mb-10 last:mb-0">
+                  <h4 class="text-lg font-bold text-gray-900! mb-4 flex items-center gap-2">
+                    <div class="h-6 w-1 bg-indigo-500! rounded-full"></div>
+                    {{ category }}
+                  </h4>
+                  <ul class="space-y-3 pl-3">
+                    <li
+                      *ngFor="let q of parsedQuestions()[category]"
+                      class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex gap-4 hover:border-indigo-200 transition-colors"
+                    >
+                      <mat-icon class="text-indigo-400! overflow-visible!">help_outline</mat-icon>
+                      <span class="text-gray-700 font-medium leading-relaxed">{{ q }}</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </mat-tab>
+
+            <!-- Documents -->
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <span class="flex items-center gap-2 px-2">
+                  <mat-icon class="text-amber-500!">folder_open</mat-icon>
+                  <span class="font-semibold tracking-wide">Documents</span>
+                </span>
+              </ng-template>
+
+              <div class="p-6 h-full bg-gray-50/30">
+                <!-- Upload -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-8">
+                  <h4 class="text-sm font-bold text-gray-900 mb-4">Upload New Document</h4>
+                  <div class="flex flex-col md:flex-row gap-4 items-end">
+                    <div class="w-full md:w-1/3">
+                      <label
+                        class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5"
+                        >Category</label
+                      >
+                      <select [(ngModel)]="selectedCategory" class="input-modern bg-gray-50">
+                        <option *ngFor="let cat of docCategories" [value]="cat">{{ cat }}</option>
+                      </select>
+                    </div>
+                    <div class="w-full md:flex-1">
+                      <label
+                        class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5"
+                        >File</label
+                      >
+                      <input
+                        type="file"
+                        (change)="onFileSelected($event)"
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-all"
+                      />
+                    </div>
+                    <button
+                      mat-flat-button
+                      color="primary"
+                      [disabled]="isUploading() || !selectedFile"
+                      (click)="uploadDocument()"
+                      class="h-[46px]! rounded-xl! px-6!"
+                    >
+                      {{ isUploading() ? 'Uploading...' : 'Upload' }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Files Grid -->
+                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 pl-1">
+                  Uploaded Files
+                </h3>
+                <div
+                  class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                  *ngIf="documents().length > 0; else noDocs"
+                >
+                  <div
+                    *ngFor="let doc of documents()"
+                    class="group bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all flex items-center gap-4"
+                  >
+                    <div
+                      class="h-10 w-10 rounded-lg bg-amber-50! text-amber-600! flex items-center justify-center"
+                    >
+                      <mat-icon>description</mat-icon>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="font-bold text-gray-900 truncate">{{ doc.fileName }}</p>
+                      <p class="text-xs text-gray-500">{{ doc.category }}</p>
+                    </div>
+                    <button mat-icon-button (click)="downloadDocument(doc)">
+                      <mat-icon class="text-green-700!">download</mat-icon>
+                    </button>
+                  </div>
+                </div>
+                <ng-template #noDocs>
+                  <div
+                    class="text-center py-12 text-gray-400 bg-white rounded-xl border border-dashed border-gray-200"
+                  >
+                    <mat-icon class="text-4xl mb-2 opacity-20">folder_off</mat-icon>
+                    <p>No documents uploaded yet.</p>
+                  </div>
+                </ng-template>
+              </div>
+            </mat-tab>
+
+            <!-- Timeline -->
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <span class="flex items-center gap-2 px-2">
+                  <mat-icon class="text-blue-500!">timeline</mat-icon>
+                  <span class="font-semibold tracking-wide">Timeline</span>
+                </span>
+              </ng-template>
+
+              <div class="p-6 h-full flex flex-col bg-gray-50/30">
+                <!-- Note Input -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-8">
+                  <div class="flex gap-4">
+                    <textarea
+                      [(ngModel)]="newNote"
+                      rows="2"
+                      placeholder="Write a note or comment..."
+                      class="input-modern w-full resize-none"
+                    ></textarea>
+                    <button
+                      mat-mini-fab
+                      color="primary"
+                      [disabled]="!newNote.trim()"
+                      (click)="addNote()"
+                      class="shadow-none!"
+                    >
+                      <mat-icon>send</mat-icon>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Feed -->
+                <div class="space-y-8 relative pl-4">
+                  <div class="absolute top-0 bottom-0 left-[27px] w-px bg-gray-200"></div>
+
+                  <div *ngFor="let event of timeline()" class="relative z-10">
+                    <div class="flex items-start gap-4">
+                      <!-- Icon -->
+                      <div
+                        class="h-10 w-10 rounded-full border-4 border-gray-50 flex items-center justify-center shadow-sm shrink-0"
+                        [ngClass]="{
+                          'bg-blue-500': ['STATUS_CHANGE', 'APPLY'].includes(event.action),
+                          'bg-indigo-500': event.action === 'COMMENT',
+                          'bg-green-500': ['INTERVIEW_SCHEDULE', 'CLIENT_DECISION'].includes(
+                            event.action
+                          ),
+                          'bg-amber-500': event.action === 'DOCUMENT_UPLOAD',
+                        }"
+                      >
+                        <mat-icon class="text-[18px] w-[18px] h-[18px] leading-none text-white!">
+                          {{
+                            event.action === 'COMMENT'
+                              ? 'chat_bubble'
+                              : event.action === 'DOCUMENT_UPLOAD'
+                                ? 'description'
+                                : event.action === 'INTERVIEW_SCHEDULE'
+                                  ? 'event'
+                                  : ['STATUS_CHANGE', 'CLIENT_DECISION'].includes(event.action)
+                                    ? 'check'
+                                    : 'history'
+                          }}
+                        </mat-icon>
+                      </div>
+
+                      <!-- Content -->
+                      <div
+                        class="flex-1 bg-white p-4 rounded-xl border border-gray-200 shadow-sm relative arrow-left"
+                      >
+                        <div class="flex justify-between items-start mb-2">
+                          <span class="font-bold text-gray-900 text-sm">{{
+                            event.title || event.action
+                          }}</span>
+                          <span class="text-xs text-gray-400 font-medium">{{
+                            event.createdAt | date: 'short'
+                          }}</span>
+                        </div>
+                        <p class="text-sm text-gray-600 leading-relaxed">{{ event.message }}</p>
+                        <div
+                          class="mt-2 text-xs text-gray-400 font-medium"
+                          *ngIf="event.actorUserId"
+                        >
+                          By User #{{ event.actorUserId.substring(0, 8) }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </mat-tab>
+          </mat-tab-group>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingTemplate>
+  <div class="flex flex-col justify-center items-center h-screen w-full bg-gray-50/50">
+    <div class="relative">
+      <div
+        class="h-16 w-16 rounded-full border-4 border-indigo-100 border-t-indigo-500 animate-spin"
+      ></div>
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="h-8 w-8 rounded-full bg-white"></div>
+      </div>
+    </div>
+    <p class="mt-6 text-gray-500 font-medium animate-pulse tracking-wide">Loading Application...</p>
+  </div>
+</ng-template>

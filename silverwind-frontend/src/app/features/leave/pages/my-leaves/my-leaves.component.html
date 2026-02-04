@@ -1,0 +1,227 @@
+<div class="p-6">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-900">My Leaves</h1>
+    <p class="text-gray-500 mt-1">Check balances, apply for leave, and view history.</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex border-b border-gray-200 mb-8">
+    <button
+      (click)="activeTab.set('dashboard')"
+      [class.border-indigo-600]="activeTab() === 'dashboard'"
+      [class.text-indigo-600]="activeTab() === 'dashboard'"
+      class="px-6 py-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 transition-colors flex items-center gap-2"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
+        />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
+        />
+      </svg>
+      Balances
+    </button>
+    <button
+      (click)="activeTab.set('apply')"
+      [class.border-indigo-600]="activeTab() === 'apply'"
+      [class.text-indigo-600]="activeTab() === 'apply'"
+      class="px-6 py-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 transition-colors flex items-center gap-2"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Apply for Leave
+    </button>
+    <button
+      (click)="activeTab.set('history')"
+      [class.border-indigo-600]="activeTab() === 'history'"
+      [class.text-indigo-600]="activeTab() === 'history'"
+      class="px-6 py-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 transition-colors flex items-center gap-2"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+      History
+    </button>
+  </div>
+
+  <!-- Dashboard / Balances -->
+  <div *ngIf="activeTab() === 'dashboard'" class="animate-fade-in-up">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div
+        *ngFor="let balance of balances()"
+        class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col items-center"
+      >
+        <h3 class="font-bold text-gray-900 mb-2">{{ balance.leaveTypeName }}</h3>
+        <div class="h-32 w-32 relative mb-4">
+          <canvas
+            baseChart
+            [data]="getChartData(balance)"
+            [type]="'doughnut'"
+            [options]="doughnutChartOptions"
+          ></canvas>
+          <div
+            class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
+          >
+            <span class="text-2xl font-bold text-gray-900">{{ balance.remainingDays }}</span>
+            <span class="text-xs text-gray-500">Left</span>
+          </div>
+        </div>
+        <div
+          class="w-full flex justify-between text-sm text-gray-500 mt-2 bg-gray-50 p-2 rounded-lg"
+        >
+          <span>Allocated: {{ balance.allocatedDays }}</span>
+          <span>Used: {{ balance.usedDays }}</span>
+        </div>
+      </div>
+
+      <div
+        *ngIf="balances().length === 0"
+        class="col-span-full py-12 text-center text-gray-500 bg-gray-50 rounded-xl border-dashed border-2 border-gray-200"
+      >
+        Balances not initialized.
+      </div>
+    </div>
+  </div>
+
+  <!-- Apply Form -->
+  <div
+    *ngIf="activeTab() === 'apply'"
+    class="max-w-2xl bg-white p-8 rounded-xl shadow-sm border border-gray-200 animate-fade-in-up"
+  >
+    <h3 class="text-lg font-bold text-gray-900 mb-6">New Leave Request</h3>
+
+    <form [formGroup]="applyForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Leave Type</label>
+        <select
+          formControlName="leaveTypeId"
+          class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+        >
+          <option value="">Select a type</option>
+          <option *ngFor="let type of leaveTypes()" [value]="type.id">
+            {{ type.name }} ({{ type.accrualFrequency }})
+          </option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+          <input
+            type="date"
+            formControlName="startDate"
+            class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+          <input
+            type="date"
+            formControlName="endDate"
+            class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Reason</label>
+        <textarea
+          formControlName="reason"
+          rows="3"
+          placeholder="Reason for leave..."
+          class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+        ></textarea>
+      </div>
+
+      <div class="flex justify-end pt-4">
+        <button
+          type="submit"
+          [disabled]="submitting() || applyForm.invalid"
+          class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-md disabled:opacity-50 transition-all hover:-translate-y-0.5"
+        >
+          {{ submitting() ? 'Submitting...' : 'Submit Application' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- History -->
+  <div
+    *ngIf="activeTab() === 'history'"
+    class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-fade-in-up"
+  >
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-gray-50 text-gray-500 text-sm uppercase">
+          <tr>
+            <th class="px-6 py-3 font-medium">Applied On</th>
+            <th class="px-6 py-3 font-medium">Type</th>
+            <th class="px-6 py-3 font-medium">Dates</th>
+            <th class="px-6 py-3 font-medium">Status</th>
+            <th class="px-6 py-3 font-medium">Reason / Remarks</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let req of history()">
+            <td class="px-6 py-4 text-sm text-gray-500">
+              {{ req.createdAt | date: 'mediumDate' }}
+            </td>
+            <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ req.leaveTypeName }}</td>
+            <td class="px-6 py-4 text-sm text-gray-500">
+              {{ req.startDate | date: 'MMM d' }} - {{ req.endDate | date: 'MMM d, y' }}
+            </td>
+            <td class="px-6 py-4">
+              <span
+                class="px-2 py-1 rounded-full text-xs font-semibold"
+                [ngClass]="{
+                  'bg-yellow-100 text-yellow-800': req.status === 'PENDING',
+                  'bg-green-100 text-green-800': req.status === 'APPROVED',
+                  'bg-red-100 text-red-800': req.status === 'REJECTED',
+                }"
+              >
+                {{ req.status }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+              {{ req.rejectionReason ? 'Rejected: ' + req.rejectionReason : req.reason }}
+            </td>
+          </tr>
+          <tr *ngIf="history().length === 0">
+            <td colspan="5" class="px-6 py-8 text-center text-gray-500">No leave history found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,8 @@
+{
+  "/api": {
+    "target": "http://prod-server-placeholder",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

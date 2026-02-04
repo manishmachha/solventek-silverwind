@@ -1,0 +1,33 @@
+# Ignore node_modules
+node_modules/
+
+# Ignore build output
+dist/
+.angular/
+
+# Ignore IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Ignore Git
+.git/
+.gitignore
+
+# Ignore logs
+*.log
+npm-debug.log*
+
+# Ignore test files
+coverage/
+*.spec.ts
+
+# Ignore documentation
+*.md
+docs/
+
+# Ignore environment files with secrets
+.env
+.env.local
+.env.*.local

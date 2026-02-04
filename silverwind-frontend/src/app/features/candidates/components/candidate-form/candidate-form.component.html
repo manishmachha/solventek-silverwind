@@ -1,0 +1,229 @@
+<div class="max-w-4xl mx-auto p-6 space-y-8">
+  <!-- Header -->
+  <div class="md:flex md:items-center md:justify-between">
+    <div class="min-w-0 flex-1">
+      <h2
+        class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight"
+      >
+        {{ isEditMode() ? 'Edit Candidate' : 'New Candidate' }}
+      </h2>
+    </div>
+  </div>
+
+  <!-- Resume Upload Area (Only for New) -->
+  <div *ngIf="!isEditMode()" class="bg-white shadow sm:rounded-lg p-6">
+    <h3 class="text-lg font-medium leading-6 text-gray-900">Upload Resume</h3>
+    <div
+      class="mt-4 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-indigo-500 hover:bg-gray-50 transition-colors"
+    >
+      <div class="space-y-1 text-center">
+        <svg
+          class="mx-auto h-12 w-12 text-gray-400"
+          stroke="currentColor"
+          fill="none"
+          viewBox="0 0 48 48"
+          aria-hidden="true"
+        >
+          <path
+            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <div class="flex text-sm text-gray-600">
+          <label
+            for="file-upload"
+            class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+          >
+            <span>Upload a file</span>
+            <input
+              id="file-upload"
+              name="file-upload"
+              type="file"
+              class="sr-only"
+              (change)="onFileSelected($event)"
+              accept=".pdf,.docx,.txt"
+            />
+          </label>
+          <p class="pl-1">or drag and drop</p>
+        </div>
+        <p class="text-xs text-gray-500">PDF, DOCX, TXT up to 10MB</p>
+      </div>
+    </div>
+
+    <app-loading-modal
+      [isOpen]="uploading() || parsing()"
+      [title]="parsing() ? 'Analyzing with AI...' : 'Uploading...'"
+      [message]="parsing() ? 'Extracting details from resume' : 'Please wait'"
+    ></app-loading-modal>
+
+    <div *ngIf="uploadError()" class="mt-4 p-4 rounded-md bg-red-50 text-red-700">
+      {{ uploadError() }}
+    </div>
+  </div>
+
+  <!-- Form -->
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    class="bg-white shadow sm:rounded-lg p-6 space-y-6"
+  >
+    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Candidate Details</h3>
+
+    <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+      <div class="sm:col-span-3">
+        <label for="first-name" class="block text-sm font-medium text-gray-700 mb-1"
+          >First name</label
+        >
+        <div class="mt-1">
+          <input
+            type="text"
+            formControlName="firstName"
+            id="first-name"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full px-4 py-3 sm:text-base border-gray-300 rounded-lg transition ease-in-out duration-150"
+          />
+        </div>
+      </div>
+
+      <div class="sm:col-span-3">
+        <label for="last-name" class="block text-sm font-medium text-gray-700 mb-1"
+          >Last name</label
+        >
+        <div class="mt-1">
+          <input
+            type="text"
+            formControlName="lastName"
+            id="last-name"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full px-4 py-3 sm:text-base border-gray-300 rounded-lg transition ease-in-out duration-150"
+          />
+        </div>
+      </div>
+
+      <div class="sm:col-span-4">
+        <label for="email" class="block text-sm font-medium text-gray-700 mb-1"
+          >Email address</label
+        >
+        <div class="mt-1">
+          <input
+            id="email"
+            formControlName="email"
+            type="email"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full px-4 py-3 sm:text-base border-gray-300 rounded-lg transition ease-in-out duration-150"
+          />
+        </div>
+      </div>
+
+      <div class="sm:col-span-3">
+        <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+        <div class="mt-1">
+          <input
+            type="text"
+            formControlName="phone"
+            id="phone"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full px-4 py-3 sm:text-base border-gray-300 rounded-lg transition ease-in-out duration-150"
+          />
+        </div>
+      </div>
+
+      <div class="sm:col-span-3">
+        <label for="city" class="block text-sm font-medium text-gray-700 mb-1">City</label>
+        <div class="mt-1">
+          <input
+            type="text"
+            formControlName="city"
+            id="city"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full px-4 py-3 sm:text-base border-gray-300 rounded-lg transition ease-in-out duration-150"
+          />
+        </div>
+      </div>
+
+      <div class="sm:col-span-3">
+        <label for="designation" class="block text-sm font-medium text-gray-700 mb-1"
+          >Current Designation</label
+        >
+        <div class="mt-1">
+          <input
+            type="text"
+            formControlName="currentDesignation"
+            id="designation"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full px-4 py-3 sm:text-base border-gray-300 rounded-lg transition ease-in-out duration-150"
+          />
+        </div>
+      </div>
+
+      <div class="sm:col-span-3">
+        <label for="experience" class="block text-sm font-medium text-gray-700 mb-1"
+          >Experience (Years)</label
+        >
+        <div class="mt-1">
+          <input
+            type="number"
+            formControlName="experienceYears"
+            id="experience"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full px-4 py-3 sm:text-base border-gray-300 rounded-lg transition ease-in-out duration-150"
+          />
+        </div>
+      </div>
+
+      <div class="sm:col-span-6">
+        <label for="skills" class="block text-sm font-medium text-gray-700 mb-1"
+          >Skills (comma separated)</label
+        >
+        <div class="mt-1">
+          <input
+            type="text"
+            formControlName="skills"
+            id="skills"
+            placeholder="e.g. Java, Angular, AWS"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full px-4 py-3 sm:text-base border-gray-300 rounded-lg transition ease-in-out duration-150"
+          />
+        </div>
+      </div>
+
+      <div class="sm:col-span-6">
+        <label for="linkedin" class="block text-sm font-medium text-gray-700 mb-1"
+          >LinkedIn URL</label
+        >
+        <div class="mt-1">
+          <input
+            type="text"
+            formControlName="linkedInUrl"
+            id="linkedin"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full px-4 py-3 sm:text-base border-gray-300 rounded-lg transition ease-in-out duration-150"
+          />
+        </div>
+      </div>
+
+      <div class="sm:col-span-6">
+        <label for="summary" class="block text-sm font-medium text-gray-700 mb-1">Summary</label>
+        <div class="mt-1">
+          <textarea
+            id="summary"
+            formControlName="summary"
+            rows="4"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full px-4 py-3 sm:text-base border-gray-300 rounded-lg transition ease-in-out duration-150"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end pt-5">
+      <button
+        type="button"
+        routerLink="/candidates"
+        class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        [disabled]="form.invalid || saving()"
+        class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+      >
+        {{ saving() ? 'Saving...' : 'Save' }}
+      </button>
+    </div>
+  </form>
+</div>

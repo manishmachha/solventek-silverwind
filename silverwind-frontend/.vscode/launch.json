@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Dog",
+            "request": "launch",
+            "mainClass": "com.solventek.silverwind.rbac.Dog",
+            "projectName": "silverwind"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-SilverwindApplication<silverwind>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.solventek.silverwind.SilverwindApplication",
+            "projectName": "silverwind",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=50480 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=silverwind"
+        }
+    ]
+}

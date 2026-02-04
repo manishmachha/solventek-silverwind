@@ -1,0 +1,295 @@
+<!-- Hero Section -->
+<div class="relative min-h-screen bg-slate-900 overflow-hidden">
+  <!-- Animated Background Blobs -->
+  <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+    <div
+      class="absolute top-0 left-1/4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"
+    ></div>
+    <div
+      class="absolute top-0 right-1/4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"
+    ></div>
+    <div
+      class="absolute -bottom-8 left-1/3 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"
+    ></div>
+  </div>
+
+  <!-- Hero Content -->
+  <section
+    class="relative z-10 container mx-auto pt-36 px-6 min-h-screen flex flex-col justify-center items-center text-center pb-12"
+  >
+    <span
+      class="inline-block py-1 px-3 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-semibold mb-6 backdrop-blur-sm"
+    >
+      Accelerate Your Digital Journey
+    </span>
+    <h1 class="text-4xl md:text-6xl font-bold mb-8 text-white tracking-tight leading-tight">
+      Help Your Business Survive and Thrive in <br />
+      <span
+        class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500"
+        >The Digital World</span
+      >
+    </h1>
+    <p class="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto mb-12 leading-relaxed">
+      Solventek provided the means, tools, and resources to help in your Digital Transformation
+      journey from ideation through implementation.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-6">
+      <a
+        mat-flat-button
+        color="primary"
+        class="!py-6 !px-8 !text-lg !rounded-full shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all transform hover:-translate-y-1"
+        routerLink="/contact"
+      >
+        Get Started
+      </a>
+      <a
+        mat-stroked-button
+        class="!py-6 !px-8 !text-lg !rounded-full !text-white !border-slate-600 hover:!bg-slate-800 transition-all"
+        routerLink="/services"
+      >
+        Explore Services
+      </a>
+    </div>
+
+    <!-- Stats Row -->
+    <div
+      class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20 w-full max-w-5xl glass-effect rounded-2xl p-8 border border-white/5"
+    >
+      @for (stat of stats; track stat.label) {
+        <div>
+          <div class="text-3xl md:text-4xl font-bold text-white mb-2">{{ stat.value }}</div>
+          <div class="text-slate-400 text-sm font-medium uppercase tracking-wider">
+            {{ stat.label }}
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+</div>
+
+<!-- Featured Services -->
+<section class="py-24 bg-slate-900 relative overflow-hidden">
+  <!-- Decoration -->
+  <div
+    class="absolute top-0 right-0 w-1/3 h-full bg-blue-900/10 skew-x-12 transform origin-top-right backdrop-blur-3xl"
+  ></div>
+
+  <div class="container mx-auto px-6 relative z-10">
+    <div class="flex flex-col md:flex-row justify-between items-end mb-16">
+      <div class="max-w-2xl">
+        <h2 class="text-3xl md:text-5xl font-bold mb-4 text-white">Our Expertise</h2>
+        <p class="text-xl text-slate-400">
+          Comprehensive services tailored to your digital evolution
+        </p>
+      </div>
+      <a
+        mat-stroked-button
+        color="primary"
+        class="!hidden md:!inline-flex !text-lg !border-slate-700 !text-blue-400 hover:!bg-blue-500/10"
+        routerLink="/services"
+      >
+        View All Services <mat-icon>arrow_forward</mat-icon>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @for (service of services(); track service.id) {
+        <mat-card
+          class="group !bg-slate-800/50 !border-slate-700 hover:!border-blue-500/50 hover:!bg-slate-800 transition-all duration-300 cursor-pointer h-full"
+        >
+          <mat-card-header class="pt-6">
+            <div
+              mat-card-avatar
+              class="bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center rounded-lg shadow-lg group-hover:scale-110 transition-transform duration-300"
+            >
+              <mat-icon>{{ service.icon }}</mat-icon>
+            </div>
+            <mat-card-title
+              class="!text-xl !font-bold !text-slate-100 group-hover:!text-blue-400 transition-colors"
+              >{{ service.title }}</mat-card-title
+            >
+          </mat-card-header>
+          <mat-card-content class="pt-4 pb-6 grow">
+            <p class="text-slate-400 group-hover:text-slate-300 transition-colors">
+              {{ service.description }}
+            </p>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+
+    <div class="text-center mt-12 md:hidden">
+      <a mat-button color="primary" class="!text-lg" routerLink="/services"
+        >View All Services <mat-icon>arrow_forward</mat-icon></a
+      >
+    </div>
+  </div>
+</section>
+
+<!-- Our Work Showcase -->
+<section class="py-24 bg-slate-900 relative border-t border-slate-800">
+  <div class="container mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl md:text-5xl font-bold mb-4 text-white">Our Work Showcase</h2>
+      <p class="text-xl text-slate-400">Delivering impact across industries</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      @for (study of caseStudies(); track study.id) {
+        <div
+          class="group rounded-2xl overflow-hidden border border-slate-700 shadow-lg hover:shadow-2xl hover:border-blue-500/50 transition-all duration-300 bg-slate-800"
+        >
+          <div class="h-48 bg-slate-700 relative overflow-hidden">
+            <!-- Real Image -->
+            <img
+              [src]="study.imageUrl"
+              [alt]="study.title"
+              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+
+            <!-- Overlay -->
+            <div
+              class="absolute inset-0 bg-slate-900/60 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+            >
+              <span
+                class="text-white font-bold border border-white/50 px-6 py-2 rounded-full hover:bg-white hover:text-slate-900 transition-all"
+                >View Case Study</span
+              >
+            </div>
+          </div>
+          <div class="p-6">
+            <div class="text-blue-400 text-sm font-bold uppercase mb-2">
+              {{ study.category }}
+            </div>
+            <h3
+              class="text-xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors"
+            >
+              {{ study.title }}
+            </h3>
+            <p class="text-slate-400 mb-4 line-clamp-3">{{ study.description }}</p>
+            <div class="flex flex-wrap gap-2">
+              @for (res of study.results; track res) {
+                <span
+                  class="text-xs bg-blue-900/40 text-blue-300 border border-blue-500/20 px-2 py-1 rounded-full font-medium"
+                  >{{ res }}</span
+                >
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Pega Partner Section -->
+<section class="py-20 bg-slate-800 relative overflow-hidden border-t border-slate-700">
+  <div class="container mx-auto px-6 relative z-10">
+    <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+      <!-- Logo Column -->
+      <div class="w-full lg:w-1/3 flex justify-center">
+        <div
+          class="p-8 bg-white rounded-2xl shadow-xl hover:scale-105 transition-transform duration-500 relative before:absolute before:inset-0 before:bg-blue-500/10 before:rounded-2xl"
+        >
+          <img
+            src="https://mma.prnewswire.com/media/625233/Pega_Logo.jpg"
+            alt="Pega Systems"
+            class="w-full h-auto object-contain max-w-[250px] relative z-10"
+          />
+        </div>
+      </div>
+
+      <!-- Content Column -->
+      <div class="w-full lg:w-2/3 text-left">
+        <div class="text-blue-400 font-bold uppercase tracking-wide mb-2">
+          Strategic Partnership
+        </div>
+        <h2 class="text-3xl md:text-5xl font-bold mb-6 text-white">
+          We are partners with <span class="text-blue-400">Pega Systems</span>
+        </h2>
+
+        <p class="text-lg text-slate-300 mb-6 leading-relaxed">
+          Transforming the world's biggest enterprises is a team effort. Pega proudly partners with
+          world class organizations that share our commitment to delivering excellence.
+        </p>
+
+        <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-600 shadow-inner">
+          <h3 class="text-xl font-bold mb-3 text-white">What is PEGA?</h3>
+          <p class="text-slate-400 leading-relaxed">
+            Pega is a <strong class="text-blue-300">no-code/low-code platform</strong> that allows
+            non-technical people to build complex apps. It empowers business process owners to work
+            directly with developers to automate processes and improve customer experience.
+            <br /><br />
+            Everything about Pega starts with the business need and evolves to continually improve.
+            By using "Cases" to mirror manual processes, Pega allows teams to focus on solving
+            customer issues rather than data entry.
+          </p>
+        </div>
+
+        <div class="mt-8">
+          <a
+            mat-button
+            class="!text-lg font-bold !text-blue-400 hover:!bg-blue-500/10"
+            href="https://www.pega.com"
+            target="_blank"
+            >Learn more about Pega <mat-icon>open_in_new</mat-icon></a
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tech Stack -->
+<section class="py-20 bg-slate-900 border-t border-slate-800">
+  <div class="container mx-auto px-6 text-center">
+    <p class="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-10">
+      Technologies & Platforms we work with
+    </p>
+    <div class="flex flex-wrap justify-center items-center gap-12">
+      @for (tech of techStack; track tech.name) {
+        <div class="flex flex-col items-center gap-3 group">
+          <div
+            class="w-32 h-20 flex items-center justify-center p-2 transition-all duration-300 hover:-translate-y-1 bg-gray-200 rounded-lg border border-white/5 hover:bg-white/10"
+          >
+            <img
+              [src]="tech.logoUrl"
+              [alt]="tech.name"
+              class="max-w-full max-h-full object-contain"
+            />
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="py-24 bg-slate-900 relative overflow-hidden text-center">
+  <!-- Decoration -->
+  <div class="absolute inset-0 overflow-hidden">
+    <div
+      class="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-3xl opacity-30 animate-pulse"
+    ></div>
+    <div
+      class="absolute -bottom-1/2 -left-1/4 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-3xl opacity-30 animate-pulse animation-delay-2000"
+    ></div>
+  </div>
+
+  <div class="container mx-auto px-6 relative z-10">
+    <h2 class="text-4xl md:text-6xl font-bold mb-8 text-white tracking-tight">
+      Ready to start your transformation?
+    </h2>
+    <p class="text-xl md:text-2xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
+      Join the many enterprises that trust Solventek for their most critical digital initiatives.
+    </p>
+    <a
+      mat-flat-button
+      color="primary"
+      class="!py-8 !px-12 !text-xl !font-bold !rounded-full shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-1 transition-all"
+      routerLink="/contact"
+    >
+      Contact Us Today
+    </a>
+  </div>
+</section>

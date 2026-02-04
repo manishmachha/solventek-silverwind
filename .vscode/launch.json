@@ -1,0 +1,14 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-SilverwindApplication<silverwind>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.solventek.silverwind.SilverwindApplication",
+      "projectName": "silverwind",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}

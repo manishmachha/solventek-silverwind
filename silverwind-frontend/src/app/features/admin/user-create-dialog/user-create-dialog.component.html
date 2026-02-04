@@ -1,0 +1,464 @@
+<div class="relative w-full sm:w-auto sm:min-w-[600px] max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 
+         bg-white shadow-xl">
+    <!-- Decorative gradient -->
+    <div class="pointer-events-none absolute inset-x-0 top-0 h-32"></div>
+    <div class="pointer-events-none absolute -top-24 -right-24 h-56 w-56 rounded-full bg-indigo-300/30 blur-3xl"></div>
+    <div class="pointer-events-none absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-sky-300/30 blur-3xl"></div>
+
+    <!-- HEADER -->
+    <div class="sticky top-0 z-10 backdrop-blur bg-white/70 border-b border-slate-200">
+        <div class="px-4 sm:px-6 pt-5 pb-4">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <div class="h-11 w-11 rounded-2xl grid place-items-center text-white shadow-sm shrink-0">
+                        <span class="material-icons text-black">badge</span>
+                    </div>
+
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+                            {{ isEditMode ? 'Edit User' : 'Create New User' }}
+                        </h2>
+                        <p class="text-sm text-slate-500 mt-1">
+                            Fill the details below. Fields with <span class="text-rose-600 font-semibold">*</span> are
+                            required.
+                        </p>
+                    </div>
+                </div>
+
+                <button type="button" (click)="dialogRef.close()" class="h-10 w-10 rounded-xl grid place-items-center text-slate-500 hover:text-slate-800
+                 hover:bg-slate-100 transition active:scale-95 shrink-0" aria-label="Close dialog">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <!-- STEP INDICATOR -->
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+                <ng-container *ngFor="let s of steps; let i = index">
+                    <button type="button" (click)="goToStep(i)"
+                        class="px-3 py-1.5 rounded-full text-xs font-semibold border transition"
+                        [class.bg-slate-900]="step === i" [class.text-white]="step === i"
+                        [class.border-slate-900]="step === i" [class.bg-white]="step !== i"
+                        [class.text-slate-600]="step !== i" [class.border-slate-200]="step !== i">
+                        {{ i + 1 }}. {{ s }}
+                    </button>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+
+    <!-- BODY -->
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="px-6 py-6">
+
+        <!-- STEP 1: Account -->
+        <div *ngIf="step === 0" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+            <!-- Employee Code -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Employee Code</label>
+                <div class="relative">
+                    <span
+                        class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">confirmation_number</span>
+                    <input formControlName="employeeCode" placeholder="e.g., EMP001"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+
+            <!-- Username -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Username</label>
+                <div class="relative">
+                    <span
+                        class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">account_circle</span>
+                    <input formControlName="username" placeholder="e.g., johndoe"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+
+            <!-- First Name -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                    First Name <span class="text-rose-600">*</span>
+                </label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">person</span>
+                    <input formControlName="firstName" placeholder="e.g., John"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition"
+                        [class.border-rose-400]="c('firstName')?.invalid && c('firstName')?.touched" />
+                </div>
+                <p *ngIf="c('firstName')?.hasError('required') && c('firstName')?.touched"
+                    class="mt-1.5 text-xs text-rose-600">
+                    First name is required
+                </p>
+            </div>
+
+            <!-- Last Name -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Last Name <span class="text-rose-600">*</span>
+                </label>
+                <div class="relative">
+                    <span
+                        class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">person_outline</span>
+                    <input formControlName="lastName" placeholder="e.g., Doe"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition"
+                        [class.border-rose-400]="c('lastName')?.invalid && c('lastName')?.touched" />
+                </div>
+                <p *ngIf="c('lastName')?.hasError('required') && c('lastName')?.touched"
+                    class="mt-1.5 text-xs text-rose-600">
+                    Last name is required
+                </p>
+            </div>
+
+            <!-- Email -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Email <span class="text-rose-600">*</span>
+                </label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">mail</span>
+                    <input formControlName="email" type="email" placeholder="name@company.com" [readonly]="isEditMode"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition"
+                        [class.border-rose-400]="c('email')?.invalid && c('email')?.touched"
+                        [class.bg-slate-50]="isEditMode" />
+                </div>
+                <p *ngIf="c('email')?.hasError('required') && c('email')?.touched" class="mt-1.5 text-xs text-rose-600">
+                    Email is required
+                </p>
+                <p *ngIf="c('email')?.hasError('email') && c('email')?.touched" class="mt-1.5 text-xs text-rose-600">
+                    Enter a valid email
+                </p>
+                <p *ngIf="isEditMode" class="mt-1 text-xs text-slate-500">Email cannot be changed</p>
+            </div>
+
+            <!-- Phone -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Phone</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">call</span>
+                    <input formControlName="phone" placeholder="+91 9876543210"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+
+            <!-- Role -->
+            <div class="group sm:col-span-2">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Role <span class="text-rose-600">*</span>
+                </label>
+                <div class="relative">
+                    <span
+                        class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">admin_panel_settings</span>
+                    <select formControlName="roleId"
+                        class="w-full appearance-none pl-10 pr-10 py-2.5 rounded-xl border bg-white text-slate-800
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition">
+                        <option value="" disabled>Select a role</option>
+                        <option *ngFor="let role of availableRoles" [value]="role.id">{{ role.name }}</option>
+                    </select>
+                    <span
+                        class="material-icons absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                </div>
+                <p *ngIf="c('roleId')?.hasError('required') && c('roleId')?.touched"
+                    class="mt-1.5 text-xs text-rose-600">
+                    Role is required
+                </p>
+            </div>
+        </div>
+
+        <!-- STEP 2: Employment -->
+        <div *ngIf="step === 1" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+            <!-- Date of Birth -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Date of Birth</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">cake</span>
+                    <input type="date" formControlName="dateOfBirth"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+
+            <!-- Gender -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Gender</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">wc</span>
+                    <select formControlName="gender"
+                        class="w-full appearance-none pl-10 pr-10 py-2.5 rounded-xl border bg-white text-slate-800
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition">
+                        <option [ngValue]="null">Select gender</option>
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                    <span
+                        class="material-icons absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                </div>
+            </div>
+
+            <!-- Date of Joining -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Date of Joining</label>
+                <div class="relative">
+                    <span
+                        class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">calendar_month</span>
+                    <input type="date" formControlName="dateOfJoining"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+
+            <!-- Employment Status -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Status</label>
+                <div class="relative">
+                    <span
+                        class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">toggle_on</span>
+                    <select formControlName="employmentStatus"
+                        class="w-full appearance-none pl-10 pr-10 py-2.5 rounded-xl border bg-white text-slate-800
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition">
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
+                        <option value="ON_NOTICE">On Notice</option>
+                        <option value="ON_LEAVE">On Leave</option>
+                        <option value="TERMINATED">Terminated</option>
+                        <option value="RESIGNED">Resigned</option>
+                    </select>
+                    <span
+                        class="material-icons absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                </div>
+            </div>
+
+            <!-- Department -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Department</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">domain</span>
+                    <input formControlName="department" placeholder="e.g., Engineering"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+
+            <!-- Designation -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Designation</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">work</span>
+                    <input formControlName="designation" placeholder="e.g., Software Engineer"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+
+            <!-- Employment Type -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Employment Type</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">badge</span>
+                    <select formControlName="employmentType"
+                        class="w-full appearance-none pl-10 pr-10 py-2.5 rounded-xl border bg-white text-slate-800
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition">
+                        <option value="FTE">Full Time</option>
+                        <option value="PART_TIME">Part Time</option>
+                        <option value="CONTRACT">Contract</option>
+                        <option value="C2H">Contract to Hire</option>
+                        <option value="INTERN">Intern</option>
+                    </select>
+                    <span
+                        class="material-icons absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                </div>
+            </div>
+
+            <!-- Work Location -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Work Location</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">place</span>
+                    <input formControlName="workLocation" placeholder="e.g., Hyderabad"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+
+            <!-- Grade Level -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Grade Level</label>
+                <div class="relative">
+                    <span
+                        class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">military_tech</span>
+                    <input formControlName="gradeLevel" placeholder="e.g., L2"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+
+            <!-- Profile Photo URL -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Profile Photo URL</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">link</span>
+                    <input formControlName="profilePhotoUrl" placeholder="https://..."
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: Address -->
+        <div *ngIf="step === 2" formGroupName="address" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="group sm:col-span-2">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Street Address</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">home</span>
+                    <input formControlName="street" placeholder="123 Main Street"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">City</label>
+                <div class="relative">
+                    <span
+                        class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">location_city</span>
+                    <input formControlName="city" placeholder="e.g., Hyderabad"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">State</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">map</span>
+                    <input formControlName="state" placeholder="e.g., Telangana"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Country</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">public</span>
+                    <input formControlName="country" placeholder="e.g., India"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Zip Code</label>
+                <div class="relative">
+                    <span
+                        class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">markunread_mailbox</span>
+                    <input formControlName="zipCode" placeholder="e.g., 500001"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 4: Other -->
+        <div *ngIf="step === 3" class="space-y-6">
+            <!-- Emergency Contact -->
+            <div formGroupName="emergencyContact" class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <h4 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <span class="material-icons text-rose-500">emergency</span> Emergency Contact
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="group">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Contact Name</label>
+                        <input formControlName="contactName" placeholder="John Doe" class="w-full px-3 py-2 rounded-lg border bg-white text-slate-800 placeholder:text-slate-400
+                     border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+                    </div>
+                    <div class="group">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Relationship</label>
+                        <input formControlName="relationship" placeholder="e.g., Spouse" class="w-full px-3 py-2 rounded-lg border bg-white text-slate-800 placeholder:text-slate-400
+                     border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+                    </div>
+                    <div class="group">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+                        <input formControlName="contactPhone" placeholder="+91 9876543210" class="w-full px-3 py-2 rounded-lg border bg-white text-slate-800 placeholder:text-slate-400
+                     border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+                    </div>
+                    <div class="group">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                        <input formControlName="contactEmail" type="email" placeholder="contact@email.com" class="w-full px-3 py-2 rounded-lg border bg-white text-slate-800 placeholder:text-slate-400
+                     border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bank Details -->
+            <div formGroupName="bankDetails" class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <h4 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <span class="material-icons text-emerald-500">account_balance</span> Bank Details
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="group">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Bank Name</label>
+                        <input formControlName="bankName" placeholder="e.g., State Bank" class="w-full px-3 py-2 rounded-lg border bg-white text-slate-800 placeholder:text-slate-400
+                     border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+                    </div>
+                    <div class="group">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Account Number</label>
+                        <input formControlName="accountNumber" placeholder="XXXX-XXXX-XXXX" class="w-full px-3 py-2 rounded-lg border bg-white text-slate-800 placeholder:text-slate-400
+                     border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+                    </div>
+                    <div class="group">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">IFSC Code</label>
+                        <input formControlName="ifscCode" placeholder="ABCD0001234" class="w-full px-3 py-2 rounded-lg border bg-white text-slate-800 placeholder:text-slate-400
+                     border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+                    </div>
+                    <div class="group">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Branch Name</label>
+                        <input formControlName="branchName" placeholder="e.g., Main Branch" class="w-full px-3 py-2 rounded-lg border bg-white text-slate-800 placeholder:text-slate-400
+                     border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tax ID -->
+            <div class="group">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">PAN / Tax ID</label>
+                <div class="relative">
+                    <span
+                        class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">receipt_long</span>
+                    <input formControlName="taxIdPan" placeholder="e.g., ABCDE1234F"
+                        class="w-full pl-10 pr-3 py-2.5 rounded-xl border bg-white text-slate-800 placeholder:text-slate-400
+                   border-slate-200 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-300 transition" />
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER / ACTIONS -->
+        <div class="flex items-center justify-between pt-6 mt-6 border-t border-slate-200">
+            <button type="button" *ngIf="step > 0" (click)="back()"
+                class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition flex items-center gap-1">
+                <span class="material-icons text-[18px]">arrow_back</span> Back
+            </button>
+            <span *ngIf="step === 0"></span>
+
+            <button type="button" *ngIf="step < steps.length - 1" (click)="next()"
+                class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition flex items-center gap-1 shadow-sm">
+                Next <span class="material-icons text-[18px]">arrow_forward</span>
+            </button>
+
+            <button type="submit" *ngIf="step === steps.length - 1" [disabled]="isSaving"
+                class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition flex items-center gap-2 shadow-sm disabled:opacity-50">
+                <span *ngIf="isSaving"
+                    class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                <span>{{ isSaving ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update User' : 'Create
+                    User') }}</span>
+            </button>
+        </div>
+    </form>
+</div>

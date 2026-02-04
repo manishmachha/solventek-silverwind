@@ -1,0 +1,440 @@
+<div class="p-6 bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Ticket Management</h1>
+      <p class="text-gray-500 mt-1">Manage and resolve employee support requests.</p>
+    </div>
+    <button
+      class="group h-12 px-6 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 cursor-pointer text-white text-base font-semibold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 border border-white/10"
+      (click)="openCreateDialog()"
+    >
+      <mat-icon class="transition-transform duration-300 group-hover:rotate-90">add</mat-icon>
+      <span>Raise New Ticket</span>
+    </button>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Tickets -->
+    <div
+      class="relative overflow-hidden rounded-2xl p-6 border border-blue-100 bg-linear-to-br from-blue-50 to-indigo-50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 group"
+    >
+      <div
+        class="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all"
+      ></div>
+      <div class="relative z-10">
+        <div class="flex justify-between items-start mb-4">
+          <div class="p-2 bg-white rounded-lg shadow-sm border border-blue-100">
+            <mat-icon class="text-blue-600">confirmation_number</mat-icon>
+          </div>
+          <span
+            class="flex items-center text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-1 rounded-full"
+          >
+            All Time
+          </span>
+        </div>
+        <div class="text-3xl font-bold text-gray-900 mb-1">{{ allTickets.length }}</div>
+        <div class="text-sm font-medium text-gray-500 mb-4">Total Tickets</div>
+        <!-- Progress (Always 100%) -->
+        <div class="w-full bg-blue-200 rounded-full h-1.5 overflow-hidden">
+          <div class="bg-blue-600 h-1.5 rounded-full" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active / Pending -->
+    <div
+      class="relative overflow-hidden rounded-2xl p-6 border border-amber-100 bg-linear-to-br from-amber-50 to-orange-50 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300 group"
+    >
+      <div
+        class="absolute -right-6 -top-6 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all"
+      ></div>
+      <div class="relative z-10">
+        <div class="flex justify-between items-start mb-4">
+          <div class="p-2 bg-white rounded-lg shadow-sm border border-amber-100">
+            <mat-icon class="text-amber-600">pending_actions</mat-icon>
+          </div>
+        </div>
+        <div class="text-3xl font-bold text-gray-900 mb-1">{{ getOpenCount() }}</div>
+        <div class="text-sm font-medium text-gray-500 mb-4">Active / Pending</div>
+        <!-- Progress -->
+        <div class="w-full bg-amber-200 rounded-full h-1.5 overflow-hidden">
+          <div
+            class="bg-amber-500 h-1.5 rounded-full transition-all duration-1000"
+            [style.width.%]="(getOpenCount() / (allTickets.length || 1)) * 100"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resolved -->
+    <div
+      class="relative overflow-hidden rounded-2xl p-6 border border-emerald-100 bg-linear-to-br from-emerald-50 to-teal-50 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 group"
+    >
+      <div
+        class="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all"
+      ></div>
+      <div class="relative z-10">
+        <div class="flex justify-between items-start mb-4">
+          <div class="p-2 bg-white rounded-lg shadow-sm border border-emerald-100">
+            <mat-icon class="text-emerald-600">check_circle</mat-icon>
+          </div>
+        </div>
+        <div class="text-3xl font-bold text-gray-900 mb-1">{{ getResolvedCount() }}</div>
+        <div class="text-sm font-medium text-gray-500 mb-4">Resolved</div>
+        <!-- Progress -->
+        <div class="w-full bg-emerald-200 rounded-full h-1.5 overflow-hidden">
+          <div
+            class="bg-emerald-500 h-1.5 rounded-full transition-all duration-1000"
+            [style.width.%]="(getResolvedCount() / (allTickets.length || 1)) * 100"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- High Priority -->
+    <div
+      class="relative overflow-hidden rounded-2xl p-6 border border-rose-100 bg-linear-to-br from-rose-50 to-pink-50 hover:shadow-lg hover:shadow-rose-500/10 transition-all duration-300 group"
+    >
+      <div
+        class="absolute -right-6 -top-6 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl group-hover:bg-rose-500/20 transition-all"
+      ></div>
+      <div class="relative z-10">
+        <div class="flex justify-between items-start mb-4">
+          <div class="p-2 bg-white rounded-lg shadow-sm border border-rose-100">
+            <mat-icon class="text-rose-600">flag</mat-icon>
+          </div>
+          <span
+            class="flex items-center text-xs font-semibold text-rose-700 bg-rose-100 px-2 py-1 rounded-full"
+          >
+            Action Needed
+          </span>
+        </div>
+        <div class="text-3xl font-bold text-gray-900 mb-1">{{ getHighPriorityCount() }}</div>
+        <div class="text-sm font-medium text-gray-500 mb-4">High Priority</div>
+        <!-- Progress -->
+        <div class="w-full bg-rose-200 rounded-full h-1.5 overflow-hidden">
+          <div
+            class="bg-rose-500 h-1.5 rounded-full transition-all duration-1000"
+            [style.width.%]="(getHighPriorityCount() / (allTickets.length || 1)) * 100"
+          ></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tickets Table -->
+  <div
+    class="bg-white rounded-xl shadow-lg shadow-gray-200/50 border border-gray-100 overflow-hidden"
+  >
+    <!-- Filters -->
+    <div class="p-4 border-b grid grid-cols-1 md:grid-cols-4 gap-4 bg-white/50 items-end">
+      <div class="w-full">
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1"
+          >Status</label
+        >
+        <select
+          class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+          [(ngModel)]="filterStatus"
+          (change)="applyFilter()"
+        >
+          <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+
+      <div class="col-span-1 md:col-span-3">
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1"
+          >Search</label
+        >
+        <div class="relative w-full">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <mat-icon class="text-gray-400 text-lg w-5 h-5 flex items-center justify-center"
+              >search</mat-icon
+            >
+          </div>
+          <input
+            type="text"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
+            placeholder="Search ticket ID, employee, subject..."
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="applyFilter()"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="overflow-x-auto hidden md:block">
+      <table mat-table [dataSource]="dataSource" matSort class="w-full">
+        <!-- ID Column -->
+        <ng-container matColumnDef="ticketNumber">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="px-6 py-4 font-bold text-gray-600 bg-gray-50"
+          >
+            Ticket ID
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let ticket"
+            class="px-6 py-4 font-mono text-sm text-indigo-600 font-medium"
+          >
+            {{ ticket.ticketNumber }}
+          </td>
+        </ng-container>
+
+        <!-- Target Organization Column -->
+        <ng-container matColumnDef="targetOrganization">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="px-6 py-4 font-bold text-gray-600 bg-gray-50"
+          >
+            Target Org
+          </th>
+          <td mat-cell *matCellDef="let ticket" class="px-6 py-4">
+            <span
+              *ngIf="ticket.targetOrganization"
+              class="px-2 py-1 rounded text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100 block w-fit"
+            >
+              {{ ticket.targetOrganization.name }}
+              <span class="text-[10px] text-indigo-400 block font-normal">{{
+                ticket.targetOrganization.type | titlecase
+              }}</span>
+            </span>
+            <span *ngIf="!ticket.targetOrganization" class="text-gray-400 text-xs italic"> - </span>
+          </td>
+        </ng-container>
+
+        <!-- Employee Column (New) -->
+        <ng-container matColumnDef="employee">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="px-6 py-4 font-bold text-gray-600 bg-gray-50"
+          >
+            Requester
+          </th>
+          <td mat-cell *matCellDef="let ticket" class="px-6 py-4">
+            <div class="flex items-center gap-2">
+              <div
+                class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600"
+              >
+                {{ ticket.employee.firstName.charAt(0) }}
+              </div>
+              <div class="text-sm font-medium text-gray-900">
+                {{ ticket.employee.firstName }} {{ ticket.employee.lastName }}
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Subject Column -->
+        <ng-container matColumnDef="subject">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="px-6 py-4 font-bold text-gray-600 bg-gray-50"
+          >
+            Subject
+          </th>
+          <td mat-cell *matCellDef="let ticket" class="px-6 py-4">
+            <div class="flex items-center gap-2">
+              <div class="font-medium text-gray-900">{{ ticket.subject }}</div>
+              <mat-icon
+                *ngIf="ticket.unreadCountForAdmin > 0"
+                class="text-red-500 w-5 h-5 text-sm flex items-center justify-center animate-pulse"
+                matTooltip="New updates available"
+              >
+                notifications_active
+              </mat-icon>
+            </div>
+            <div class="text-xs text-gray-500 truncate max-w-xs" [matTooltip]="ticket.description">
+              {{ ticket.description }}
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Type Column -->
+        <ng-container matColumnDef="type">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="px-6 py-4 font-bold text-gray-600 bg-gray-50"
+          >
+            Type
+          </th>
+          <td mat-cell *matCellDef="let ticket" class="px-6 py-4">
+            <span
+              class="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-700 uppercase tracking-wide border border-gray-200"
+            >
+              {{ ticket.type | titlecase }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Priority Column -->
+        <ng-container matColumnDef="priority">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="px-6 py-4 font-bold text-gray-600 bg-gray-50"
+          >
+            Priority
+          </th>
+          <td mat-cell *matCellDef="let ticket" class="px-6 py-4">
+            <span
+              [ngClass]="getPriorityClass(ticket.priority)"
+              class="flex items-center gap-1 font-medium"
+            >
+              <mat-icon class="text-[16px] w-[16px] h-[16px]">flag</mat-icon>
+              {{ ticket.priority | titlecase }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="px-6 py-4 font-bold text-gray-600 bg-gray-50"
+          >
+            Status
+          </th>
+          <td mat-cell *matCellDef="let ticket" class="px-6 py-4">
+            <span
+              [ngClass]="getStatusClass(ticket.status)"
+              class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border bg-opacity-10"
+            >
+              {{ ticket.status.replace('_', ' ') }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Date Column -->
+        <ng-container matColumnDef="createdAt">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="px-6 py-4 font-bold text-gray-600 bg-gray-50"
+          >
+            Date
+          </th>
+          <td mat-cell *matCellDef="let ticket" class="px-6 py-4 text-gray-500">
+            {{ ticket.createdAt | date: 'mediumDate' }}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          class="hover:bg-gray-50 transition cursor-pointer"
+          [routerLink]="['/admin/tickets', row.id]"
+          [class.bg-blue-50]="row.unreadCountForAdmin > 0"
+          [class.border-l-4]="row.unreadCountForAdmin > 0"
+          [class.border-blue-500]="row.unreadCountForAdmin > 0"
+        ></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell text-center p-8 text-gray-500" colspan="7">
+            No tickets found matching filters.
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="md:hidden space-y-4 p-4">
+      <div
+        *ngFor="let ticket of dataSource.data"
+        class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3 relative overflow-hidden"
+        [routerLink]="['/admin/tickets', ticket.id]"
+        [class.border-l-4]="(ticket?.unreadCountForAdmin ?? 0) > 0"
+        [class.border-l-blue-500]="(ticket?.unreadCountForAdmin ?? 0) > 0"
+      >
+        <div *ngIf="(ticket?.unreadCountForAdmin ?? 0) > 0" class="absolute top-0 right-0 p-2">
+          <span class="flex h-3 w-3 relative">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"
+            ></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+          </span>
+        </div>
+
+        <div class="flex justify-between items-start pr-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span
+                class="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded"
+              >
+                {{ ticket?.ticketNumber }}
+              </span>
+              <span
+                class="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-gray-200"
+              >
+                {{ ticket?.type | titlecase }}
+              </span>
+            </div>
+
+            <div class="flex items-center gap-2 mt-2 text-xs text-gray-500">
+              <span class="font-semibold text-gray-800"
+                >{{ ticket.employee.firstName }} {{ ticket.employee.lastName }}</span
+              >
+            </div>
+
+            <div class="font-bold text-gray-900 mt-1 text-lg leading-tight">
+              {{ ticket?.subject }}
+            </div>
+            <div class="text-xs text-gray-500 mt-1 truncate max-w-[250px]">
+              {{ ticket?.description }}
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-3 grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <span class="text-gray-500 text-xs uppercase block mb-0.5">Priority</span>
+            <span
+              [ngClass]="getPriorityClass(ticket?.priority || 'LOW')"
+              class="font-bold uppercase text-xs flex items-center gap-1"
+            >
+              <mat-icon class="text-[14px] w-[14px] h-[14px]">flag</mat-icon>
+              {{ ticket?.priority }}
+            </span>
+          </div>
+          <div>
+            <span class="text-gray-500 text-xs uppercase block mb-0.5">Status</span>
+            <span
+              [ngClass]="getStatusClass(ticket?.status || 'OPEN')"
+              class="font-bold text-xs px-2 py-0.5 rounded inline-block"
+            >
+              {{ ticket?.status?.replace('_', ' ') }}
+            </span>
+          </div>
+          <div class="col-span-2 pt-1 border-t border-gray-200 mt-1">
+            <span class="text-xs text-gray-400"
+              >Raised on {{ ticket?.createdAt | date: 'mediumDate' }}</span
+            >
+          </div>
+        </div>
+      </div>
+      <div *ngIf="dataSource.data.length === 0" class="text-center p-8 text-gray-500 italic">
+        No tickets found matching filters.
+      </div>
+    </div>
+
+    <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+  </div>
+</div>

@@ -1,0 +1,32 @@
+# Ignore build artifacts
+target/
+!target/*.jar
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# Ignore Git
+.git/
+.gitignore
+
+# Ignore uploads (they should be in S3 in production)
+uploads/
+
+# Ignore Maven wrapper JAR (it's in .mvn)
+!.mvn/wrapper/maven-wrapper.jar
+
+# Ignore SQL files
+*.sql
+
+# Ignore documentation
+*.md
+docs/

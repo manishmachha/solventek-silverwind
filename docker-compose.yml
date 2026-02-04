@@ -1,0 +1,106 @@
+# Docker Compose for Silverwind - Development Environment
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: silverwind-db
+    environment:
+      POSTGRES_DB: silverwind
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d silverwind"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - silverwind-network
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./silverwind-backend
+      dockerfile: Dockerfile
+    container_name: silverwind-backend
+    environment:
+      # Database
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/silverwind
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
+      # AWS S3 (disabled by default for local dev)
+      AWS_S3_ENABLED: ${AWS_S3_ENABLED:-false}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-solventek-silverwind}
+      AWS_REGION: ${AWS_REGION:-eu-north-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      # JWT
+      APP_JWT_SECRET: ${JWT_SECRET:-9a4f2c8d3b7a1e6f4a5d0c3b2a1e9d8c7b6a5e4d2a1b9c8d3e5f7a0c1b4d2e6f}
+      # Google AI (optional)
+      SPRING_AI_GOOGLE_GENAI_API_KEY: ${GOOGLE_AI_API_KEY:-}
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads:/app/uploads
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/actuator/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    networks:
+      - silverwind-network
+
+  # Angular Frontend with Nginx
+  frontend:
+    build:
+      context: ./silverwind-frontend
+      dockerfile: Dockerfile
+    container_name: silverwind-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
+    networks:
+      - silverwind-network
+
+volumes:
+  pgdata:
+    driver: local
+  uploads:
+    driver: local
+
+networks:
+  silverwind-network:
+    driver: bridge

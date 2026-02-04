@@ -1,0 +1,90 @@
+# Docker Compose for Silverwind - Production Environment
+# Uses pre-built images from container registry
+version: "3.8"
+
+services:
+  # Spring Boot Backend
+  backend:
+    image: ${DOCKER_REGISTRY}/silverwind-backend:${IMAGE_TAG:-latest}
+    container_name: silverwind-backend
+    restart: always
+    environment:
+      # Database (use external RDS)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT:-5432}/${DB_NAME:-silverwind}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      # AWS S3 (enabled in production)
+      AWS_S3_ENABLED: "true"
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      # JWT
+      APP_JWT_SECRET: ${JWT_SECRET}
+      # Google AI
+      SPRING_AI_GOOGLE_GENAI_API_KEY: ${GOOGLE_AI_API_KEY:-}
+      # JVM
+      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+    expose:
+      - "8080"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/actuator/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    networks:
+      - silverwind-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Angular Frontend with Nginx
+  frontend:
+    image: ${DOCKER_REGISTRY}/silverwind-frontend:${IMAGE_TAG:-latest}
+    container_name: silverwind-frontend
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      # SSL certificates (mount from host)
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
+    networks:
+      - silverwind-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  silverwind-network:
+    driver: bridge

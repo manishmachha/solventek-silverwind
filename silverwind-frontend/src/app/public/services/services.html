@@ -1,0 +1,114 @@
+<!-- Hero Section -->
+<div class="relative pt-32 pb-20 bg-slate-900 overflow-hidden">
+  <!-- Background Decorations -->
+  <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+    <div class="absolute top-1/4 -left-10 w-72 h-72 bg-blue-600/20 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 right-0 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="container mx-auto px-6 relative z-10 text-center">
+    <span class="text-blue-400 font-bold tracking-wider uppercase mb-4 block">Our Expertise</span>
+    <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+      End-to-End
+      <span class="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-500"
+        >Digital Solutions</span
+      >
+    </h1>
+    <p class="text-xl text-slate-400 max-w-2xl mx-auto">
+      We empower businesses with cutting-edge technology, strategic consulting, and creative design
+      to drive sustainable growth.
+    </p>
+  </div>
+</div>
+
+<!-- Services Grid -->
+<div class="bg-slate-900 min-h-screen pb-24">
+  <div class="container mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      @for (service of services(); track service.id) {
+        <div
+          class="group relative p-1 rounded-2xl bg-gradient-to-b from-slate-700 to-slate-800 hover:from-blue-500 hover:to-purple-600 transition-all duration-500"
+        >
+          <div class="bg-slate-900 h-full rounded-xl p-8 relative overflow-hidden">
+            <!-- Icon -->
+            <div
+              class="w-16 h-16 bg-slate-800 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/20"
+            >
+              <mat-icon
+                class="w-8! h-8! text-[2rem]! text-blue-400! group-hover:text-white! transition-colors"
+                >{{ service.icon }}</mat-icon
+              >
+            </div>
+
+            <!-- Content -->
+            <h3
+              class="text-2xl font-bold text-white mb-4 group-hover:text-blue-300 transition-colors"
+            >
+              {{ service.title }}
+            </h3>
+            <p class="text-slate-400 mb-6 leading-relaxed">{{ service.description }}</p>
+
+            <!-- Expanded Features -->
+            @if (service.features) {
+              <ul class="space-y-3 mb-8">
+                @for (feature of service.features; track feature) {
+                  <li class="flex items-start gap-3 text-sm text-slate-300">
+                    <mat-icon class="w-5! h-5! text-[1.25rem]! text-green-400! shrink-0"
+                      >check_circle</mat-icon
+                    >
+                    <span>{{ feature }}</span>
+                  </li>
+                }
+              </ul>
+            }
+
+            <!-- CTA -->
+            <div class="mt-auto">
+              <a
+                mat-button
+                color="primary"
+                class="px-0! group-hover:translate-x-2! transition-transform duration-300"
+                routerLink="/contact"
+              >
+                <span class="group-hover:mr-2 transition-all">Get Started</span>
+                <mat-icon>arrow_forward</mat-icon>
+              </a>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Why Choose Us -->
+    <div class="mt-32 border-t border-slate-800 pt-20">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl font-bold text-white mb-4">Why Choose Solventek?</h2>
+        <p class="text-slate-400">Your trusted partner in digital excellence</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        <div class="p-6">
+          <div class="text-4xl mb-4">🌍</div>
+          <h4 class="text-xl font-bold text-white mb-2">Global Presence</h4>
+          <p class="text-slate-400">
+            Serving clients across continents with diverse cultural understanding.
+          </p>
+        </div>
+        <div class="p-6">
+          <div class="text-4xl mb-4">💡</div>
+          <h4 class="text-xl font-bold text-white mb-2">Innovation First</h4>
+          <p class="text-slate-400">
+            Staying ahead of the curve with the latest in AI, Cloud, and Low-Code.
+          </p>
+        </div>
+        <div class="p-6">
+          <div class="text-4xl mb-4">🤝</div>
+          <h4 class="text-xl font-bold text-white mb-2">Client Centric</h4>
+          <p class="text-slate-400">
+            Your success is our success. We build long-term partnerships.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

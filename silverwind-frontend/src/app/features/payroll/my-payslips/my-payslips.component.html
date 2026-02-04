@@ -1,0 +1,124 @@
+<div class="p-6 max-w-[1600px] mx-auto space-y-8 animate-fade-in">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 tracking-tight">My Payslips</h1>
+      <p class="text-sm text-gray-500 mt-1">View and download your payslips.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <select [(ngModel)]="selectedYear" (change)="loadPayslips()"
+        class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Charts Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in-up" *ngIf="!isLoading()">
+    <app-net-pay-trend-chart [payslips]="payslips()" [year]="selectedYear"></app-net-pay-trend-chart>
+    <app-salary-breakdown-chart [salaryStructure]="salaryStructure()"></app-salary-breakdown-chart>
+  </div>
+
+  <!-- Content -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
+    <!-- Loading State -->
+    <div *ngIf="isLoading()" class="p-12 text-center">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent"></div>
+      <p class="mt-4 text-gray-500 font-medium">Loading payslips...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading() && payslips().length === 0" class="p-16 text-center">
+      <div class="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <i class="bi bi-file-earmark-text text-3xl text-gray-400"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900">No Payslips Found</h3>
+      <p class="text-gray-500 mt-1 max-w-sm mx-auto">
+        No payslips available for {{ selectedYear }}.
+      </p>
+    </div>
+
+    <!-- Data Table -->
+    <div *ngIf="!isLoading() && payslips().length > 0" class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-gray-50/50 border-b border-gray-200">
+          <tr>
+            <th class="px-6 py-4 font-semibold text-gray-600 w-40">Period</th>
+            <th class="px-6 py-4 font-semibold text-gray-600 text-right">Earnings</th>
+            <th class="px-6 py-4 font-semibold text-gray-600 text-right">Deductions</th>
+            <th class="px-6 py-4 font-semibold text-gray-600 text-right">Net Pay</th>
+            <th class="px-6 py-4 font-semibold text-gray-600 w-24 text-center">Status</th>
+            <th class="px-6 py-4 font-semibold text-gray-600 w-32 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let p of payslips()" class="hover:bg-gray-50/50 transition-colors">
+            <td class="px-6 py-4 font-medium text-gray-900">
+              {{ getMonthName(p.month) }} {{ p.year }}
+            </td>
+            <td class="px-6 py-4 text-right text-emerald-600 font-medium">
+              ₹{{ p.totalEarnings | number: '1.2-2' }}
+            </td>
+            <td class="px-6 py-4 text-right text-red-500">
+              ₹{{ p.totalDeductions | number: '1.2-2' }}
+            </td>
+            <td class="px-6 py-4 text-right font-bold text-gray-900">
+              ₹{{ p.netPay | number: '1.2-2' }}
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border" [ngClass]="
+                  p.status === 'PAID'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                ">
+                {{ p.status }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <button (click)="downloadPayslip(p)" [disabled]="isDownloading === p.id"
+                class="text-indigo-600 hover:text-indigo-700 text-sm font-medium hover:underline disabled:opacity-50">
+                <i class="bi bi-download mr-1"></i>
+                {{ isDownloading === p.id ? 'Downloading...' : 'Download' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Salary Structure Card -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200/60 p-6" *ngIf="salaryStructure()">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">My Salary Structure</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-gray-50 rounded-lg p-4">
+        <p class="text-xs text-gray-500 uppercase">Basic</p>
+        <p class="text-lg font-semibold text-gray-900">
+          ₹{{ salaryStructure()!.basic | number: '1.2-2' }}
+        </p>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-4">
+        <p class="text-xs text-gray-500 uppercase">HRA</p>
+        <p class="text-lg font-semibold text-gray-900">
+          ₹{{ salaryStructure()!.hra | number: '1.2-2' }}
+        </p>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-4">
+        <p class="text-xs text-gray-500 uppercase">DA</p>
+        <p class="text-lg font-semibold text-gray-900">
+          ₹{{ salaryStructure()!.da | number: '1.2-2' }}
+        </p>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-4">
+        <p class="text-xs text-gray-500 uppercase">EPF Deduction</p>
+        <p class="text-lg font-semibold text-red-600">
+          ₹{{ salaryStructure()!.epfDeduction | number: '1.2-2' }}
+        </p>
+      </div>
+    </div>
+    <div class="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
+      <span class="text-gray-600">Total CTC (Annual)</span>
+      <span class="text-xl font-bold text-indigo-600">₹{{ salaryStructure()!.ctc | number: '1.2-2' }}</span>
+    </div>
+  </div>
+</div>
