@@ -3827,3 +3827,83 @@ Unconditional classes:
 2026-02-04 12:58:43.591 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
 2026-02-04 12:58:43.593 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-15 - Shutdown initiated...
 2026-02-04 12:58:43.594 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-15 - Shutdown completed.
+2026-02-04 14:04:23.624 [main] INFO  c.s.s.SilverwindApplicationTests - Starting SilverwindApplicationTests using Java 21.0.10 with PID 35761 (started by manishmachha in /Users/manishmachha/Desktop/MyWorkspace/solventek-silverwind/silverwind-backend)
+2026-02-04 14:04:23.625 [main] DEBUG c.s.s.SilverwindApplicationTests - Running with Spring Boot v4.0.2, Spring v7.0.3
+2026-02-04 14:04:23.625 [main] INFO  c.s.s.SilverwindApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-02-04 14:04:23.940 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-04 14:04:24.006 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 63 ms. Found 27 JPA repository interfaces.
+2026-02-04 14:04:24.192 [main] INFO  org.hibernate.orm.jpa - HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-02-04 14:04:24.214 [main] INFO  org.hibernate.orm.core - HHH000001: Hibernate ORM core version 7.2.1.Final
+2026-02-04 14:04:24.352 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-04 14:04:24.363 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-04 14:04:24.429 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@64d1f549
+2026-02-04 14:04:24.429 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-04 14:04:24.446 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-02-04 14:04:24.454 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/silverwind]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 18.1
+	Default catalog/schema: silverwind/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-02-04 14:04:24.959 [main] INFO  org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-02-04 14:04:25.035 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-04 14:04:25.280 [main] INFO  o.s.a.v.pgvector.PgVectorStore - Using the vector table name: vector_store. Is empty: false
+2026-02-04 14:04:25.281 [main] INFO  o.s.a.v.pgvector.PgVectorStore - Initializing PGVectorStore schema for table: vector_store in schema: public
+2026-02-04 14:04:25.282 [main] INFO  o.s.a.v.pgvector.PgVectorStore - vectorTableValidationsEnabled false
+2026-02-04 14:04:25.321 [main] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-04 14:04:25.861 [main] INFO  c.s.s.storage.LocalStorageService - Initializing Local Storage Service at: /Users/manishmachha/Desktop/MyWorkspace/solventek-silverwind/silverwind-backend/uploads
+2026-02-04 14:04:25.862 [main] INFO  c.s.s.storage.LocalStorageService - Local Storage Service initialized successfully
+2026-02-04 14:04:25.898 [main] INFO  o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2026-02-04 14:04:26.202 [main] INFO  c.s.silverwind.config.AsyncConfig - Analysis ThreadPoolTaskExecutor initialized - Core: 5, Max: 20, Queue: 100
+2026-02-04 14:04:26.226 [main] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-04 14:04:26.531 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint beneath base path '/actuator'
+2026-02-04 14:04:26.557 [main] INFO  c.s.s.SilverwindApplicationTests - Started SilverwindApplicationTests in 3.061 seconds (process running for 3.419)
+2026-02-04 14:04:26.889 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-04 14:04:26.890 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-02-04 14:04:26.892 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-02-04 14:04:38.620 [main] INFO  c.s.s.SilverwindApplicationTests - Starting SilverwindApplicationTests using Java 21.0.10 with PID 35925 (started by manishmachha in /Users/manishmachha/Desktop/MyWorkspace/solventek-silverwind/silverwind-backend)
+2026-02-04 14:04:38.620 [main] DEBUG c.s.s.SilverwindApplicationTests - Running with Spring Boot v4.0.2, Spring v7.0.3
+2026-02-04 14:04:38.621 [main] INFO  c.s.s.SilverwindApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-02-04 14:04:38.895 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-04 14:04:38.950 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 51 ms. Found 27 JPA repository interfaces.
+2026-02-04 14:04:39.124 [main] INFO  org.hibernate.orm.jpa - HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-02-04 14:04:39.138 [main] INFO  org.hibernate.orm.core - HHH000001: Hibernate ORM core version 7.2.1.Final
+2026-02-04 14:04:39.248 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-04 14:04:39.256 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-04 14:04:39.321 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@68722de3
+2026-02-04 14:04:39.321 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-04 14:04:39.331 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-02-04 14:04:39.339 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/silverwind]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 18.1
+	Default catalog/schema: silverwind/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-02-04 14:04:39.802 [main] INFO  org.hibernate.orm.core - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-02-04 14:04:39.871 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-04 14:04:40.111 [main] INFO  o.s.a.v.pgvector.PgVectorStore - Using the vector table name: vector_store. Is empty: false
+2026-02-04 14:04:40.112 [main] INFO  o.s.a.v.pgvector.PgVectorStore - Initializing PGVectorStore schema for table: vector_store in schema: public
+2026-02-04 14:04:40.112 [main] INFO  o.s.a.v.pgvector.PgVectorStore - vectorTableValidationsEnabled false
+2026-02-04 14:04:40.134 [main] INFO  o.s.d.j.r.q.QueryEnhancerFactories - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-04 14:04:40.611 [main] INFO  c.s.s.storage.LocalStorageService - Initializing Local Storage Service at: /Users/manishmachha/Desktop/MyWorkspace/solventek-silverwind/silverwind-backend/uploads
+2026-02-04 14:04:40.612 [main] INFO  c.s.s.storage.LocalStorageService - Local Storage Service initialized successfully
+2026-02-04 14:04:40.645 [main] INFO  o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2026-02-04 14:04:40.941 [main] INFO  c.s.silverwind.config.AsyncConfig - Analysis ThreadPoolTaskExecutor initialized - Core: 5, Max: 20, Queue: 100
+2026-02-04 14:04:40.956 [main] WARN  o.s.b.j.a.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-04 14:04:41.205 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint beneath base path '/actuator'
+2026-02-04 14:04:41.225 [main] INFO  c.s.s.SilverwindApplicationTests - Started SilverwindApplicationTests in 2.717 seconds (process running for 3.039)
+2026-02-04 14:04:41.568 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-04 14:04:41.569 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-02-04 14:04:41.570 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.

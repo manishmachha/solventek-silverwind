@@ -21,6 +21,15 @@ This guide covers deploying Silverwind to AWS EC2 with Jenkins CI/CD.
                     └─────────────┘
 ```
 
+### Port Reference
+
+| Service        | Port     | Access                    |
+| -------------- | -------- | ------------------------- |
+| **Frontend**   | 80 / 443 | Public (via Nginx)        |
+| **Backend**    | 9090     | Internal (Docker Network) |
+| **Jenkins**    | 8080     | Admin IP Only             |
+| **PostgreSQL** | 5432     | Internal (Docker Network) |
+
 ## Prerequisites
 
 - AWS Account with appropriate permissions
