@@ -115,6 +115,12 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 script {
+                    // Ensure deployment directory exists on EC2
+                    sh """
+                        ssh -i ${EC2_KEY} -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} \
+                            'mkdir -p /home/${EC2_USER}/silverwind'
+                    """
+
                     // Copy docker-compose and deploy script to EC2
                     sh """
                         scp -i ${EC2_KEY} -o StrictHostKeyChecking=no \
