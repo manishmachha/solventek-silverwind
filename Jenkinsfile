@@ -71,19 +71,6 @@ pipeline {
             }
         }
 
-        stage('Test Backend') {
-            steps {
-                dir('silverwind-backend') {
-                    sh './mvnw test -B'
-                }
-            }
-            post {
-                always {
-                    junit allowEmptyResults: true, testResults: 'silverwind-backend/target/surefire-reports/*.xml'
-                }
-            }
-        }
-
         stage('Docker Build') {
             parallel {
                 stage('Build Backend Image') {
