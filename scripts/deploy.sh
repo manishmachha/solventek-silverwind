@@ -50,7 +50,7 @@ sleep 10
 
 # Health check
 echo "Step 6: Checking service health..."
-BACKEND_HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health 2>/dev/null || echo "000")
+BACKEND_HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9090/actuator/health 2>/dev/null || echo "000")
 FRONTEND_HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80/health 2>/dev/null || echo "000")
 
 echo "Backend health: $BACKEND_HEALTH"
@@ -61,7 +61,7 @@ if [ "$BACKEND_HEALTH" = "200" ] && [ "$FRONTEND_HEALTH" = "200" ]; then
     echo "=========================================="
     echo "Deployment SUCCESSFUL!"
     echo "=========================================="
-    echo "Backend: http://$(hostname):8080"
+    echo "Backend: http://$(hostname):9090"
     echo "Frontend: http://$(hostname)"
 else
     echo ""

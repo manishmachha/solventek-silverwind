@@ -107,7 +107,83 @@ This guide covers deploying Silverwind to AWS EC2 with Jenkins CI/CD.
    aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin YOUR_ACCOUNT_ID.dkr.ecr.eu-north-1.amazonaws.com
    ```
 
-## Step 4: Jenkins Configuration
+## Step 4: Jenkins Setup (Single Server)
+
+Jenkins will be installed on the **same EC2 instance** as your application. This works well for t3.large or larger instances.
+
+> **Note**: Update your Security Group to allow port 8080 (Jenkins UI) from your IP.
+
+### 4.1 Install Java (Required for Jenkins)
+
+```bash
+
+# Ubuntu
+sudo apt update && sudo apt install openjdk-17-jdk -y
+
+# Verify
+java -version
+```
+
+### 4.2 Install Jenkins
+
+```bash
+
+# Ubuntu
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee \
+  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt update && sudo apt install jenkins -y
+```
+
+### 4.3 Start Jenkins & Configure Docker Access
+
+```bash
+# Start Jenkins
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+
+# Add Jenkins user to Docker group (Docker was installed in Step 2)
+sudo usermod -aG docker jenkins
+sudo systemctl restart jenkins
+
+# Verify Jenkins is running
+sudo systemctl status jenkins
+```
+
+### 4.4 Initial Jenkins Setup
+
+1. Get the initial admin password:
+
+   ```bash
+   sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+   ```
+
+2. Open `http://<your-ec2-public-ip>:8080` in your browser
+
+3. Enter the initial admin password
+
+4. Select **"Install suggested plugins"**
+
+5. Create your admin user
+
+6. Set Jenkins URL (use your EC2 public IP or domain)
+
+### 4.5 Install AWS CLI (if not already installed)
+
+```bash
+# Check if AWS CLI exists
+aws --version
+
+# If not installed:
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+rm -rf awscliv2.zip aws/
+```
+
+## Step 5: Jenkins Configuration
 
 1. Install required plugins:
    - Docker Pipeline
@@ -123,7 +199,7 @@ This guide covers deploying Silverwind to AWS EC2 with Jenkins CI/CD.
 
 3. Create Pipeline job pointing to your repository
 
-## Step 5: First Deployment
+## Step 6: First Deployment
 
 1. Push code to trigger Jenkins build, or run manually
 
@@ -134,7 +210,7 @@ This guide covers deploying Silverwind to AWS EC2 with Jenkins CI/CD.
    docker-compose -f docker-compose.prod.yml logs
    ```
 
-## Step 6: SSL/HTTPS Setup (Optional)
+## Step 7: SSL/HTTPS Setup (Optional)
 
 1. Install Certbot:
 
