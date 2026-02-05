@@ -8,15 +8,18 @@ on:
 env:
   AWS_REGION: eu-north-1
   EC2_USER: ubuntu
+  DEPLOY_DIR: /home/ubuntu/solventek-silverwind
 
 jobs:
-  build-and-deploy:
-    name: Build and Deploy
+  # ----------------------------
+  # 1 Build & Push Backend
+  # ----------------------------
+  backend:
+    name: Build & Push Backend
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,57 +35,100 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, Tag, and Push Docker Images
+      - name: Build, Tag, and Push Backend Docker Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          # Create unique tag based on run number + commit sha (similar to Jenkins logic)
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           TAG="${{ github.run_number }}-${SHORT_SHA}"
           echo "IMAGE_TAG=${TAG}" >> $GITHUB_ENV
           echo "ECR_REGISTRY=${ECR_REGISTRY}" >> $GITHUB_ENV
 
-          # Backend
-          docker build -t $ECR_REGISTRY/silverwind-backend:$TAG silverwind-backend
+          # Pull latest for caching
+          docker pull $ECR_REGISTRY/silverwind-backend:latest || true
+
+          # Build and push
+          docker build --cache-from $ECR_REGISTRY/silverwind-backend:latest -t $ECR_REGISTRY/silverwind-backend:$TAG silverwind-backend
           docker tag $ECR_REGISTRY/silverwind-backend:$TAG $ECR_REGISTRY/silverwind-backend:latest
           docker push $ECR_REGISTRY/silverwind-backend:$TAG
           docker push $ECR_REGISTRY/silverwind-backend:latest
 
-          # Frontend
-          docker build -t $ECR_REGISTRY/silverwind-frontend:$TAG silverwind-frontend
+  # ----------------------------
+  # 2 Build & Push Frontend
+  # ----------------------------
+  frontend:
+    name: Build & Push Frontend
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    needs: backend   # optional: run after backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, Tag, and Push Frontend Docker Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          # Use same tag as backend
+          TAG=${{ env.IMAGE_TAG }}
+
+          docker pull $ECR_REGISTRY/silverwind-frontend:latest || true
+
+          docker build --cache-from $ECR_REGISTRY/silverwind-frontend:latest -t $ECR_REGISTRY/silverwind-frontend:$TAG silverwind-frontend
           docker tag $ECR_REGISTRY/silverwind-frontend:$TAG $ECR_REGISTRY/silverwind-frontend:latest
           docker push $ECR_REGISTRY/silverwind-frontend:$TAG
           docker push $ECR_REGISTRY/silverwind-frontend:latest
 
-      - name: Deploy to EC2
-        env:
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-        run: |
-          # Setup private key
-          echo "$EC2_SSH_KEY" > private_key.pem
-          chmod 600 private_key.pem
+  # ----------------------------
+  # 3 Deploy to EC2
+  # ----------------------------
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-          # Get ECR Password for the deployment script
+      - name: Deploy via SSH
+        env:
+          ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        run: |
+          # Get ECR login password
           ECR_PASSWORD=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
 
-          # Create deployment directory
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ${EC2_USER}@${EC2_HOST} \
-            "mkdir -p /home/${EC2_USER}/solventek-silverwind"
+          ssh -o StrictHostKeyChecking=no ${EC2_USER}@${{ secrets.EC2_HOST }} << EOF
+            set -e
 
-          # Copy configuration and script
-          scp -o StrictHostKeyChecking=no -i private_key.pem \
-            docker-compose.prod.yml scripts/deploy.sh \
-            ${EC2_USER}@${EC2_HOST}:/home/${EC2_USER}/solventek-silverwind/
+            # Ensure deployment directory exists
+            mkdir -p $DEPLOY_DIR
+            cd $DEPLOY_DIR
 
-          # Execute deployment script
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ${EC2_USER}@${EC2_HOST} "
-            export DOCKER_REGISTRY=${ECR_REGISTRY}
-            export IMAGE_TAG=${IMAGE_TAG}
-            export DOCKER_CREDENTIALS=true
+            # Copy updated deployment files
+            rsync -avz --delete docker-compose.prod.yml scripts/deploy.sh $DEPLOY_DIR
+
+            # Set environment variables for deploy script
+            export DOCKER_REGISTRY=$ECR_REGISTRY
+            export IMAGE_TAG=$IMAGE_TAG
             export DOCKER_USERNAME=AWS
-            export DOCKER_PASSWORD=${ECR_PASSWORD}
-            cd /home/${EC2_USER}/solventek-silverwind
+            export DOCKER_PASSWORD=$ECR_PASSWORD
+
             chmod +x deploy.sh
             ./deploy.sh
-          "
+EOF
