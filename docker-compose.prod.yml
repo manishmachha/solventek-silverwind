@@ -24,6 +24,10 @@ services:
       SPRING_AI_GOOGLE_GENAI_API_KEY: ${GOOGLE_AI_API_KEY:-}
       # JVM
       JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+    deploy:
+      resources:
+        limits:
+          memory: 4G
     expose:
       - "9090"
     healthcheck:
@@ -53,6 +57,10 @@ services:
     image: ${DOCKER_REGISTRY}/silverwind-frontend:${IMAGE_TAG:-latest}
     container_name: silverwind-frontend
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     ports:
       - "80:80"
       - "443:443"
