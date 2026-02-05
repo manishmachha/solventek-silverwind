@@ -1,0 +1,114 @@
+name: Deploy Silverwind
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: eu-north-1
+  EC2_USER: ubuntu
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: maven
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: silverwind-frontend/package-lock.json
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Backend (Maven)
+        run: |
+          cd silverwind-backend
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests -B
+
+      - name: Build Frontend (NPM)
+        run: |
+          cd silverwind-frontend
+          npm ci --legacy-peer-deps
+          npm run build
+
+      - name: Build, Tag, and Push Docker Images
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          # Create unique tag based on run number + commit sha (similar to Jenkins logic)
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          TAG="${{ github.run_number }}-${SHORT_SHA}"
+          echo "IMAGE_TAG=${TAG}" >> $GITHUB_ENV
+          echo "ECR_REGISTRY=${ECR_REGISTRY}" >> $GITHUB_ENV
+
+          # Backend
+          docker build -t $ECR_REGISTRY/silverwind-backend:$TAG silverwind-backend
+          docker tag $ECR_REGISTRY/silverwind-backend:$TAG $ECR_REGISTRY/silverwind-backend:latest
+          docker push $ECR_REGISTRY/silverwind-backend:$TAG
+          docker push $ECR_REGISTRY/silverwind-backend:latest
+
+          # Frontend
+          docker build -t $ECR_REGISTRY/silverwind-frontend:$TAG silverwind-frontend
+          docker tag $ECR_REGISTRY/silverwind-frontend:$TAG $ECR_REGISTRY/silverwind-frontend:latest
+          docker push $ECR_REGISTRY/silverwind-frontend:$TAG
+          docker push $ECR_REGISTRY/silverwind-frontend:latest
+
+      - name: Deploy to EC2
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          # Setup private key
+          echo "$EC2_SSH_KEY" > private_key.pem
+          chmod 600 private_key.pem
+
+          # Get ECR Password for the deployment script
+          ECR_PASSWORD=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
+
+          # Create deployment directory
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${EC2_USER}@${EC2_HOST} \
+            "mkdir -p /home/${EC2_USER}/solventek-silverwind"
+
+          # Copy configuration and script
+          scp -o StrictHostKeyChecking=no -i private_key.pem \
+            docker-compose.prod.yml scripts/deploy.sh \
+            ${EC2_USER}@${EC2_HOST}:/home/${EC2_USER}/solventek-silverwind/
+
+          # Execute deployment script
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${EC2_USER}@${EC2_HOST} "
+            export DOCKER_REGISTRY=${ECR_REGISTRY}
+            export IMAGE_TAG=${IMAGE_TAG}
+            export DOCKER_CREDENTIALS=true
+            export DOCKER_USERNAME=AWS
+            export DOCKER_PASSWORD=${ECR_PASSWORD}
+            cd /home/${EC2_USER}/solventek-silverwind
+            chmod +x deploy.sh
+            ./deploy.sh
+          "
