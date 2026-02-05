@@ -47,11 +47,22 @@ echo "Step 4: Starting new containers..."
 docker-compose -f "$COMPOSE_FILE" up -d
 
 echo "Step 5: Waiting for services to be healthy..."
-sleep 10
+# Retry loop: wait up to 120 seconds (24 retries * 5s)
+for i in {1..24}; do
+    BACKEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' silverwind-backend 2>/dev/null || echo "not_found")
+    FRONTEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' silverwind-frontend 2>/dev/null || echo "not_found")
+    
+    echo "Attempt $i/24 - Backend: $BACKEND_HEALTH, Frontend: $FRONTEND_HEALTH"
+    
+    if [ "$BACKEND_HEALTH" = "healthy" ] && [ "$FRONTEND_HEALTH" = "healthy" ]; then
+        echo "All services are healthy!"
+        break
+    fi
+    sleep 5
+done
 
 # Health check
-# Health check
-echo "Step 6: Checking service health..."
+echo "Step 6: Final service health check..."
 BACKEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' silverwind-backend 2>/dev/null || echo "not_found")
 FRONTEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' silverwind-frontend 2>/dev/null || echo "not_found")
 
