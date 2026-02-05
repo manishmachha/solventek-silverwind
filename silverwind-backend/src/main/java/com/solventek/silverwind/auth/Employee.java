@@ -45,6 +45,7 @@ public class Employee extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
+    @Column(length = 2048)
     private String profilePhotoUrl;
 
     private LocalDate dateOfJoining;

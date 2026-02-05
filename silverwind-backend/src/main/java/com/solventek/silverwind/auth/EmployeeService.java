@@ -33,6 +33,7 @@ public class EmployeeService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final com.solventek.silverwind.storage.StorageService storageService;
+    private final jakarta.persistence.EntityManager entityManager;
 
     @Transactional
     public Employee createEmployee(UUID orgId, String firstName, String lastName, String email,
@@ -503,6 +504,11 @@ public class EmployeeService {
      */
     private Employee enhanceEmployee(Employee employee) {
         if (employee == null) return null;
+
+        // Detach from persistence context so our changes to profilePhotoUrl aren't saved back to DB
+        if (entityManager.contains(employee)) {
+            entityManager.detach(employee);
+        }
 
         String photoUrl = employee.getProfilePhotoUrl();
         if (photoUrl != null && photoUrl.startsWith("/api/files/")) {

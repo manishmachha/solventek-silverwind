@@ -61,8 +61,11 @@ public class Organization extends BaseEntity {
     private String keyClients; // Notable clients (optional)
 
     // --- Documents ---
+    @Column(length = 2048)
     private String logoUrl;
+    @Column(length = 2048)
     private String registrationDocUrl; // Certificate of Incorporation
+    @Column(length = 2048)
     private String taxDocUrl; // Tax registration document
 
     // --- Additional Metadata ---

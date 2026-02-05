@@ -31,6 +31,7 @@ public class OrganizationService {
     private final com.solventek.silverwind.notifications.NotificationService notificationService;
     private final com.solventek.silverwind.rbac.RbacService rbacService;
     private final StorageService storageService;
+    private final jakarta.persistence.EntityManager entityManager;
 
 
 
@@ -402,6 +403,11 @@ public class OrganizationService {
      */
     private Organization enhanceOrganization(Organization org) {
         if (org == null) return null;
+
+        // Detach from persistence context so our changes to logoUrl aren't saved back to DB
+        if (entityManager.contains(org)) {
+            entityManager.detach(org);
+        }
 
         String logoUrl = org.getLogoUrl();
         // If logoUrl is a storage key (i.e., not a presigned URL yet) and valid
