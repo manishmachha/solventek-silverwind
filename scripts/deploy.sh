@@ -50,14 +50,15 @@ echo "Step 5: Waiting for services to be healthy..."
 sleep 10
 
 # Health check
+# Health check
 echo "Step 6: Checking service health..."
-BACKEND_HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9090/actuator/health 2>/dev/null || echo "000")
-FRONTEND_HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80/health 2>/dev/null || echo "000")
+BACKEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' silverwind-backend 2>/dev/null || echo "not_found")
+FRONTEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' silverwind-frontend 2>/dev/null || echo "not_found")
 
 echo "Backend health: $BACKEND_HEALTH"
 echo "Frontend health: $FRONTEND_HEALTH"
 
-if [ "$BACKEND_HEALTH" = "200" ] && [ "$FRONTEND_HEALTH" = "200" ]; then
+if [ "$BACKEND_HEALTH" = "healthy" ] && [ "$FRONTEND_HEALTH" = "healthy" ]; then
     echo ""
     echo "=========================================="
     echo "Deployment SUCCESSFUL!"
