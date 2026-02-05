@@ -12,13 +12,29 @@ env:
 
 jobs:
   # ----------------------------
-  # 1 Build & Push Backend
+  # 0. Setup (Generate Tag)
+  # ----------------------------
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+    steps:
+      - name: Generate Tag
+        id: meta
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          TAG="${{ github.run_number }}-${SHORT_SHA}"
+          echo "image_tag=${TAG}" >> $GITHUB_OUTPUT
+
+  # ----------------------------
+  # 1. Build & Push Backend
   # ----------------------------
   backend:
     name: Build & Push Backend
     runs-on: ubuntu-latest
+    needs: setup
     outputs:
-      image_tag: ${{ steps.meta.outputs.image_tag }}
       registry: ${{ steps.login-ecr.outputs.registry }}
     permissions:
       contents: read
@@ -38,37 +54,30 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Generate Tag
-        id: meta
-        run: |
-          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          TAG="${{ github.run_number }}-${SHORT_SHA}"
-          echo "image_tag=${TAG}" >> $GITHUB_OUTPUT
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Build, Tag, and Push Backend Docker Image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ steps.meta.outputs.image_tag }}
-        run: |
-          # Pull latest for caching
-          docker pull $ECR_REGISTRY/silverwind-backend:latest || true
-
-          # Build and push
-          docker build --cache-from $ECR_REGISTRY/silverwind-backend:latest -t $ECR_REGISTRY/silverwind-backend:$IMAGE_TAG silverwind-backend
-          docker tag $ECR_REGISTRY/silverwind-backend:$IMAGE_TAG $ECR_REGISTRY/silverwind-backend:latest
-          docker push $ECR_REGISTRY/silverwind-backend:$IMAGE_TAG
-          docker push $ECR_REGISTRY/silverwind-backend:latest
+      - name: Build and push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./silverwind-backend
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/silverwind-backend:${{ needs.setup.outputs.image_tag }}
+            ${{ steps.login-ecr.outputs.registry }}/silverwind-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   # ----------------------------
-  # 2 Build & Push Frontend
+  # 2. Build & Push Frontend
   # ----------------------------
   frontend:
     name: Build & Push Frontend
     runs-on: ubuntu-latest
+    needs: setup
     permissions:
       contents: read
       packages: write
-    needs: backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -84,25 +93,27 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, Tag, and Push Frontend Docker Image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ needs.backend.outputs.image_tag }}
-        run: |
-          docker pull $ECR_REGISTRY/silverwind-frontend:latest || true
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-          docker build --cache-from $ECR_REGISTRY/silverwind-frontend:latest -t $ECR_REGISTRY/silverwind-frontend:$IMAGE_TAG silverwind-frontend
-          docker tag $ECR_REGISTRY/silverwind-frontend:$IMAGE_TAG $ECR_REGISTRY/silverwind-frontend:latest
-          docker push $ECR_REGISTRY/silverwind-frontend:$IMAGE_TAG
-          docker push $ECR_REGISTRY/silverwind-frontend:latest
+      - name: Build and push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./silverwind-frontend
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/silverwind-frontend:${{ needs.setup.outputs.image_tag }}
+            ${{ steps.login-ecr.outputs.registry }}/silverwind-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   # ----------------------------
-  # 3 Deploy to EC2
+  # 3. Deploy to EC2
   # ----------------------------
   deploy:
     name: Deploy to EC2
     runs-on: ubuntu-latest
-    needs: [backend, frontend]
+    needs: [setup, backend, frontend]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -121,8 +132,9 @@ jobs:
 
       - name: Deploy via SSH
         env:
+          # Registry URL comes from backend output (or could be derived)
           ECR_REGISTRY: ${{ needs.backend.outputs.registry }}
-          IMAGE_TAG: ${{ needs.backend.outputs.image_tag }}
+          IMAGE_TAG: ${{ needs.setup.outputs.image_tag }}
         run: |
           # Get ECR login password
           ECR_PASSWORD=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
@@ -133,11 +145,6 @@ jobs:
             # Ensure deployment directory exists
             mkdir -p $DEPLOY_DIR
             cd $DEPLOY_DIR
-
-            # We can't rsync from here because we are in a runner.
-            # But the 'Checkout code' step above gave us the files.
-            # However, rsync needs ssh setup. 
-            # Easier to just use scp or rsync via the ssh-agent we set up.
           "
 
           # Sync files
