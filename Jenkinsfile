@@ -115,10 +115,13 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 script {
+                    // Fetch ECR authorization token
+                    def ecrPassword = sh(returnStdout: true, script: "aws ecr get-login-password --region ${AWS_REGION}").trim()
+
                     // Ensure deployment directory exists on EC2
                     sh """
                         ssh -i ${EC2_KEY} -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} \
-                            'mkdir -p /home/${EC2_USER}/silverwind'
+                            'mkdir -p /home/${EC2_USER}/solventek-silverwind'
                     """
 
                     // Copy docker-compose and deploy script to EC2
@@ -138,6 +141,9 @@ pipeline {
                             'cd /home/${EC2_USER}/solventek-silverwind && \
                              export DOCKER_REGISTRY=${DOCKER_REGISTRY} && \
                              export IMAGE_TAG=${IMAGE_TAG} && \
+                             export DOCKER_CREDENTIALS=true && \
+                             export DOCKER_USERNAME=AWS && \
+                             export DOCKER_PASSWORD=${ecrPassword} && \
                              chmod +x deploy.sh && \
                              ./deploy.sh'
                     """
