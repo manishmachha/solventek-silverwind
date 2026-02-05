@@ -312,11 +312,17 @@ export class TicketCreateComponent implements OnInit {
       )
       .subscribe({
         next: () => {
-          this.snackBar.open('Ticket created successfully!', 'Close', { duration: 3000 });
+          this.snackBar.open('Ticket created successfully!', 'Close', {
+            duration: 3000,
+            panelClass: ['success-snackbar'],
+          });
           this.dialogRef.close(true);
         },
         error: () => {
-          this.snackBar.open('Failed to create ticket', 'Close', { duration: 3000 });
+          this.snackBar.open('Failed to create ticket', 'Close', {
+            duration: 3000,
+            panelClass: ['error-snackbar'],
+          });
           this.isSubmitting = false;
         },
       });

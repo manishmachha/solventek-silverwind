@@ -13,8 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -183,12 +181,7 @@ public class CandidateService {
         if (c.getResumeFilePath() == null) {
             throw new RuntimeException("No resume file associated with this candidate");
         }
-        Path filePath = Paths.get(c.getResumeFilePath());
-        if (!java.nio.file.Files.exists(filePath)) {
-            log.error("Resume file missing at path: {}", filePath);
-            throw new RuntimeException("File not found on server");
-        }
-        return new org.springframework.core.io.FileSystemResource(filePath);
+        return resumeIngestionService.downloadResume(c.getResumeFilePath());
     }
 
     @Transactional

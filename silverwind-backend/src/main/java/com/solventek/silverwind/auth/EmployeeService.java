@@ -32,6 +32,7 @@ public class EmployeeService {
     private final OrganizationRepository organizationRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.solventek.silverwind.storage.StorageService storageService;
 
     @Transactional
     public Employee createEmployee(UUID orgId, String firstName, String lastName, String email,
@@ -429,5 +430,61 @@ public class EmployeeService {
             log.error("Error changing password for Employee ID: {}: {}", employeeId, e.getMessage(), e);
             throw e;
         }
+    }
+        /**
+     * Upload profile photo for an employee
+     */
+    @Transactional
+    public Employee uploadProfilePhoto(UUID employeeId, UUID actorId, org.springframework.web.multipart.MultipartFile file) {
+        log.info("Uploading profile photo for Employee ID: {} by Actor ID: {}", employeeId, actorId);
+        try {
+            Employee employee = getEmployee(employeeId);
+            validateAccess(employee, actorId);
+
+            // Determine file extension
+            String originalFilename = file.getOriginalFilename();
+            String extension = "jpg"; // Default
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
+            }
+
+            // Upload using email as filename
+            String email = employee.getEmail();
+            String key = "uploads/employees/" + email + "/photos/" + email + "." + extension;
+            
+            storageService.uploadWithKey(file, key);
+            String photoUrl = "/api/files/" + key;
+
+            employee.setProfilePhotoUrl(photoUrl);
+            employeeRepository.save(employee);
+
+            timelineService.createEvent(employee.getOrganization().getId(), "EMPLOYEE", employeeId, "UPDATE_PHOTO",
+                    "Profile Photo Updated", actorId, employeeId,
+                    "Profile photo updated", null);
+
+            log.info("Profile photo uploaded successfully for Employee ID: {}", employeeId);
+            return employee;
+        } catch (Exception e) {
+            log.error("Error uploading profile photo for Employee ID: {}: {}", employeeId, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    public org.springframework.core.io.Resource getProfilePhoto(UUID employeeId) {
+        log.debug("Fetching profile photo for Employee ID: {}", employeeId);
+        Employee employee = getEmployee(employeeId);
+        String photoUrl = employee.getProfilePhotoUrl();
+        
+        if (photoUrl == null || photoUrl.isEmpty()) {
+            throw new EntityNotFoundException("Profile photo not found");
+        }
+
+        // Extract key from URL if it contains /api/files/
+        String key = photoUrl;
+        if (photoUrl.contains("/api/files/")) {
+            key = photoUrl.substring(photoUrl.indexOf("/api/files/") + 11);
+        }
+
+        return storageService.download(key);
     }
 }

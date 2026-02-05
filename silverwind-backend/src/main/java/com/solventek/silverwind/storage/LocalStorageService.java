@@ -69,6 +69,35 @@ public class LocalStorageService implements StorageService {
     }
 
     @Override
+    public String uploadWithKey(MultipartFile file, String key) {
+        log.info("Uploading file locally with custom key: {}", key);
+
+        try {
+            // Validate key to prevent directory traversal
+            if (key.contains("..")) {
+                throw new RuntimeException("Invalid key containing '..'");
+            }
+            
+            Path targetPath = rootLocation.resolve(key).normalize();
+            if (!targetPath.startsWith(rootLocation)) {
+                throw new RuntimeException("Invalid key, outside upload root");
+            }
+            
+            // Create parent directories
+            Files.createDirectories(targetPath.getParent());
+
+            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+            log.info("Successfully uploaded file locally: {}", key);
+            return key;
+
+        } catch (IOException e) {
+            log.error("Failed to upload file locally: {}", key, e);
+            throw new RuntimeException("Failed to store file locally", e);
+        }
+    }
+
+    @Override
     public Resource download(String key) {
         log.debug("Downloading file locally: {}", key);
 

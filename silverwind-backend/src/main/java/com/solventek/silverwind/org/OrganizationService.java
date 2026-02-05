@@ -276,8 +276,18 @@ public class OrganizationService {
             Organization org = organizationRepository.findById(orgId)
                     .orElseThrow(() -> new EntityNotFoundException("Organization not found"));
 
-            // Upload using StorageService
-            String storageKey = storageService.upload(file, LOGOS_DIRECTORY);
+            String originalFilename = file.getOriginalFilename();
+            String extension = "png"; // Default
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
+            }
+
+            // Sanitized Org Name + extension
+            String sanitizedOrgName = org.getName().replaceAll("[^a-zA-Z0-9._-]", "_");
+            String storageKey = "uploads/logos/" + sanitizedOrgName + "." + extension;
+
+            // Upload using StorageService with custom key
+            storageService.uploadWithKey(file, storageKey);
 
             // Delete old logo if exists
             if (org.getLogoUrl() != null && !org.getLogoUrl().isEmpty()) {

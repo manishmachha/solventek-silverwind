@@ -384,7 +384,7 @@ export class UserCreateDialogComponent implements OnInit {
         this.snackBar.open(
           this.isEditMode ? 'User updated successfully' : 'User created successfully',
           'Close',
-          { duration: 3000 },
+          { duration: 3000, panelClass: ['success-snackbar'] },
         );
         this.dialogRef.close(true);
       },
@@ -392,7 +392,7 @@ export class UserCreateDialogComponent implements OnInit {
         this.isSaving = false;
         console.error('Error saving user:', err);
         const errorMsg = err?.error?.message || 'Error saving user. Please try again.';
-        this.snackBar.open(errorMsg, 'Close', { duration: 5000 });
+        this.snackBar.open(errorMsg, 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
       },
     });
   }

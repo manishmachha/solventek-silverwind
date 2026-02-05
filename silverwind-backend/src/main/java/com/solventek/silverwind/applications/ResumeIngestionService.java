@@ -38,11 +38,37 @@ public class ResumeIngestionService {
      * @return IngestionResult containing the storage key and extracted text
      */
     public IngestionResult storeAndExtract(MultipartFile file) {
+        return storeAndExtract(file, null);
+    }
+
+    public IngestionResult storeAndExtract(MultipartFile file, String candidateName) {
         try {
             log.info("Starting ingestion for file: {}", file.getOriginalFilename());
 
-            // 1. Store file using StorageService
-            String storageKey = storageService.upload(file, RESUMES_DIRECTORY);
+            String originalFilename = file.getOriginalFilename();
+            String extension = "pdf"; // Default
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
+            }
+
+            String baseName;
+            if (candidateName != null && !candidateName.isBlank()) {
+                baseName = candidateName.replaceAll("[^a-zA-Z0-9._-]", "_");
+            } else {
+                // If no candidate name, use original filename without extension or hash
+                if (originalFilename != null) {
+                    baseName = originalFilename.substring(0, originalFilename.lastIndexOf(".")).replaceAll("[^a-zA-Z0-9._-]", "_");
+                } else {
+                    baseName = "resume_" + java.util.UUID.randomUUID().toString();
+                }
+            }
+
+            // Enforce structure: uploads/resumes/Name_resume.ext
+            // Note: If using original filename, we append _resume to follow convention
+            String key = "uploads/resumes/" + baseName + "_resume." + extension;
+
+            // 1. Store file using StorageService with custom key
+            String storageKey = storageService.uploadWithKey(file, key);
 
             // 2. Extract text from the file
             String text = extractText(file.getInputStream(), file.getOriginalFilename());
@@ -86,6 +112,13 @@ public class ResumeIngestionService {
             log.error("Failed to extract text from existing file: {}", storageKey, e);
             return null;
         }
+    }
+
+    public Resource downloadResume(String storageKey) {
+        if (storageKey == null || storageKey.isEmpty()) {
+            throw new RuntimeException("Storage key is null or empty");
+        }
+        return storageService.download(storageKey);
     }
 
     /**

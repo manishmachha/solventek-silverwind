@@ -337,33 +337,41 @@ body {
 }
 
 /* ===== Snackbar Customization ===== */
+/* Common Override for Layout */
+.success-snackbar .mdc-snackbar__surface,
 .error-snackbar .mdc-snackbar__surface {
-  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important; /* Red 500 to Red 700 */
-  color: white !important;
-  border-radius: 0.75rem !important;
+  padding: 0 !important; /* Reset padding to allow full control if needed, usually MDC handles it */
+  border-radius: 8px !important;
   box-shadow:
-    0 10px 15px -3px rgba(239, 68, 68, 0.4),
-    0 4px 6px -4px rgba(239, 68, 68, 0.2) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.05) !important;
 }
 
+/* Text Styling */
+.success-snackbar .mdc-snackbar__label,
 .error-snackbar .mdc-snackbar__label {
-  color: white !important;
-  font-weight: 500;
-  font-size: 0.95rem;
-  font-family: 'Inter', sans-serif;
+  color: #ffffff !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
 }
 
+/* Button Styling */
+.success-snackbar .mat-mdc-snack-bar-action,
 .error-snackbar .mat-mdc-snack-bar-action {
-  color: white !important;
-  font-weight: 600;
-  background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 0.5rem;
-  transition: background-color 0.2s ease;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  --mat-snack-bar-button-ripple-color: rgba(255, 255, 255, 0.2);
 }
 
-.error-snackbar .mat-mdc-snack-bar-action:hover {
-  background-color: rgba(255, 255, 255, 0.25);
+/* Success State - Solid Green */
+.success-snackbar .mdc-snackbar__surface {
+  background-color: #16a34a !important; /* Green 600 */
+}
+
+/* Error State - Solid Red */
+.error-snackbar .mdc-snackbar__surface {
+  background-color: #dc2626 !important; /* Red 600 */
 }
 
 /* ////////////////////////////////////////////////// */

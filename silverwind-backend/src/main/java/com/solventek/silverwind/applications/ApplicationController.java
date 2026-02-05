@@ -162,7 +162,11 @@ public class ApplicationController {
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TA')")
     public ResponseEntity<org.springframework.core.io.Resource> downloadDocument(@PathVariable UUID docId) {
         ApplicationDocuments doc = applicationService.getDocument(docId);
-        return downloadFile(doc.getFilePath(), doc.getFileName());
+        org.springframework.core.io.Resource resource = applicationService.downloadDocumentResource(docId);
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + doc.getFileName() + "\"")
+                .body(resource);
     }
 
     @GetMapping("/{id}/resume/download")
@@ -172,7 +176,11 @@ public class ApplicationController {
         if (app.getResumeFilePath() == null) {
             return ResponseEntity.notFound().build();
         }
-        return downloadFile(app.getResumeFilePath(), "resume_" + app.getFirstName() + "_" + app.getLastName() + ".pdf");
+        org.springframework.core.io.Resource resource = applicationService.downloadResume(id);
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"resume_" + app.getFirstName() + "_" + app.getLastName() + ".pdf\"")
+                .body(resource);
     }
 
     @PostMapping("/{id}/timeline")
@@ -190,23 +198,5 @@ public class ApplicationController {
         private String message;
         private String title;
         private String action;
-    }
-
-    private ResponseEntity<org.springframework.core.io.Resource> downloadFile(String path, String filename) {
-        try {
-            java.nio.file.Path file = java.nio.file.Paths.get(path);
-            org.springframework.core.io.Resource resource = new org.springframework.core.io.UrlResource(file.toUri());
-
-            if (resource.exists() || resource.isReadable()) {
-                return ResponseEntity.ok()
-                        .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
-                                "attachment; filename=\"" + filename + "\"")
-                        .body(resource);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
     }
 }

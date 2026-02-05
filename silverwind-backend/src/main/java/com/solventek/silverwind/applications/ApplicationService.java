@@ -513,4 +513,16 @@ public class ApplicationService {
                 return applicationRepository.findById(id)
                                 .orElseThrow(() -> new EntityNotFoundException("Application not found"));
         }
+    public org.springframework.core.io.Resource downloadResume(UUID applicationId) {
+        JobApplication app = getApplication(applicationId);
+        if (app.getResumeFilePath() == null) {
+            throw new EntityNotFoundException("Resume not found for application");
+        }
+        return ingestionService.downloadResume(app.getResumeFilePath());
+    }
+
+    public org.springframework.core.io.Resource downloadDocumentResource(UUID docId) {
+        ApplicationDocuments doc = getDocument(docId);
+        return ingestionService.downloadResume(doc.getFilePath());
+    }
 }

@@ -80,12 +80,18 @@ export class JobApplicationDialogComponent {
 
       this.applicationService.publicApply(this.data.jobId.toString(), formData).subscribe({
         next: () => {
-          this.snackBar.open('Application submitted successfully!', 'Close', { duration: 3000 });
+          this.snackBar.open('Application submitted successfully!', 'Close', {
+            duration: 3000,
+            panelClass: ['success-snackbar'],
+          });
           this.dialogRef.close(true);
         },
         error: (err) => {
           console.error(err);
-          this.snackBar.open('Failed to submit application.', 'Close', { duration: 3000 });
+          this.snackBar.open('Failed to submit application.', 'Close', {
+            duration: 3000,
+            panelClass: ['error-snackbar'],
+          });
           this.isSubmitting.set(false);
         },
       });

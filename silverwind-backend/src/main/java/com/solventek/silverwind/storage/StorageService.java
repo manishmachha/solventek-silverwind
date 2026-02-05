@@ -21,6 +21,16 @@ public interface StorageService {
     String upload(MultipartFile file, String directory);
 
     /**
+     * Upload a file with a specific key (path/filename).
+     * Does NOT append UUIDs or modify the filename.
+     *
+     * @param file The file to upload
+     * @param key  The full storage key (path + filename)
+     * @return The used storage key
+     */
+    String uploadWithKey(MultipartFile file, String key);
+
+    /**
      * Download a file from storage.
      *
      * @param key The storage key/path of the file

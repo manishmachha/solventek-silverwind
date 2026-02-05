@@ -600,7 +600,10 @@ export class ApplicationFormComponent implements OnInit {
 
     // Check if we have file OR Candidate ID
     if (!this.selectedFile && !this.candidateIdControl.value) {
-      this.snackBar.open('Please upload a resume or select a candidate.', 'X', { duration: 3000 });
+      this.snackBar.open('Please upload a resume or select a candidate.', 'X', {
+        duration: 3000,
+        panelClass: ['error-snackbar'],
+      });
       return;
     }
 
@@ -620,13 +623,17 @@ export class ApplicationFormComponent implements OnInit {
 
     this.appService.apply(this.data.job.id, formData).subscribe({
       next: () => {
-        this.snackBar.open('Application submitted successfully!', 'Close', { duration: 3000 });
+        this.snackBar.open('Application submitted successfully!', 'Close', {
+          duration: 3000,
+          panelClass: ['success-snackbar'],
+        });
         this.dialogRef.close(true);
       },
       error: (err) => {
         console.error(err);
         this.snackBar.open(err.error?.message || 'Failed to submit application', 'Close', {
           duration: 3000,
+          panelClass: ['error-snackbar'],
         });
         this.isSubmitting = false;
       },

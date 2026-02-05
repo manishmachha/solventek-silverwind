@@ -265,4 +265,32 @@ public class EmployeeController {
         @jakarta.validation.constraints.Size(min = 8, max = 100)
         String newPassword;
     }
+    @PostMapping("/{id}/photo")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE') or #id.equals(authentication.principal.id)")
+    public ResponseEntity<ApiResponse<Employee>> uploadPhoto(
+            @PathVariable UUID id,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success(
+                employeeService.uploadProfilePhoto(id, currentUser.getId(), file)));
+    }
+    @GetMapping("/{id}/photo")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE') or #id.equals(authentication.principal.id)")
+    public ResponseEntity<org.springframework.core.io.Resource> getPhoto(@PathVariable UUID id) {
+        org.springframework.core.io.Resource resource = employeeService.getProfilePhoto(id);
+        String contentType = "image/jpeg";
+        try {
+             if (resource.getFile().exists()) {
+                contentType = java.nio.file.Files.probeContentType(resource.getFile().toPath());
+            }
+        } catch (Exception e) {
+            // Default to image/jpeg if detection fails
+        }
+
+        return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.parseMediaType(contentType))
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
+    }
 }

@@ -105,6 +105,28 @@ public class S3StorageService implements StorageService {
     }
 
     @Override
+    public String uploadWithKey(MultipartFile file, String key) {
+        log.info("Uploading file to S3 with custom key: bucket={}, key={}", bucketName, key);
+
+        try {
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .contentType(file.getContentType())
+                    .contentLength(file.getSize())
+                    .build();
+
+            s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+            log.info("Successfully uploaded file to S3: {}", key);
+            return key;
+
+        } catch (IOException e) {
+            log.error("Failed to upload file to S3: {}", key, e);
+            throw new RuntimeException("Failed to upload file to S3", e);
+        }
+    }
+
+    @Override
     public Resource download(String key) {
         log.debug("Downloading file from S3: bucket={}, key={}", bucketName, key);
 
