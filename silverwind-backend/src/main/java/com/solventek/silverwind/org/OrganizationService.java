@@ -36,8 +36,9 @@ public class OrganizationService {
 
     public Organization getOrganization(UUID id) {
         log.debug("Fetching Organization ID: {}", id);
-        return organizationRepository.findById(id)
+        Organization org = organizationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Organization not found"));
+        return enhanceOrganization(org);
     }
 
     @Transactional
@@ -89,7 +90,8 @@ public class OrganizationService {
                     "ORGANIZATION", org.getId());
 
             log.info("Successfully registered vendor org: {} (Pending Approval)", org.getId());
-            return org;
+            log.info("Successfully registered vendor org: {} (Pending Approval)", org.getId());
+            return enhanceOrganization(org);
         } catch (Exception e) {
             log.error("Error registering vendor {}: {}", request.getOrgName(), e.getMessage(), e);
             throw e;
@@ -215,7 +217,8 @@ public class OrganizationService {
                     "ORGANIZATION", org.getId()));
 
             log.info("Organization status updated successfully: {} from {} to {}", orgId, oldStatus, newStatus);
-            return org;
+            log.info("Organization status updated successfully: {} from {} to {}", orgId, oldStatus, newStatus);
+            return enhanceOrganization(org);
         } catch (Exception e) {
             log.error("Error updating organization status {}: {}", orgId, e.getMessage(), e);
             throw e;
@@ -258,7 +261,8 @@ public class OrganizationService {
                     null, "Organization details updated", null);
 
             log.info("Organization updated successfully: {}", orgId);
-            return org;
+            log.info("Organization updated successfully: {}", orgId);
+            return enhanceOrganization(org);
         } catch (Exception e) {
             log.error("Error updating organization {}: {}", orgId, e.getMessage(), e);
             throw e;
@@ -348,18 +352,24 @@ public class OrganizationService {
 
     public java.util.List<Organization> getPendingVendors() {
         log.debug("Fetching pending vendors");
-        return organizationRepository.findByTypeAndStatus(OrganizationType.VENDOR,
+        java.util.List<Organization> orgs = organizationRepository.findByTypeAndStatus(OrganizationType.VENDOR,
                 OrganizationStatus.PENDING_VERIFICATION);
+        orgs.forEach(this::enhanceOrganization);
+        return orgs;
     }
 
     public java.util.List<Organization> getAllVendors() {
         log.debug("Fetching all vendors");
-        return organizationRepository.findByType(OrganizationType.VENDOR);
+        java.util.List<Organization> orgs = organizationRepository.findByType(OrganizationType.VENDOR);
+        orgs.forEach(this::enhanceOrganization);
+        return orgs;
     }
 
     public java.util.List<Organization> getAllOrganizations() {
         log.debug("Fetching all organizations");
-        return organizationRepository.findAll();
+        java.util.List<Organization> orgs = organizationRepository.findAll();
+        orgs.forEach(this::enhanceOrganization);
+        return orgs;
     }
 
     public java.util.List<Employee> getOrganizationEmployees(UUID orgId) {
@@ -369,7 +379,9 @@ public class OrganizationService {
 
     public java.util.List<Organization> getSolventekApprovedOrganizations() {
         log.debug("Fetching Solventek and Approved organizations");
-        return organizationRepository.findByStatus(OrganizationStatus.APPROVED);
+        java.util.List<Organization> orgs = organizationRepository.findByStatus(OrganizationStatus.APPROVED);
+        orgs.forEach(this::enhanceOrganization);
+        return orgs;
     }
 
     private void notifySolventekAdmins(String title, String body, String refType, UUID refId) {
@@ -382,5 +394,27 @@ public class OrganizationService {
             log.error("Failed to notify Solventek admins: {}", e.getMessage());
             // Non-blocking
         }
+    }
+
+
+    /**
+     * Helper to generate presigned URL for organization logo if applicable.
+     */
+    private Organization enhanceOrganization(Organization org) {
+        if (org == null) return null;
+
+        String logoUrl = org.getLogoUrl();
+        // If logoUrl is a storage key (i.e., not a presigned URL yet) and valid
+        if (logoUrl != null && !logoUrl.isEmpty() && !logoUrl.startsWith("http")) {
+            try {
+                // Generate presigned URL (valid for 60 mins by default)
+                String presignedUrl = storageService.getPresignedUrl(logoUrl, java.time.Duration.ofMinutes(60));
+                org.setLogoUrl(presignedUrl);
+            } catch (Exception e) {
+                // If presigning fails, log but return original
+                log.warn("Failed to generate presigned URL for organization logo {}: {}", org.getId(), e.getMessage());
+            }
+        }
+        return org;
     }
 }

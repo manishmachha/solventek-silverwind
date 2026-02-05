@@ -79,11 +79,8 @@ export class UserDetailsComponent implements OnInit {
         this.user.set(data);
         this.isLoading.set(false);
 
-        if (data.profilePhotoUrl?.startsWith('/api')) {
-          this.loadProfilePhoto(id);
-        } else {
-          this.profilePhotoUrl.set(data.profilePhotoUrl || null);
-        }
+        this.isLoading.set(false);
+        this.profilePhotoUrl.set(data.profilePhotoUrl || null);
       },
       error: () => {
         this.isLoading.set(false);
@@ -94,15 +91,7 @@ export class UserDetailsComponent implements OnInit {
     });
   }
 
-  loadProfilePhoto(id: string) {
-    this.userService.getProfilePhoto(id).subscribe({
-      next: (blob) => {
-        const objectUrl = URL.createObjectURL(blob);
-        this.profilePhotoUrl.set(objectUrl);
-      },
-      error: (err) => console.error('Failed to load profile photo', err),
-    });
-  }
+  // Method loadProfilePhoto removed as images are now loaded directly via URL
 
   openEditUserDialog() {
     // If I am NOT an admin, I am in restricted mode (can only edit basics)

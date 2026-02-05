@@ -53,31 +53,19 @@ export class OrganizationLogoComponent implements OnChanges {
 
     // Logo URL
     let url = this.org?.logoUrl || this.logoUrl;
-    const orgId = this.org?.id || this.orgId;
 
     if (url) {
-      if (url.startsWith('http') || url.startsWith('data:')) {
+      if (
+        url.startsWith('http') ||
+        url.startsWith('data:') ||
+        url.startsWith('/api') ||
+        url.startsWith('/')
+      ) {
         this.logoSrc.set(url);
-      } else if (url.startsWith('/')) {
-        // Already relative path
-        this.logoSrc.set(url);
-      } else if (orgId) {
-        // Filename provided, construct endpoint
-        const base = environment.apiUrl.endsWith('/')
-          ? environment.apiUrl.slice(0, -1)
-          : environment.apiUrl;
-        this.logoSrc.set(`${base}/organizations/${orgId}/logo?v=${url}`);
       } else {
-        // Fallback: Just usage as is
+        // Fallback - treat as full url if not matching above
         this.logoSrc.set(url);
       }
-      this.imgError.set(false);
-    } else if (orgId) {
-      // No URL provided, but we have ID. Try fetching from default endpoint.
-      const base = environment.apiUrl.endsWith('/')
-        ? environment.apiUrl.slice(0, -1)
-        : environment.apiUrl;
-      this.logoSrc.set(`${base}/organizations/${orgId}/logo`);
       this.imgError.set(false);
     } else {
       this.logoSrc.set(null);

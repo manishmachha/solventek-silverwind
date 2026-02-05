@@ -93,7 +93,7 @@ public class EmployeeService {
             notificationService.sendNotification(savedEmployee.getId(), "Welcome to Silverwind!",
                     "Your account has been created successfully. Welcome aboard!", "EMPLOYEE", savedEmployee.getId());
 
-            return savedEmployee;
+            return enhanceEmployee(savedEmployee);
         } catch (Exception e) {
             log.error("Error creating employee {}: {}", email, e.getMessage(), e);
             throw e;
@@ -138,19 +138,22 @@ public class EmployeeService {
             employee.setRole(role);
         }
 
-        return employeeRepository.save(employee);
+        return enhanceEmployee(employeeRepository.save(employee));
     }
 
     public Employee getEmployee(UUID employeeId) {
         log.debug("Fetching Employee ID: {}", employeeId);
-        return employeeRepository.findById(employeeId)
+        Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found"));
+        return enhanceEmployee(employee);
     }
 
     public org.springframework.data.domain.Page<Employee> getEmployees(UUID orgId,
             org.springframework.data.domain.Pageable pageable) {
         log.debug("Fetching employees for Org ID: {}", orgId);
-        return employeeRepository.findByOrganizationId(orgId, pageable);
+        org.springframework.data.domain.Page<Employee> page = employeeRepository.findByOrganizationId(orgId, pageable);
+        page.getContent().forEach(this::enhanceEmployee);
+        return page;
     }
 
     private void validateAccess(Employee targetEmployee, UUID actorId) {
@@ -203,7 +206,8 @@ public class EmployeeService {
                     "Personal Details Updated", actorId, employeeId,
                     "Personal details updated", null);
             log.info("Personal details updated successfully for Employee ID: {}", employeeId);
-            return employee;
+            log.info("Personal details updated successfully for Employee ID: {}", employeeId);
+            return enhanceEmployee(employee);
         } catch (Exception e) {
             log.error("Error updating personal details for Employee ID: {}: {}", employeeId, e.getMessage(), e);
             throw e;
@@ -233,7 +237,8 @@ public class EmployeeService {
                     "Employment details updated", null);
 
             log.info("Employment details updated successfully for Employee ID: {}", employeeId);
-            return employee;
+            log.info("Employment details updated successfully for Employee ID: {}", employeeId);
+            return enhanceEmployee(employee);
         } catch (Exception e) {
             log.error("Error updating employment details for Employee ID: {}: {}", employeeId, e.getMessage(), e);
             throw e;
@@ -254,7 +259,7 @@ public class EmployeeService {
         timelineService.createEvent(employee.getOrganization().getId(), "EMPLOYEE", employeeId, "UPDATE_CONTACT",
                 "Contact Info Updated", actorId, employeeId,
                 "Contact info updated", null);
-        return employee;
+        return enhanceEmployee(employee);
     }
 
     @Transactional
@@ -269,7 +274,7 @@ public class EmployeeService {
         timelineService.createEvent(employee.getOrganization().getId(), "EMPLOYEE", employeeId, "UPDATE_BANK",
                 "Bank Details Updated", actorId, employeeId,
                 "Bank details updated", null);
-        return employee;
+        return enhanceEmployee(employee);
     }
 
     @Transactional
@@ -298,7 +303,8 @@ public class EmployeeService {
             }
 
             log.info("Manager updated successfully for Employee ID: {}", employeeId);
-            return employee;
+            log.info("Manager updated successfully for Employee ID: {}", employeeId);
+            return enhanceEmployee(employee);
         } catch (Exception e) {
             log.error("Error updating manager for Employee ID: {}: {}", employeeId, e.getMessage(), e);
             throw e;
@@ -319,8 +325,7 @@ public class EmployeeService {
         timelineService.createEvent(employee.getOrganization().getId(), "EMPLOYEE", employeeId, "UPDATE_STATUS",
                 "Account Status Updated", actorId, employeeId,
                 "Account status updated: Enabled=" + employee.getEnabled() + ", Locked=" + employee.getAccountLocked(), null);
-        return employee;
-    }
+        return enhanceEmployee(employee);    }
 
     @Transactional
     public Employee updateEmploymentStatus(UUID employeeId, UUID actorId, EmploymentStatus employmentStatus) {
@@ -344,7 +349,8 @@ public class EmployeeService {
                     "Your employment status has been changed to " + employmentStatus, "EMPLOYEE", employeeId);
 
             log.info("Employment status updated successfully for Employee ID: {}", employeeId);
-            return employee;
+            log.info("Employment status updated successfully for Employee ID: {}", employeeId);
+            return enhanceEmployee(employee);
         } catch (Exception e) {
             log.error("Error updating employment status for Employee ID: {}: {}", employeeId, e.getMessage(), e);
             throw e;
@@ -394,7 +400,8 @@ public class EmployeeService {
             }
 
             log.info("Successfully converted Employee ID: {} to FTE", employeeId);
-            return employee;
+            log.info("Successfully converted Employee ID: {} to FTE", employeeId);
+            return enhanceEmployee(employee);
         } catch (Exception e) {
             log.error("Error converting Employee ID: {} to FTE: {}", employeeId, e.getMessage(), e);
             throw e;
@@ -425,7 +432,8 @@ public class EmployeeService {
                     "EMPLOYEE", employeeId);
 
             log.info("Password changed successfully for Employee ID: {}", employeeId);
-            return employee;
+            log.info("Password changed successfully for Employee ID: {}", employeeId);
+            return enhanceEmployee(employee);
         } catch (Exception e) {
             log.error("Error changing password for Employee ID: {}: {}", employeeId, e.getMessage(), e);
             throw e;
@@ -463,7 +471,8 @@ public class EmployeeService {
                     "Profile photo updated", null);
 
             log.info("Profile photo uploaded successfully for Employee ID: {}", employeeId);
-            return employee;
+
+            return enhanceEmployee(employee);
         } catch (Exception e) {
             log.error("Error uploading profile photo for Employee ID: {}: {}", employeeId, e.getMessage(), e);
             throw e;
@@ -486,5 +495,28 @@ public class EmployeeService {
         }
 
         return storageService.download(key);
+    }
+
+    /**
+     * Helper to generate presigned URL for profile photo if applicable.
+     * This ensures images are served directly from S3.
+     */
+    private Employee enhanceEmployee(Employee employee) {
+        if (employee == null) return null;
+
+        String photoUrl = employee.getProfilePhotoUrl();
+        if (photoUrl != null && photoUrl.startsWith("/api/files/")) {
+            try {
+                // Extract key from standard path
+                String key = photoUrl.replace("/api/files/", "");
+                // Generate presigned URL (valid for 60 mins by default)
+                String presignedUrl = storageService.getPresignedUrl(key, java.time.Duration.ofMinutes(60));
+                employee.setProfilePhotoUrl(presignedUrl);
+            } catch (Exception e) {
+                // If presigning fails (e.g. key issue), log but return original
+                log.warn("Failed to generate presigned URL for employee {}: {}", employee.getId(), e.getMessage());
+            }
+        }
+        return employee;
     }
 }

@@ -46,7 +46,6 @@ export class UserListComponent implements OnInit {
   totalElements = signal(0);
   pageSize = signal(10);
   currentPage = signal(0);
-  photoUrls = signal<Record<string, string>>({});
 
   dataSource = new MatTableDataSource<User>();
   displayedColumns = ['name', 'designation', 'status', 'role', 'actions'];
@@ -83,25 +82,12 @@ export class UserListComponent implements OnInit {
         this.dataSource.data = response.content;
         this.totalElements.set(response.totalElements);
         this.loading.set(false);
-        this.loadProfilePhotos(response.content);
       },
       error: () => this.loading.set(false),
     });
   }
 
-  loadProfilePhotos(users: User[]) {
-    const urls: Record<string, string> = {};
-    users.forEach((u) => {
-      if (u.profilePhotoUrl?.startsWith('/api')) {
-        this.userService.getProfilePhoto(u.id).subscribe({
-          next: (blob) => {
-            urls[u.id] = URL.createObjectURL(blob);
-            this.photoUrls.set({ ...this.photoUrls(), ...urls });
-          },
-        });
-      }
-    });
-  }
+  // Method loadProfilePhotos removed as images are now loaded directly via URL
 
   onPageChange(event: PageEvent) {
     this.currentPage.set(event.pageIndex);

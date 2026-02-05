@@ -85,7 +85,6 @@
                   <img
                     class="h-10 w-10 rounded-full bg-gray-100 object-cover"
                     [src]="
-                      photoUrls()[user.id] ||
                       user.profilePhotoUrl ||
                       'https://ui-avatars.com/api/?name=' +
                         user.firstName +
@@ -191,7 +190,6 @@
               <img
                 class="h-12 w-12 rounded-full bg-gray-100 object-cover border border-gray-100"
                 [src]="
-                  photoUrls()[user.id] ||
                   user.profilePhotoUrl ||
                   'https://ui-avatars.com/api/?name=' +
                     user.firstName +
