@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 public class DashboardService {
 
     private final EmployeeRepository employeeRepository;
-    private final AssetRepository assetRepository;
     private final com.solventek.silverwind.projects.ProjectRepository projectRepository;
     private final com.solventek.silverwind.jobs.JobRepository jobRepository;
     private final com.solventek.silverwind.applications.JobApplicationRepository jobApplicationRepository;

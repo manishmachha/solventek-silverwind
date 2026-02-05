@@ -32,7 +32,7 @@ public class OrganizationService {
     private final com.solventek.silverwind.rbac.RbacService rbacService;
     private final StorageService storageService;
 
-    private static final String LOGOS_DIRECTORY = "logos";
+
 
     public Organization getOrganization(UUID id) {
         log.debug("Fetching Organization ID: {}", id);

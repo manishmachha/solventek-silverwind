@@ -27,7 +27,7 @@ public class PayrollService {
     private final SalaryStructureRepository salaryStructureRepository;
     private final SalaryRevisionRepository salaryRevisionRepository;
     private final EmployeeRepository employeeRepository;
-    private final OrganizationRepository organizationRepository;
+
     private final NotificationService notificationService;
     private final com.solventek.silverwind.timeline.TimelineService timelineService;
 

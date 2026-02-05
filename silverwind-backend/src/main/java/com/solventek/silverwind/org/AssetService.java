@@ -272,7 +272,7 @@ public class AssetService {
     @Transactional(readOnly = true)
     public List<EmployeeAssetAssignment> getAssetHistory(UUID assetId) {
         log.debug("Fetching history for Asset ID: {}", assetId);
-        Asset asset = getAsset(assetId); // Will check org access
+        getAsset(assetId); // Will check org access
         return assignmentRepository.findByAsset_Id(assetId);
     }
 

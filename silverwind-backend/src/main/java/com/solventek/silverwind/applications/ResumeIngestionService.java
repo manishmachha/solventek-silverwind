@@ -24,7 +24,7 @@ import java.io.InputStream;
 @Slf4j
 public class ResumeIngestionService {
 
-    private static final String RESUMES_DIRECTORY = "resumes";
+
 
     private final StorageService storageService;
 

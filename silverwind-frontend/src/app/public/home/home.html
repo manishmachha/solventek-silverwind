@@ -13,7 +13,7 @@
     <h1 class="text-4xl md:text-6xl font-bold mb-8 text-white tracking-tight leading-tight">
       Help Your Business Survive and Thrive in <br />
       <span
-        class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500"
+        class="text-transparent bg-clip-text bg-linear-to-r from-blue-400 via-purple-500 to-pink-500"
         >The Digital World</span
       >
     </h1>
@@ -25,14 +25,14 @@
       <a
         mat-flat-button
         color="primary"
-        class="!py-6 !px-8 !text-lg !rounded-full shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all transform hover:-translate-y-1"
+        class="py-6! px-8! text-lg! rounded-full! shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all transform hover:-translate-y-1"
         routerLink="/contact"
       >
         Get Started
       </a>
       <a
         mat-stroked-button
-        class="!py-6 !px-8 !text-lg !rounded-full !text-white !border-slate-600 hover:!bg-slate-800 transition-all"
+        class="py-6! px-8! text-lg! rounded-full! text-white! border-slate-600! hover:bg-slate-800! transition-all"
         routerLink="/services"
       >
         Explore Services
@@ -75,7 +75,7 @@
       <a
         mat-stroked-button
         color="primary"
-        class="!hidden md:!inline-flex !text-lg !border-slate-700 !text-blue-400 hover:!bg-blue-500/10"
+        class="hidden! md:inline-flex! text-lg! border-slate-700! text-blue-400! hover:bg-blue-500/10!"
         routerLink="/services"
       >
         View All Services <mat-icon>arrow_forward</mat-icon>
@@ -85,17 +85,17 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       @for (service of services(); track service.id) {
         <mat-card
-          class="group !bg-slate-800/50 !border-slate-700 hover:!border-blue-500/50 hover:!bg-slate-800 transition-all duration-300 cursor-pointer h-full"
+          class="group bg-slate-800/50! border-slate-700! hover:border-blue-500/50! hover:bg-slate-800! transition-all duration-300 cursor-pointer h-full"
         >
           <mat-card-header class="pt-6">
             <div
               mat-card-avatar
-              class="bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center rounded-lg shadow-lg group-hover:scale-110 transition-transform duration-300"
+              class="bg-linear-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center rounded-lg shadow-lg group-hover:scale-110 transition-transform duration-300"
             >
               <mat-icon>{{ service.icon }}</mat-icon>
             </div>
             <mat-card-title
-              class="!text-xl !font-bold !text-slate-100 group-hover:!text-blue-400 transition-colors"
+              class="text-xl! font-bold! text-slate-100! group-hover:text-blue-400! transition-colors"
               >{{ service.title }}</mat-card-title
             >
           </mat-card-header>
@@ -109,7 +109,7 @@
     </div>
 
     <div class="text-center mt-12 md:hidden">
-      <a mat-button color="primary" class="!text-lg" routerLink="/services"
+      <a mat-button color="primary" class="text-lg!" routerLink="/services"
         >View All Services <mat-icon>arrow_forward</mat-icon></a
       >
     </div>
@@ -221,7 +221,7 @@
         <div class="mt-8">
           <a
             mat-button
-            class="!text-lg font-bold !text-blue-400 hover:!bg-blue-500/10"
+            class="text-lg! font-bold! text-blue-400! hover:bg-blue-500/10!"
             href="https://www.pega.com"
             target="_blank"
             >Learn more about Pega <mat-icon>open_in_new</mat-icon></a
@@ -273,7 +273,7 @@
     <a
       mat-flat-button
       color="primary"
-      class="!py-8 !px-12 !text-xl !font-bold !rounded-full shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-1 transition-all"
+      class="py-8! px-12! text-xl! font-bold! rounded-full! shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-1 transition-all"
       routerLink="/contact"
     >
       Contact Us Today
