@@ -65,8 +65,8 @@ jobs:
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/silverwind-backend:${{ needs.setup.outputs.image_tag }}
             ${{ steps.login-ecr.outputs.registry }}/silverwind-backend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
 
   # ----------------------------
   # 2. Build & Push Frontend
@@ -104,8 +104,8 @@ jobs:
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/silverwind-frontend:${{ needs.setup.outputs.image_tag }}
             ${{ steps.login-ecr.outputs.registry }}/silverwind-frontend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
 
   # ----------------------------
   # 3. Deploy to EC2
