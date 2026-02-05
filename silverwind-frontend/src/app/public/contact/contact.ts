@@ -9,19 +9,26 @@ import { MatIconModule } from '@angular/material/icon';
 @Component({
   selector: 'app-contact',
   standalone: true,
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSelectModule, MatIconModule],
+  imports: [
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatIconModule,
+  ],
   templateUrl: './contact.html',
-  styleUrl: './contact.css'
+  styleUrl: './contact.css',
 })
 export class Contact {
   contactForm: FormGroup;
 
   constructor(private fb: FormBuilder) {
     this.contactForm = this.fb.group({
-      name: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      subject: ['', Validators.required],
-      message: ['', Validators.required]
+      name: ['', [Validators.required, Validators.maxLength(100)]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
+      subject: ['', [Validators.required, Validators.maxLength(200)]],
+      message: ['', [Validators.required, Validators.maxLength(2000)]],
     });
   }
 

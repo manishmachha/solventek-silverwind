@@ -144,6 +144,12 @@
           >
             Please enter a valid email address
           </p>
+          <p
+            *ngIf="loginForm.get('email')?.hasError('maxlength') && loginForm.get('email')?.touched"
+            class="text-red-400 text-xs ml-1"
+          >
+            Max 100 characters
+          </p>
         </div>
 
         <!-- Password Input -->
@@ -199,6 +205,14 @@
             class="text-red-400 text-xs ml-1"
           >
             Password is required
+          </p>
+          <p
+            *ngIf="
+              loginForm.get('password')?.hasError('maxlength') && loginForm.get('password')?.touched
+            "
+            class="text-red-400 text-xs ml-1"
+          >
+            Max 100 characters
           </p>
         </div>
 

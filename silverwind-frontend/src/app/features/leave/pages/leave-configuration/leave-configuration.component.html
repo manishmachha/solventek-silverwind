@@ -143,13 +143,27 @@
 
       <form [formGroup]="leaveForm" (ngSubmit)="onSubmit()" class="p-6 space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Policy Name</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Policy Name <span class="text-rose-600">*</span></label
+          >
           <input
             type="text"
             formControlName="name"
             placeholder="e.g. Annual Leave"
             class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
           />
+          <p
+            *ngIf="leaveForm.get('name')?.hasError('required') && leaveForm.get('name')?.touched"
+            class="mt-1 text-xs text-rose-600"
+          >
+            Policy Name is required
+          </p>
+          <p
+            *ngIf="leaveForm.get('name')?.hasError('maxlength') && leaveForm.get('name')?.touched"
+            class="mt-1 text-xs text-rose-600"
+          >
+            Max 50 characters
+          </p>
         </div>
 
         <div>
@@ -160,19 +174,50 @@
             placeholder="Brief description of the policy..."
             class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
           ></textarea>
+          <p
+            *ngIf="
+              leaveForm.get('description')?.hasError('maxlength') &&
+              leaveForm.get('description')?.touched
+            "
+            class="mt-1 text-xs text-rose-600"
+          >
+            Max 200 characters
+          </p>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Default Days / Year</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Default Days / Year <span class="text-rose-600">*</span></label
+            >
             <input
               type="number"
               formControlName="defaultDaysPerYear"
               class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
             />
+            <p
+              *ngIf="
+                leaveForm.get('defaultDaysPerYear')?.hasError('required') &&
+                leaveForm.get('defaultDaysPerYear')?.touched
+              "
+              class="mt-1 text-xs text-rose-600"
+            >
+              Days are required
+            </p>
+            <p
+              *ngIf="
+                leaveForm.get('defaultDaysPerYear')?.hasError('min') &&
+                leaveForm.get('defaultDaysPerYear')?.touched
+              "
+              class="mt-1 text-xs text-rose-600"
+            >
+              Cannot be negative
+            </p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Accrual Frequency</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Accrual Frequency <span class="text-rose-600">*</span></label
+            >
             <select
               formControlName="accrualFrequency"
               class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
@@ -195,6 +240,15 @@
               placeholder="No Limit"
               class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
             />
+            <p
+              *ngIf="
+                leaveForm.get('maxDaysPerMonth')?.hasError('min') &&
+                leaveForm.get('maxDaysPerMonth')?.touched
+              "
+              class="mt-1 text-xs text-rose-600"
+            >
+              Cannot be negative
+            </p>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
@@ -206,6 +260,15 @@
               placeholder="No Limit"
               class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
             />
+            <p
+              *ngIf="
+                leaveForm.get('maxConsecutiveDays')?.hasError('min') &&
+                leaveForm.get('maxConsecutiveDays')?.touched
+              "
+              class="mt-1 text-xs text-rose-600"
+            >
+              Cannot be negative
+            </p>
           </div>
         </div>
 

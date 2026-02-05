@@ -20,8 +20,8 @@ export class LoginComponent {
   error = signal<string | null>(null);
 
   loginForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
+    password: ['', [Validators.required, Validators.maxLength(100)]],
   });
 
   hidePassword = signal(true);

@@ -23,13 +23,13 @@ export class LeaveConfigurationComponent implements OnInit {
   submitting = signal<boolean>(false);
 
   leaveForm: FormGroup = this.fb.group({
-    name: ['', [Validators.required]],
-    description: [''],
+    name: ['', [Validators.required, Validators.maxLength(50)]],
+    description: ['', [Validators.maxLength(200)]],
     defaultDaysPerYear: [20, [Validators.required, Validators.min(0)]],
     carryForwardAllowed: [false],
     accrualFrequency: ['ANNUALLY', [Validators.required]],
-    maxDaysPerMonth: [null], // Optional
-    maxConsecutiveDays: [null], // Optional
+    maxDaysPerMonth: [null, [Validators.min(0)]], // Optional
+    maxConsecutiveDays: [null, [Validators.min(0)]], // Optional
     requiresApproval: [true],
   });
 

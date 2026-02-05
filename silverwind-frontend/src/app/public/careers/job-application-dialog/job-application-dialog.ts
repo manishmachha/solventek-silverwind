@@ -38,11 +38,11 @@ export class JobApplicationDialogComponent {
   isSubmitting = signal(false);
 
   form = this.fb.group({
-    candidateName: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    phone: ['', Validators.required],
-    experienceYears: [1, [Validators.required, Validators.min(0)]],
-    currentCompany: [''],
+    candidateName: ['', [Validators.required, Validators.maxLength(100)]],
+    email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
+    phone: ['', [Validators.required, Validators.pattern(/^[+]?\d{10,15}$/)]],
+    experienceYears: [1, [Validators.required, Validators.min(0), Validators.max(50)]],
+    currentCompany: ['', [Validators.maxLength(100)]],
     // resume is handled separately
   });
 

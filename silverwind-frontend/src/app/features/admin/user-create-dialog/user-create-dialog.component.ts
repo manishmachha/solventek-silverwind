@@ -50,20 +50,20 @@ export class UserCreateDialogComponent implements OnInit {
 
     this.userForm = this.fb.group({
       // Step 1: Account
-      employeeCode: ['', [Validators.maxLength(30)]],
-      username: ['', [Validators.maxLength(60)]],
+      employeeCode: ['', [Validators.required, Validators.maxLength(30)]],
+      username: ['', [Validators.required, Validators.maxLength(60)]],
       firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(60)]],
       lastName: ['', [Validators.required, Validators.maxLength(60)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
-      phone: ['', [Validators.pattern(this.PHONE_REGEX)]],
+      phone: ['', [Validators.required, Validators.pattern(this.PHONE_REGEX)]],
       roleId: ['', [Validators.required]],
 
       // Step 2: Employment
-      dateOfBirth: [''],
-      gender: [null],
+      dateOfBirth: ['', [Validators.required]],
+      gender: [null, [Validators.required]],
       profilePhotoUrl: ['', [Validators.maxLength(2048)]],
-      dateOfJoining: [''],
-      employmentStatus: ['ACTIVE'],
+      dateOfJoining: ['', [Validators.required]],
+      employmentStatus: ['ACTIVE', [Validators.required]],
       department: ['', [Validators.maxLength(80)]],
       designation: ['', [Validators.maxLength(80)]],
       employmentType: ['FTE'],
@@ -72,27 +72,27 @@ export class UserCreateDialogComponent implements OnInit {
 
       // Step 3: Address (matches backend Address.java)
       address: this.fb.group({
-        street: ['', [Validators.maxLength(200)]],
-        city: ['', [Validators.maxLength(80)]],
-        state: ['', [Validators.maxLength(80)]],
-        country: ['', [Validators.maxLength(80)]],
-        zipCode: ['', [Validators.pattern(this.POSTAL_REGEX)]],
+        street: ['', [Validators.required, Validators.maxLength(200)]],
+        city: ['', [Validators.required, Validators.maxLength(80)]],
+        state: ['', [Validators.required, Validators.maxLength(80)]],
+        country: ['', [Validators.required, Validators.maxLength(80)]],
+        zipCode: ['', [Validators.required, Validators.pattern(this.POSTAL_REGEX)]],
       }),
 
       // Step 4: Other
       // EmergencyContact matches backend EmergencyContact.java
       emergencyContact: this.fb.group({
-        contactName: ['', [Validators.maxLength(120)]],
-        relationship: ['', [Validators.maxLength(40)]],
-        contactPhone: ['', [Validators.pattern(this.PHONE_REGEX)]],
+        contactName: ['', [Validators.required, Validators.maxLength(120)]],
+        relationship: ['', [Validators.required, Validators.maxLength(40)]],
+        contactPhone: ['', [Validators.required, Validators.pattern(this.PHONE_REGEX)]],
         contactEmail: ['', [Validators.email]],
       }),
       // BankDetails matches backend BankDetails.java
       bankDetails: this.fb.group({
-        bankName: ['', [Validators.maxLength(120)]],
-        accountNumber: ['', [Validators.maxLength(30)]],
-        ifscCode: ['', [Validators.maxLength(20)]],
-        branchName: ['', [Validators.maxLength(80)]],
+        bankName: ['', [Validators.required, Validators.maxLength(120)]],
+        accountNumber: ['', [Validators.required, Validators.maxLength(30)]],
+        ifscCode: ['', [Validators.required, Validators.maxLength(20)]],
+        branchName: ['', [Validators.required, Validators.maxLength(80)]],
       }),
       taxIdPan: ['', [Validators.maxLength(20)]],
     });

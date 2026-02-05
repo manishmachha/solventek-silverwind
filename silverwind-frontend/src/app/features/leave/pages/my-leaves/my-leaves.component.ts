@@ -36,7 +36,7 @@ export class MyLeavesComponent implements OnInit {
     leaveTypeId: ['', Validators.required],
     startDate: ['', Validators.required],
     endDate: ['', Validators.required],
-    reason: ['', Validators.required],
+    reason: ['', [Validators.required, Validators.maxLength(200)]],
   });
 
   // Chart Data

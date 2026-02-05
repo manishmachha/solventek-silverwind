@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TrackingService } from '../tracking.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -15,7 +15,7 @@ import { MatNativeDateModule } from '@angular/material/core';
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
@@ -27,29 +27,39 @@ import { MatNativeDateModule } from '@angular/material/core';
   styleUrl: './tracking-login.css',
 })
 export class TrackingLoginComponent {
-  applicationId: string = '';
-  dateOfBirth: Date | null = null;
-  isLoading = false;
-  error = '';
-
+  private fb = inject(FormBuilder);
   private router = inject(Router);
   private trackingService = inject(TrackingService);
 
+  isLoading = false;
+  error = '';
+
+  form: FormGroup = this.fb.group({
+    applicationId: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    dateOfBirth: [null, Validators.required],
+  });
+
   onSubmit() {
-    if (!this.applicationId || !this.dateOfBirth) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const { applicationId, dateOfBirth } = this.form.value;
 
     this.isLoading = true;
     this.error = '';
 
-    const year = this.dateOfBirth.getFullYear();
-    const month = String(this.dateOfBirth.getMonth() + 1).padStart(2, '0');
-    const day = String(this.dateOfBirth.getDate()).padStart(2, '0');
+    const dobDate = new Date(dateOfBirth);
+    const year = dobDate.getFullYear();
+    const month = String(dobDate.getMonth() + 1).padStart(2, '0');
+    const day = String(dobDate.getDate()).padStart(2, '0');
     const dob = `${year}-${month}-${day}`;
 
-    this.trackingService.login(Number(this.applicationId), dob).subscribe({
+    this.trackingService.login(Number(applicationId), dob).subscribe({
       next: (dashboardData) => {
         // Store auth data for persistence
-        sessionStorage.setItem('tracking_auth', JSON.stringify({ id: this.applicationId, dob }));
+        sessionStorage.setItem('tracking_auth', JSON.stringify({ id: applicationId, dob }));
 
         this.router.navigate(['/tracking/dashboard/' + dashboardData.trackingToken], {
           state: { data: dashboardData },

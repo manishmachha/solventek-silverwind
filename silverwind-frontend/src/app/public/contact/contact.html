@@ -123,7 +123,12 @@
                 placeholder="John Doe"
                 class="text-slate-200!"
               />
-              <mat-error>Name is required</mat-error>
+              <mat-error *ngIf="contactForm.get('name')?.hasError('required')"
+                >Name is required</mat-error
+              >
+              <mat-error *ngIf="contactForm.get('name')?.hasError('maxlength')"
+                >Max 100 characters</mat-error
+              >
             </mat-form-field>
           </div>
 
@@ -136,7 +141,15 @@
                 placeholder="john@company.com"
                 class="text-slate-200!"
               />
-              <mat-error>Valid email is required</mat-error>
+              <mat-error *ngIf="contactForm.get('email')?.hasError('required')"
+                >Email is required</mat-error
+              >
+              <mat-error *ngIf="contactForm.get('email')?.hasError('email')"
+                >Invalid email address</mat-error
+              >
+              <mat-error *ngIf="contactForm.get('email')?.hasError('maxlength')"
+                >Max 100 characters</mat-error
+              >
             </mat-form-field>
           </div>
 
@@ -153,7 +166,12 @@
                 <mat-option value="Careers">Careers</mat-option>
                 <mat-option value="Other">Other Inquiry</mat-option>
               </mat-select>
-              <mat-error>Please select a subject</mat-error>
+              <mat-error *ngIf="contactForm.get('subject')?.hasError('required')"
+                >Please select a subject</mat-error
+              >
+              <mat-error *ngIf="contactForm.get('subject')?.hasError('maxlength')"
+                >Max 200 characters</mat-error
+              >
             </mat-form-field>
           </div>
 
@@ -167,7 +185,12 @@
                 placeholder="Tell us about your project..."
                 class="text-slate-200!"
               ></textarea>
-              <mat-error>Message is required</mat-error>
+              <mat-error *ngIf="contactForm.get('message')?.hasError('required')"
+                >Message is required</mat-error
+              >
+              <mat-error *ngIf="contactForm.get('message')?.hasError('maxlength')"
+                >Max 2000 characters</mat-error
+              >
             </mat-form-field>
           </div>
 
