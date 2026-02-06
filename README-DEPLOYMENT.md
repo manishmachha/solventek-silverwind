@@ -6,7 +6,7 @@ This guide covers deploying Silverwind to AWS EC2 with Jenkins CI/CD.
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Jenkins   │────▶│     ECR     │────▶│    EC2      │
+│   Github    │────▶│     ECR     │────▶│    EC2      │
 │   (CI/CD)   │     │  (Registry) │     │  (Docker)   │
 └─────────────┘     └─────────────┘     └─────────────┘
                                               │
@@ -27,7 +27,6 @@ This guide covers deploying Silverwind to AWS EC2 with Jenkins CI/CD.
 | -------------- | -------- | ------------------------- |
 | **Frontend**   | 80 / 443 | Public (via Nginx)        |
 | **Backend**    | 9090     | Internal (Docker Network) |
-| **Jenkins**    | 8080     | Admin IP Only             |
 | **PostgreSQL** | 5432     | Internal (Docker Network) |
 
 ## Prerequisites
@@ -37,7 +36,6 @@ This guide covers deploying Silverwind to AWS EC2 with Jenkins CI/CD.
 - RDS PostgreSQL instance
 - S3 bucket for file storage
 - ECR repository (or Docker Hub)
-- Jenkins server
 
 ## Step 1: AWS S3 Setup
 
@@ -144,77 +142,8 @@ This guide covers deploying Silverwind to AWS EC2 with Jenkins CI/CD.
    aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin YOUR_ACCOUNT_ID.dkr.ecr.eu-north-1.amazonaws.com
    ```
 
-## Step 4: Jenkins Setup (Single Server)
 
-Jenkins will be installed on the **same EC2 instance** as your application. This works well for t3.large or larger instances.
-
-> **Note**: Update your Security Group to allow port 8080 (Jenkins UI) from your IP.
-
-### 4.1 Install Java (Required for Jenkins)
-
-```bash
-
-# Ubuntu
-sudo apt update && sudo apt install openjdk-17-jdk -y
-
-# Verify
-java -version
-```
-
-### 4.2 Install Jenkins
-
-```bash
-
-# Ubuntu
-curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee \
-  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
-echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
-  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
-  /etc/apt/sources.list.d/jenkins.list > /dev/null
-sudo apt update && sudo apt install jenkins -y
-```
-
-### 4.3 Start Jenkins & Configure Docker Access
-
-```bash
-# Start Jenkins
-sudo systemctl start jenkins
-sudo systemctl enable jenkins
-
-# Add Jenkins user to Docker group (Docker was installed in Step 2)
-sudo usermod -aG docker jenkins
-sudo systemctl restart jenkins
-
-# Verify Jenkins is running
-sudo systemctl status jenkins
-
-> **Troubleshooting**: If you see `permission denied` for `/var/run/docker.sock`, verify group membership:
-> `groups jenkins`
-> If correctly added but still failing, try restarting Docker too:
-> `sudo systemctl restart docker`
-> `sudo systemctl restart jenkins`
-> Also check socket permissions: `sudo chmod 666 /var/run/docker.sock` (Use with caution in production)
-```
-
-### 4.4 Initial Jenkins Setup
-
-1. Get the initial admin password:
-
-   ```bash
-   sudo cat /var/lib/jenkins/secrets/initialAdminPassword
-   ```
-
-2. Open `http://<your-ec2-public-ip>:8080` in your browser
-
-3. Enter the initial admin password
-
-4. Select **"Install suggested plugins"**
-
-5. Create your admin user
-
-6. Set Jenkins URL (use your EC2 public IP or domain)
-
-### 4.5 Install AWS CLI (if not already installed)
+### 4 Install AWS CLI (if not already installed)
 
 ```bash
 # Check if AWS CLI exists
