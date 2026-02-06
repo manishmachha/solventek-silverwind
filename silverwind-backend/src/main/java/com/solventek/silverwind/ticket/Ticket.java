@@ -1,6 +1,8 @@
 package com.solventek.silverwind.ticket;
 
 import com.solventek.silverwind.auth.Employee;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.solventek.silverwind.org.Organization;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -99,4 +101,12 @@ public class Ticket {
     @Builder.Default
     @Column(name = "unread_count_admin", nullable = false, columnDefinition = "integer default 0")
     private int unreadCountForAdmin = 0;
+
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<TicketComment> comments;
+
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<TicketHistory> history;
 }

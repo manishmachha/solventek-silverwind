@@ -1,5 +1,6 @@
 package com.solventek.silverwind.org;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.solventek.silverwind.common.BaseEntity;
 import jakarta.persistence.*;
@@ -74,4 +75,46 @@ public class Organization extends BaseEntity {
 
     @com.fasterxml.jackson.annotation.JsonIgnore
     private String adminPasswordHash; // Temporary storage for admin password during registration
+
+    // --- Inverse Relationships (Cascades) ---
+
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.auth.Employee> employees;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.projects.Project> clientProjects;
+
+    @OneToMany(mappedBy = "internalOrg", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.projects.Project> ownedProjects;
+
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.jobs.Job> jobs;
+
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.recruitment.Candidate> candidates;
+
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<Asset> assets;
+
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.rbac.Role> roles;
+
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.org.Payroll> payrolls;
+
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.org.SalaryStructure> salaryStructures;
+
+    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.timeline.TimelineEvent> timelineEvents;
 }

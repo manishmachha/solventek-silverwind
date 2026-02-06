@@ -1,5 +1,6 @@
 package com.solventek.silverwind.recruitment;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.solventek.silverwind.common.BaseEntity;
 import com.solventek.silverwind.org.Organization;
@@ -61,4 +62,8 @@ public class Candidate extends BaseEntity {
     @JoinColumn(name = "organization_id", nullable = false)
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     private Organization organization; // Vendor Organization that owns this candidate
+
+    @OneToMany(mappedBy = "candidate", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.applications.JobApplication> applications;
 }

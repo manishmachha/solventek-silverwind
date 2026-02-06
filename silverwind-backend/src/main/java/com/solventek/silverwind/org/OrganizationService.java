@@ -76,7 +76,7 @@ public class OrganizationService {
                     .status(OrganizationStatus.PENDING_VERIFICATION)
                     .adminPasswordHash(passwordEncoder.encode(request.getPassword()))
                     .build();
-            organizationRepository.save(org);
+            organizationRepository.saveAndFlush(org);
 
             // 2. Initialize Roles for this Org (VENDOR role only)
             rbacService.initializeOrgRoles(org.getId());
@@ -202,7 +202,7 @@ public class OrganizationService {
 
             OrganizationStatus oldStatus = org.getStatus();
             org.setStatus(newStatus);
-            organizationRepository.save(org);
+            organizationRepository.saveAndFlush(org);
 
             timelineService.createEvent(org.getId(), "ORGANIZATION", org.getId(), "STATUS_UPDATE",
                     "Status Updated",
@@ -256,7 +256,7 @@ public class OrganizationService {
             if (dto.getContactPersonPhone() != null) org.setContactPersonPhone(dto.getContactPersonPhone());
             if (dto.getContactPersonDesignation() != null) org.setContactPersonDesignation(dto.getContactPersonDesignation());
 
-            organizationRepository.save(org);
+            organizationRepository.saveAndFlush(org);
 
             timelineService.createEvent(org.getId(), "ORGANIZATION", org.getId(), "UPDATE", "Org Updated",
                     null, "Organization details updated", null);
@@ -304,7 +304,7 @@ public class OrganizationService {
             }
 
             org.setLogoUrl(storageKey);
-            organizationRepository.save(org);
+            organizationRepository.saveAndFlush(org);
 
             log.info("Logo uploaded successfully for org: {}, key: {}", orgId, storageKey);
             return storageKey;

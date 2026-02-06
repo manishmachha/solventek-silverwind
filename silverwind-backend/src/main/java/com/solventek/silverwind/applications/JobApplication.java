@@ -1,5 +1,6 @@
 package com.solventek.silverwind.applications;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.solventek.silverwind.common.BaseEntity;
 import com.solventek.silverwind.jobs.Job;
@@ -68,5 +69,13 @@ public class JobApplication extends BaseEntity {
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     private Candidate candidate;
 
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.interviews.Interview> interviews;
+
     private Integer unreadCountForAdmin;
+
+    @OneToOne(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private com.solventek.silverwind.onboarding.Onboarding onboarding;
 }

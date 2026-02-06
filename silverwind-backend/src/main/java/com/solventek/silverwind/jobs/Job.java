@@ -1,5 +1,6 @@
 package com.solventek.silverwind.jobs;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.solventek.silverwind.common.BaseEntity;
 import com.solventek.silverwind.org.Organization;
@@ -56,4 +57,8 @@ public class Job extends BaseEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "ai_insights", columnDefinition = "jsonb")
     private Map<String, Object> aiInsights;
+
+    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.applications.JobApplication> applications;
 }

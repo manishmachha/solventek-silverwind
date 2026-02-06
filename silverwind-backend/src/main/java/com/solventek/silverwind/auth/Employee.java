@@ -1,6 +1,8 @@
 package com.solventek.silverwind.auth;
 
 import com.solventek.silverwind.auth.embeddable.Address;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.solventek.silverwind.auth.embeddable.BankDetails;
 import com.solventek.silverwind.auth.embeddable.EmergencyContact;
 import com.solventek.silverwind.common.BaseEntity;
@@ -114,4 +116,38 @@ public class Employee extends BaseEntity {
     public String getFullName() {
         return firstName + " " + lastName;
     }
+
+    // --- Inverse Relationships (Cascades) ---
+
+    @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private java.util.List<Employee> directReports;
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.feature.leave.entity.LeaveRequest> leaveRequests;
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.org.Attendance> attendanceRecords;
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.projects.ProjectAllocation> projectAllocations;
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.org.EmployeeAssetAssignment> assetAssignments;
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.org.Payroll> payrolls;
+
+    @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private com.solventek.silverwind.org.SalaryStructure salaryStructure;
+
+    @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.notifications.Notification> notifications;
 }
