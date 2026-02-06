@@ -294,8 +294,8 @@ public class OrganizationService {
             // Upload using StorageService with custom key
             storageService.uploadWithKey(file, storageKey);
 
-            // Delete old logo if exists
-            if (org.getLogoUrl() != null && !org.getLogoUrl().isEmpty()) {
+            // Delete old logo if exists AND is different from new key
+            if (org.getLogoUrl() != null && !org.getLogoUrl().isEmpty() && !org.getLogoUrl().equals(storageKey)) {
                 try {
                     storageService.delete(org.getLogoUrl());
                 } catch (Exception e) {
