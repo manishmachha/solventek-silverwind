@@ -2,7 +2,7 @@ package com.solventek.silverwind.ticket;
 
 import com.solventek.silverwind.auth.Employee;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import com.solventek.silverwind.org.Organization;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

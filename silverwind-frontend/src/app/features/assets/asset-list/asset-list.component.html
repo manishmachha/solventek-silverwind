@@ -64,96 +64,176 @@
       </button>
     </div>
 
-    <!-- Data Table -->
-    <div *ngIf="!isLoading() && assets().length > 0" class="overflow-x-auto">
-      <table class="w-full text-left text-sm">
-        <thead class="bg-gray-50/50 border-b border-gray-200">
-          <tr>
-            <th class="px-6 py-4 font-semibold text-gray-600 w-32">Tag</th>
-            <th class="px-6 py-4 font-semibold text-gray-600">Type</th>
-            <th class="px-6 py-4 font-semibold text-gray-600">Brand / Model</th>
-            <th class="px-6 py-4 font-semibold text-gray-600 w-32 text-center">Available</th>
-            <th class="px-6 py-4 font-semibold text-gray-600 w-24 text-center">Status</th>
-            <th *ngIf="canManage()" class="px-6 py-4 font-semibold text-gray-600 w-32 text-right">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-          <tr
-            *ngFor="let asset of assets()"
-            class="hover:bg-gray-50/50 transition-colors group relative"
-            [ngClass]="hasNotification(asset.id) ? 'bg-red-50/50 ring-1 ring-red-200' : ''"
-          >
-            <!-- Notification Indicator -->
-            <td
-              *ngIf="hasNotification(asset.id)"
-              class="absolute left-0 top-1/2 -translate-y-1/2 ml-1"
+    <div *ngIf="!isLoading() && assets().length > 0">
+      <!-- Desktop Table -->
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-gray-50/50 border-b border-gray-200">
+            <tr>
+              <th class="px-6 py-4 font-semibold text-gray-600 w-32">Tag</th>
+              <th class="px-6 py-4 font-semibold text-gray-600">Type</th>
+              <th class="px-6 py-4 font-semibold text-gray-600">Brand / Model</th>
+              <th class="px-6 py-4 font-semibold text-gray-600 w-32 text-center">Available</th>
+              <th class="px-6 py-4 font-semibold text-gray-600 w-24 text-center">Status</th>
+              <th *ngIf="canManage()" class="px-6 py-4 font-semibold text-gray-600 w-32 text-right">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr
+              *ngFor="let asset of assets()"
+              class="hover:bg-gray-50/50 transition-colors group relative"
+              [ngClass]="hasNotification(asset.id) ? 'bg-red-50/50 ring-1 ring-red-200' : ''"
             >
-              <span class="flex h-2 w-2">
+              <!-- Notification Indicator -->
+              <td
+                *ngIf="hasNotification(asset.id)"
+                class="absolute left-0 top-1/2 -translate-y-1/2 ml-1"
+              >
+                <span class="flex h-2 w-2">
+                  <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
+                  ></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+              </td>
+              <td class="px-6 py-4">
                 <span
-                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
-                ></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-              </span>
-            </td>
-            <td class="px-6 py-4">
-              <span class="font-mono font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded">{{
-                asset.assetTag
-              }}</span>
-            </td>
-            <td class="px-6 py-4 font-medium text-gray-900">{{ asset.assetType }}</td>
-            <td class="px-6 py-4 text-gray-600">
-              {{ asset.brand || '-' }} {{ asset.model ? '/ ' + asset.model : '' }}
-            </td>
-            <td class="px-6 py-4 text-center">
+                  class="font-mono font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded"
+                  >{{ asset.assetTag }}</span
+                >
+              </td>
+              <td class="px-6 py-4 font-medium text-gray-900">{{ asset.assetType }}</td>
+              <td class="px-6 py-4 text-gray-600">
+                {{ asset.brand || '-' }} {{ asset.model ? '/ ' + asset.model : '' }}
+              </td>
+              <td class="px-6 py-4 text-center">
+                <span
+                  class="font-medium"
+                  [ngClass]="asset.availableQuantity > 0 ? 'text-emerald-600' : 'text-red-500'"
+                >
+                  {{ asset.availableQuantity }} / {{ asset.totalQuantity }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-center">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
+                  [ngClass]="
+                    asset.active
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-gray-100 text-gray-600 border-gray-300'
+                  "
+                >
+                  {{ asset.active ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td *ngIf="canManage()" class="px-6 py-4 text-right">
+                <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100">
+                  <button
+                    (click)="viewHistory(asset)"
+                    title="View History"
+                    class="text-gray-400 hover:text-indigo-600 transition-colors p-2 rounded-lg hover:bg-indigo-50"
+                  >
+                    <i class="bi bi-clock-history"></i>
+                  </button>
+                  <button
+                    (click)="openAssignModal(asset)"
+                    title="Assign"
+                    class="text-gray-400 hover:text-emerald-600 transition-colors p-2 rounded-lg hover:bg-emerald-50"
+                  >
+                    <i class="bi bi-person-plus"></i>
+                  </button>
+                  <button
+                    (click)="deleteAsset(asset)"
+                    title="Delete"
+                    class="text-gray-400 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card View -->
+      <div class="md:hidden space-y-4 p-4 bg-gray-50">
+        <div
+          *ngFor="let asset of assets()"
+          class="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+          [ngClass]="hasNotification(asset.id) ? 'bg-red-50/50 ring-1 ring-red-200' : ''"
+        >
+          <div class="flex justify-between items-start mb-3">
+            <div>
               <span
-                class="font-medium"
-                [ngClass]="asset.availableQuantity > 0 ? 'text-emerald-600' : 'text-red-500'"
+                class="font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded text-sm"
+                >{{ asset.assetTag }}</span
               >
-                {{ asset.availableQuantity }} / {{ asset.totalQuantity }}
-              </span>
-            </td>
-            <td class="px-6 py-4 text-center">
-              <span
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
-                [ngClass]="
-                  asset.active
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : 'bg-gray-100 text-gray-600 border-gray-300'
-                "
-              >
-                {{ asset.active ? 'Active' : 'Inactive' }}
-              </span>
-            </td>
-            <td *ngIf="canManage()" class="px-6 py-4 text-right">
-              <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100">
-                <button
-                  (click)="viewHistory(asset)"
-                  title="View History"
-                  class="text-gray-400 hover:text-indigo-600 transition-colors p-2 rounded-lg hover:bg-indigo-50"
-                >
-                  <i class="bi bi-clock-history"></i>
-                </button>
-                <button
-                  (click)="openAssignModal(asset)"
-                  title="Assign"
-                  class="text-gray-400 hover:text-emerald-600 transition-colors p-2 rounded-lg hover:bg-emerald-50"
-                >
-                  <i class="bi bi-person-plus"></i>
-                </button>
-                <button
-                  (click)="deleteAsset(asset)"
-                  title="Delete"
-                  class="text-gray-400 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50"
-                >
-                  <i class="bi bi-trash"></i>
-                </button>
+              <div class="text-xs text-red-500 font-bold mt-1" *ngIf="hasNotification(asset.id)">
+                Return Requested
               </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
+              [ngClass]="
+                asset.active
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : 'bg-gray-100 text-gray-600 border-gray-300'
+              "
+            >
+              {{ asset.active ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+
+          <div class="mb-3">
+            <div class="font-bold text-gray-900">{{ asset.assetType }}</div>
+            <div class="text-sm text-gray-600">
+              {{ asset.brand || '-' }} {{ asset.model ? '/ ' + asset.model : '' }}
+            </div>
+          </div>
+
+          <div
+            class="flex justify-between items-center text-sm py-2 border-t border-b border-gray-100 mb-4"
+          >
+            <span class="text-gray-500">Availability</span>
+            <span
+              class="font-medium"
+              [ngClass]="asset.availableQuantity > 0 ? 'text-emerald-600' : 'text-red-500'"
+            >
+              {{ asset.availableQuantity }} / {{ asset.totalQuantity }}
+            </span>
+          </div>
+
+          <div *ngIf="canManage()" class="grid grid-cols-3 gap-2">
+            <button
+              (click)="viewHistory(asset)"
+              class="flex items-center justify-center p-2 rounded-lg text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors"
+              title="History"
+            >
+              <i class="bi bi-clock-history mr-1"></i>
+              <span class="text-xs font-semibold">History</span>
+            </button>
+            <button
+              (click)="openAssignModal(asset)"
+              class="flex items-center justify-center p-2 rounded-lg text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+              title="Assign"
+            >
+              <i class="bi bi-person-plus mr-1"></i>
+              <span class="text-xs font-semibold">Assign</span>
+            </button>
+            <button
+              (click)="deleteAsset(asset)"
+              class="flex items-center justify-center p-2 rounded-lg text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+              title="Delete"
+            >
+              <i class="bi bi-trash mr-1"></i>
+              <span class="text-xs font-semibold">Delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Pagination -->

@@ -78,47 +78,99 @@
     </div>
 
     <div *ngIf="!isLoadingStructures() && salaryStructures().length > 0" class="overflow-x-auto">
-      <table class="w-full text-left text-sm">
-        <thead class="bg-gray-50/50 border-b border-gray-200">
-          <tr>
-            <th class="px-6 py-4 font-semibold text-gray-600">Employee</th>
-            <th class="px-6 py-4 font-semibold text-gray-600 text-right">Basic</th>
-            <th class="px-6 py-4 font-semibold text-gray-600 text-right">HRA</th>
-            <th class="px-6 py-4 font-semibold text-gray-600 text-right">DA</th>
-            <th class="px-6 py-4 font-semibold text-gray-600 text-right">Deductions</th>
-            <th class="px-6 py-4 font-semibold text-gray-600 text-right">CTC</th>
-            <th class="px-6 py-4 font-semibold text-gray-600 w-48 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-          <tr *ngFor="let s of salaryStructures()" class="hover:bg-gray-50/50 transition-colors">
-            <td class="px-6 py-4 font-medium text-gray-900">{{ s.userName }}</td>
-            <td class="px-6 py-4 text-right">₹{{ s.basic | number: '1.0-0' }}</td>
-            <td class="px-6 py-4 text-right">₹{{ s.hra | number: '1.0-0' }}</td>
-            <td class="px-6 py-4 text-right">₹{{ s.da | number: '1.0-0' }}</td>
-            <td class="px-6 py-4 text-right text-red-500">
-              ₹{{ s.epfDeduction | number: '1.0-0' }}
-            </td>
-            <td class="px-6 py-4 text-right font-bold text-indigo-600">
-              ₹{{ s.ctc | number: '1.0-0' }}
-            </td>
-            <td class="flex px-6 py-4 text-right space-x-3">
-              <button
-                (click)="openEditStructureModal(s)"
-                class="bg-linear-to-r from-indigo-500 to-indigo-600 text-white px-2 py-1 rounded-lg cursor-pointer hover:bg-indigo-700 text-sm font-medium hover:underline"
-              >
-                Edit
-              </button>
-              <button
-                (click)="generatePayrollForUser(s.userId)"
-                class="bg-linear-to-r from-green-500 to-green-600 text-white px-2 py-1 rounded-lg cursor-pointer hover:bg-emerald-700 text-sm font-medium hover:underline"
-              >
-                Generate Payroll
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- Desktop Table -->
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-gray-50/50 border-b border-gray-200">
+            <tr>
+              <th class="px-6 py-4 font-semibold text-gray-600">Employee</th>
+              <th class="px-6 py-4 font-semibold text-gray-600 text-right">Basic</th>
+              <th class="px-6 py-4 font-semibold text-gray-600 text-right">HRA</th>
+              <th class="px-6 py-4 font-semibold text-gray-600 text-right">DA</th>
+              <th class="px-6 py-4 font-semibold text-gray-600 text-right">Deductions</th>
+              <th class="px-6 py-4 font-semibold text-gray-600 text-right">CTC</th>
+              <th class="px-6 py-4 font-semibold text-gray-600 w-48 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr *ngFor="let s of salaryStructures()" class="hover:bg-gray-50/50 transition-colors">
+              <td class="px-6 py-4 font-medium text-gray-900">{{ s.userName }}</td>
+              <td class="px-6 py-4 text-right">₹{{ s.basic | number: '1.0-0' }}</td>
+              <td class="px-6 py-4 text-right">₹{{ s.hra | number: '1.0-0' }}</td>
+              <td class="px-6 py-4 text-right">₹{{ s.da | number: '1.0-0' }}</td>
+              <td class="px-6 py-4 text-right text-red-500">
+                ₹{{ s.epfDeduction | number: '1.0-0' }}
+              </td>
+              <td class="px-6 py-4 text-right font-bold text-indigo-600">
+                ₹{{ s.ctc | number: '1.0-0' }}
+              </td>
+              <td class="flex px-6 py-4 text-right space-x-3">
+                <button
+                  (click)="openEditStructureModal(s)"
+                  class="bg-linear-to-r from-indigo-500 to-indigo-600 text-white px-2 py-1 rounded-lg cursor-pointer hover:bg-indigo-700 text-sm font-medium hover:underline"
+                >
+                  Edit
+                </button>
+                <button
+                  (click)="generatePayrollForUser(s.userId)"
+                  class="bg-linear-to-r from-green-500 to-green-600 text-white px-2 py-1 rounded-lg cursor-pointer hover:bg-emerald-700 text-sm font-medium hover:underline"
+                >
+                  Generate Payroll
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card View -->
+      <div class="md:hidden space-y-4 p-4 bg-gray-50">
+        <div
+          *ngFor="let s of salaryStructures()"
+          class="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+        >
+          <div class="flex justify-between items-center mb-3">
+            <span class="font-bold text-gray-900">{{ s.userName }}</span>
+            <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full"
+              >CTC: ₹{{ s.ctc | number: '1.0-0' }}</span
+            >
+          </div>
+
+          <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-sm mb-4">
+            <div class="flex justify-between">
+              <span class="text-gray-500">Basic</span>
+              <span class="font-medium">₹{{ s.basic | number: '1.0-0' }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-500">HRA</span>
+              <span class="font-medium">₹{{ s.hra | number: '1.0-0' }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-500">DA</span>
+              <span class="font-medium">₹{{ s.da | number: '1.0-0' }}</span>
+            </div>
+            <div class="flex justify-between text-red-500">
+              <span>Deductions</span>
+              <span class="font-medium">₹{{ s.epfDeduction | number: '1.0-0' }}</span>
+            </div>
+          </div>
+
+          <div class="flex gap-2">
+            <button
+              (click)="openEditStructureModal(s)"
+              class="flex-1 bg-indigo-50 text-indigo-700 py-2 rounded-lg font-medium text-xs uppercase tracking-wider hover:bg-indigo-100 transition-colors"
+            >
+              Edit
+            </button>
+            <button
+              (click)="generatePayrollForUser(s.userId)"
+              class="flex-1 bg-emerald-50 text-emerald-700 py-2 rounded-lg font-medium text-xs uppercase tracking-wider hover:bg-emerald-100 transition-colors"
+            >
+              Generate Payroll
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -144,56 +196,112 @@
     </div>
 
     <div *ngIf="!isLoadingPayrolls() && payrolls().length > 0" class="overflow-x-auto">
-      <table class="w-full text-left text-sm">
-        <thead class="bg-gray-50/50 border-b border-gray-200">
-          <tr>
-            <th class="px-6 py-4 font-semibold text-gray-600">Employee</th>
-            <th class="px-6 py-4 font-semibold text-gray-600 text-right">Earnings</th>
-            <th class="px-6 py-4 font-semibold text-gray-600 text-right">Deductions</th>
-            <th class="px-6 py-4 font-semibold text-gray-600 text-right">Net Pay</th>
-            <th class="px-6 py-4 font-semibold text-gray-600 w-24 text-center">Status</th>
-            <th class="px-6 py-4 font-semibold text-gray-600 w-32 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-          <tr *ngFor="let p of payrolls()" class="hover:bg-gray-50/50 transition-colors">
-            <td class="px-6 py-4 font-medium text-gray-900">{{ p.userName }}</td>
-            <td class="px-6 py-4 text-right text-emerald-600">
-              ₹{{ p.totalEarnings | number: '1.0-0' }}
-            </td>
-            <td class="px-6 py-4 text-right text-red-500">
-              ₹{{ p.totalDeductions | number: '1.0-0' }}
-            </td>
-            <td class="px-6 py-4 text-right font-bold text-gray-900">
-              ₹{{ p.netPay | number: '1.0-0' }}
-            </td>
-            <td class="px-6 py-4 text-center">
-              <span
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
-                [ngClass]="
-                  p.status === 'PAID'
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : 'bg-amber-50 text-amber-700 border-amber-200'
-                "
-              >
-                {{ p.status }}
-              </span>
-            </td>
-            <td class="px-6 py-4 text-right">
-              <button
-                *ngIf="p.status === 'PENDING'"
-                (click)="markAsPaid(p)"
-                class="text-emerald-600 hover:text-emerald-700 text-sm font-medium hover:underline"
-              >
-                Mark Paid
-              </button>
-              <span *ngIf="p.status === 'PAID'" class="text-sm text-gray-500">
-                {{ p.paymentDate | date: 'mediumDate' }}
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- Desktop Table -->
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-gray-50/50 border-b border-gray-200">
+            <tr>
+              <th class="px-6 py-4 font-semibold text-gray-600">Employee</th>
+              <th class="px-6 py-4 font-semibold text-gray-600 text-right">Earnings</th>
+              <th class="px-6 py-4 font-semibold text-gray-600 text-right">Deductions</th>
+              <th class="px-6 py-4 font-semibold text-gray-600 text-right">Net Pay</th>
+              <th class="px-6 py-4 font-semibold text-gray-600 w-24 text-center">Status</th>
+              <th class="px-6 py-4 font-semibold text-gray-600 w-32 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr *ngFor="let p of payrolls()" class="hover:bg-gray-50/50 transition-colors">
+              <td class="px-6 py-4 font-medium text-gray-900">{{ p.userName }}</td>
+              <td class="px-6 py-4 text-right text-emerald-600">
+                ₹{{ p.totalEarnings | number: '1.0-0' }}
+              </td>
+              <td class="px-6 py-4 text-right text-red-500">
+                ₹{{ p.totalDeductions | number: '1.0-0' }}
+              </td>
+              <td class="px-6 py-4 text-right font-bold text-gray-900">
+                ₹{{ p.netPay | number: '1.0-0' }}
+              </td>
+              <td class="px-6 py-4 text-center">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
+                  [ngClass]="
+                    p.status === 'PAID'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-amber-50 text-amber-700 border-amber-200'
+                  "
+                >
+                  {{ p.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <button
+                  *ngIf="p.status === 'PENDING'"
+                  (click)="markAsPaid(p)"
+                  class="text-emerald-600 hover:text-emerald-700 text-sm font-medium hover:underline"
+                >
+                  Mark Paid
+                </button>
+                <span *ngIf="p.status === 'PAID'" class="text-sm text-gray-500">
+                  {{ p.paymentDate | date: 'mediumDate' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card View -->
+      <div class="md:hidden space-y-4 p-4 bg-gray-50">
+        <div
+          *ngFor="let p of payrolls()"
+          class="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+        >
+          <div class="flex justify-between items-center mb-3">
+            <span class="font-bold text-gray-900">{{ p.userName }}</span>
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
+              [ngClass]="
+                p.status === 'PAID'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : 'bg-amber-50 text-amber-700 border-amber-200'
+              "
+            >
+              {{ p.status }}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 text-xs mb-3 text-center">
+            <div class="bg-emerald-50 p-2 rounded">
+              <div class="text-gray-500 uppercase">Earnings</div>
+              <div class="font-bold text-emerald-600">₹{{ p.totalEarnings | number: '1.0-0' }}</div>
+            </div>
+            <div class="bg-red-50 p-2 rounded">
+              <div class="text-gray-500 uppercase">Deductions</div>
+              <div class="font-bold text-red-500">₹{{ p.totalDeductions | number: '1.0-0' }}</div>
+            </div>
+            <div class="bg-indigo-50 p-2 rounded">
+              <div class="text-gray-500 uppercase">Net Pay</div>
+              <div class="font-bold text-indigo-700">₹{{ p.netPay | number: '1.0-0' }}</div>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button
+              *ngIf="p.status === 'PENDING'"
+              (click)="markAsPaid(p)"
+              class="w-full bg-emerald-600 text-white py-2 rounded-lg font-medium text-sm hover:bg-emerald-700 transition-colors"
+            >
+              Mark as Paid
+            </button>
+            <div
+              *ngIf="p.status === 'PAID'"
+              class="text-xs text-gray-500 w-full text-center py-2 bg-gray-50 rounded"
+            >
+              Paid on {{ p.paymentDate | date: 'mediumDate' }}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

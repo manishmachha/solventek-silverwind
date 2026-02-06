@@ -2,7 +2,7 @@ package com.solventek.silverwind.auth;
 
 import com.solventek.silverwind.auth.embeddable.Address;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import com.solventek.silverwind.auth.embeddable.BankDetails;
 import com.solventek.silverwind.auth.embeddable.EmergencyContact;
 import com.solventek.silverwind.common.BaseEntity;

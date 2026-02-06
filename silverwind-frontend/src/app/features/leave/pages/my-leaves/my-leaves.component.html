@@ -227,47 +227,159 @@
     *ngIf="activeTab() === 'history'"
     class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-fade-in-up"
   >
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse">
-        <thead class="bg-gray-50 text-gray-500 text-sm uppercase">
-          <tr>
-            <th class="px-6 py-3 font-medium">Applied On</th>
-            <th class="px-6 py-3 font-medium">Type</th>
-            <th class="px-6 py-3 font-medium">Dates</th>
-            <th class="px-6 py-3 font-medium">Status</th>
-            <th class="px-6 py-3 font-medium">Reason / Remarks</th>
+    <!-- Desktop Table -->
+    <div class="hidden md:block overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="bg-gray-50/50 border-b border-gray-100">
+            <th
+              class="px-8 py-5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
+            >
+              Applied On
+            </th>
+            <th
+              class="px-8 py-5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
+            >
+              Category
+            </th>
+            <th
+              class="px-8 py-5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
+            >
+              Dates
+            </th>
+            <th
+              class="px-8 py-5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
+            >
+              Status
+            </th>
+            <th
+              class="px-8 py-5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
+            >
+              Reason / Remarks
+            </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-200">
-          <tr *ngFor="let req of history()">
-            <td class="px-6 py-4 text-sm text-gray-500">
+        <tbody class="divide-y divide-gray-50">
+          <tr
+            *ngFor="let req of history()"
+            class="group hover:bg-indigo-50/30 transition-colors duration-200"
+          >
+            <!-- Applied On -->
+            <td class="px-8 py-6 whitespace-nowrap text-sm text-gray-500">
               {{ req.createdAt | date: 'mediumDate' }}
             </td>
-            <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ req.leaveTypeName }}</td>
-            <td class="px-6 py-4 text-sm text-gray-500">
-              {{ req.startDate | date: 'MMM d' }} - {{ req.endDate | date: 'MMM d, y' }}
+
+            <!-- Category -->
+            <td class="px-8 py-6 whitespace-nowrap">
+              <div class="flex items-center">
+                <div
+                  class="shrink-0 h-8 w-8 rounded-lg flex items-center justify-center text-sm shadow-sm"
+                  [style.backgroundColor]="getColorForType(req.leaveTypeName) + '20'"
+                  [style.color]="getColorForType(req.leaveTypeName)"
+                >
+                  <i class="bi bi-calendar-event"></i>
+                </div>
+                <div class="ml-3">
+                  <div class="text-sm font-bold text-gray-900">{{ req.leaveTypeName }}</div>
+                </div>
+              </div>
             </td>
-            <td class="px-6 py-4">
+
+            <!-- Dates -->
+            <td class="px-8 py-6 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">
+                {{ req.startDate | date: 'MMM d' }} - {{ req.endDate | date: 'MMM d, y' }}
+              </div>
+            </td>
+
+            <!-- Status Badge -->
+            <td class="px-8 py-6 whitespace-nowrap">
               <span
-                class="px-2 py-1 rounded-full text-xs font-semibold"
+                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border"
                 [ngClass]="{
-                  'bg-yellow-100 text-yellow-800': req.status === 'PENDING',
-                  'bg-green-100 text-green-800': req.status === 'APPROVED',
-                  'bg-red-100 text-red-800': req.status === 'REJECTED',
+                  'bg-amber-50 text-amber-700 border-amber-200': req.status === 'PENDING',
+                  'bg-emerald-50 text-emerald-700 border-emerald-200': req.status === 'APPROVED',
+                  'bg-rose-50 text-rose-700 border-rose-200': req.status === 'REJECTED',
+                  'bg-gray-50 text-gray-600 border-gray-200': req.status === 'CANCELLED',
                 }"
               >
                 {{ req.status }}
               </span>
             </td>
-            <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-              {{ req.rejectionReason ? 'Rejected: ' + req.rejectionReason : req.reason }}
+
+            <!-- Reason -->
+            <td class="px-8 py-6">
+              <div
+                class="text-sm text-gray-600 line-clamp-1 max-w-xs"
+                title="{{ req.rejectionReason || req.reason }}"
+              >
+                {{ req.rejectionReason ? 'Rejected: ' + req.rejectionReason : req.reason }}
+              </div>
             </td>
           </tr>
+
+          <!-- Empty State -->
           <tr *ngIf="history().length === 0">
-            <td colspan="5" class="px-6 py-8 text-center text-gray-500">No leave history found.</td>
+            <td colspan="5" class="px-8 py-16 text-center text-gray-500">
+              No leave history found.
+            </td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="md:hidden space-y-4 p-4">
+      <div *ngFor="let req of history()" class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+        <div class="flex justify-between items-start mb-3">
+          <div class="flex items-center gap-3">
+            <div
+              class="shrink-0 h-10 w-10 rounded-xl flex items-center justify-center text-lg shadow-sm"
+              [style.backgroundColor]="getColorForType(req.leaveTypeName) + '20'"
+              [style.color]="getColorForType(req.leaveTypeName)"
+            >
+              <i class="bi bi-calendar-event"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-gray-900 text-sm">{{ req.leaveTypeName }}</h4>
+              <span class="text-xs text-gray-500">{{ req.createdAt | date: 'mediumDate' }}</span>
+            </div>
+          </div>
+          <span
+            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border"
+            [ngClass]="{
+              'bg-amber-50 text-amber-700 border-amber-200': req.status === 'PENDING',
+              'bg-emerald-50 text-emerald-700 border-emerald-200': req.status === 'APPROVED',
+              'bg-rose-50 text-rose-700 border-rose-200': req.status === 'REJECTED',
+              'bg-gray-50 text-gray-600 border-gray-200': req.status === 'CANCELLED',
+            }"
+          >
+            {{ req.status }}
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 text-sm mb-3 pt-3 border-t border-gray-200">
+          <div>
+            <p class="text-xs text-gray-500 uppercase">From</p>
+            <p class="font-medium text-gray-900">{{ req.startDate | date: 'MMM d, y' }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 uppercase">To</p>
+            <p class="font-medium text-gray-900">{{ req.endDate | date: 'MMM d, y' }}</p>
+          </div>
+        </div>
+
+        <div
+          *ngIf="req.reason || req.rejectionReason"
+          class="text-xs text-gray-600 bg-white p-2 rounded border border-gray-100"
+        >
+          {{ req.rejectionReason ? 'Rejected: ' + req.rejectionReason : req.reason }}
+        </div>
+      </div>
+
+      <div *ngIf="history().length === 0" class="text-center py-8 text-gray-500">
+        No leave history found.
+      </div>
     </div>
   </div>
 </div>

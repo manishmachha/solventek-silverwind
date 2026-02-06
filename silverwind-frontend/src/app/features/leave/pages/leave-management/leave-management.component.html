@@ -99,7 +99,8 @@
     <div
       class="bg-white rounded-3xl shadow-xl shadow-gray-100/50 border border-gray-100 overflow-hidden"
     >
-      <div class="overflow-x-auto">
+      <!-- Desktop Table -->
+      <div class="hidden md:block overflow-x-auto">
         <table class="w-full">
           <thead>
             <tr class="bg-gray-50/50 border-b border-gray-100">
@@ -245,6 +246,86 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Mobile Card View -->
+      <div class="md:hidden space-y-4 p-4 bg-gray-50">
+        <div
+          *ngFor="let req of requests()"
+          class="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+        >
+          <div class="flex justify-between items-start mb-3">
+            <div class="flex items-center gap-3">
+              <div
+                class="shrink-0 h-10 w-10 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md"
+              >
+                {{ req.userName.charAt(0) }}
+              </div>
+              <div>
+                <div class="font-bold text-gray-900 text-sm">{{ req.userName }}</div>
+                <div class="text-xs text-gray-400">ID: {{ req.userId.substring(0, 8) }}...</div>
+              </div>
+            </div>
+            <span
+              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border"
+              [ngClass]="{
+                'bg-amber-50 text-amber-700 border-amber-200': req.status === 'PENDING',
+                'bg-emerald-50 text-emerald-700 border-emerald-200': req.status === 'APPROVED',
+                'bg-rose-50 text-rose-700 border-rose-200': req.status === 'REJECTED',
+              }"
+            >
+              {{ req.status }}
+            </span>
+          </div>
+
+          <div class="mb-3">
+            <div class="text-sm font-bold text-gray-800">{{ req.leaveTypeName }}</div>
+            <div
+              class="text-xs text-gray-500 mt-1 bg-gray-50 p-2 rounded border border-gray-100"
+              *ngIf="req.reason"
+            >
+              {{ req.reason }}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 text-sm mb-4 pt-3 border-t border-gray-100">
+            <div>
+              <p class="text-xs text-gray-400 uppercase">From</p>
+              <p class="font-medium text-gray-900">{{ req.startDate | date: 'MMM d, y' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 uppercase">To</p>
+              <p class="font-medium text-gray-900">{{ req.endDate | date: 'MMM d, y' }}</p>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <div class="flex gap-2" *ngIf="req.status === 'PENDING'">
+              <button
+                (click)="approve(req.id)"
+                class="flex-1 py-2 rounded-lg text-emerald-700 bg-emerald-50 border border-emerald-200 font-bold text-xs uppercase tracking-wider hover:bg-emerald-100 transition-colors"
+              >
+                Approve
+              </button>
+              <button
+                (click)="openRejectModal(req.id)"
+                class="flex-1 py-2 rounded-lg text-rose-700 bg-rose-50 border border-rose-200 font-bold text-xs uppercase tracking-wider hover:bg-rose-100 transition-colors"
+              >
+                Reject
+              </button>
+            </div>
+            <button
+              (click)="viewUserBalances(req.userId)"
+              class="w-full py-2 rounded-lg text-indigo-600 bg-indigo-50 border border-indigo-100 font-semibold text-xs hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2"
+            >
+              <i class="bi bi-wallet2"></i> Check Balance
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="requests().length === 0" class="text-center py-8 text-gray-500">
+          No leave requests found.
+        </div>
       </div>
 
       <!-- Footer Pagination -->
