@@ -158,6 +158,35 @@ public class LocalStorageService implements StorageService {
         return Files.exists(filePath) && filePath.startsWith(rootLocation);
     }
 
+    @Override
+    public void move(String sourceKey, String destinationKey) {
+        log.info("Moving file locally from {} to {}", sourceKey, destinationKey);
+        try {
+            Path sourcePath = rootLocation.resolve(sourceKey).normalize();
+            Path destPath = rootLocation.resolve(destinationKey).normalize();
+
+            // Security checks
+            if (!sourcePath.startsWith(rootLocation) || !destPath.startsWith(rootLocation)) {
+                throw new RuntimeException("Invalid path for move operation");
+            }
+
+            if (!Files.exists(sourcePath)) {
+                throw new RuntimeException("Source file does not exist: " + sourceKey);
+            }
+
+            // Create parent directories for destination
+            Files.createDirectories(destPath.getParent());
+
+            // Move (Atomic move if possible, else copy delete)
+            Files.move(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
+            log.info("Successfully moved file locally");
+
+        } catch (IOException e) {
+            log.error("Failed to move file locally", e);
+            throw new RuntimeException("Failed to move file", e);
+        }
+    }
+
     private String generateKey(String directory, String originalFilename) {
         String uuid = UUID.randomUUID().toString();
         String sanitizedFilename = originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "file";

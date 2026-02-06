@@ -19,6 +19,7 @@ import { ApplicationService } from '../../../core/services/application.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { HeaderService } from '../../../core/services/header.service';
 import { JobApplication, ApplicationStatus } from '../../../core/models/application.model';
+import { OrganizationLogoComponent } from '../../../shared/components/organization-logo/organization-logo.component';
 
 @Component({
   selector: 'app-track-application-list',
@@ -39,6 +40,7 @@ import { JobApplication, ApplicationStatus } from '../../../core/models/applicat
     MatSelectModule,
     MatTooltipModule,
     FormsModule,
+    OrganizationLogoComponent
   ],
   template: `
     <div class="p-6 max-w-[1600px] mx-auto space-y-6">
@@ -135,7 +137,12 @@ import { JobApplication, ApplicationStatus } from '../../../core/models/applicat
           </th>
           <td mat-cell *matCellDef="let app" class="px-6 py-4">
             <div class="flex items-center gap-2">
-              <i class="bi bi-building text-gray-400"></i>
+              <app-organization-logo
+                [org]="app.job.organization"
+                [orgId]="app.job.organization?.id"
+                size="sm"
+                [rounded]="true"
+              ></app-organization-logo>
               <span class="font-medium text-gray-700">{{
                 app.job.organization?.name || 'Unknown'
               }}</span>

@@ -60,5 +60,13 @@ public interface StorageService {
      * @param key The storage key/path of the file
      * @return true if the file exists, false otherwise
      */
+    /**
+     * Move a file from one location to another.
+     *
+     * @param sourceKey      The current storage key/path
+     * @param destinationKey The new storage key/path
+     */
+    void move(String sourceKey, String destinationKey);
+
     boolean exists(String key);
 }

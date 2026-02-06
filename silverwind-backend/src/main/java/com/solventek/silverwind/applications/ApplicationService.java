@@ -70,14 +70,67 @@ public class ApplicationService {
                             existingCandidate = candidateRepository.findById(request.getCandidateId()).orElse(null);
                         }
 
+                        // Determine folder structure names for potential use
+                        String vendorName = "Direct_Applicants";
+                        if (vendor != null) {
+                            vendorName = vendor.getName().replaceAll("[^a-zA-Z0-9._-]", "_");
+                        }
+                        String applicantName = (request.getFirstName() + "_" + request.getLastName()).replaceAll("[^a-zA-Z0-9._-]", "_");
+                        
+                        // Construct target resume path: job-applications/<vendor>/<applicant>/resume/<applicant>.ext
+                        // Note: Extension might be unknown if we don't have the file yet, but we will determine it.
+
                         if (resumeFile != null && !resumeFile.isEmpty()) {
-                                log.debug("Processing resume file: {}", resumeFile.getOriginalFilename());
-                                var result = ingestionService.storeAndExtract(resumeFile);
+                                log.debug("Processing new resume file upload: {}", resumeFile.getOriginalFilename());
+                                
+                                String originalFilename = resumeFile.getOriginalFilename();
+                                String extension = "pdf";
+                                if (originalFilename != null && originalFilename.contains(".")) {
+                                    extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
+                                }
+                                
+                                String customPath = String.format("job-applications/%s/%s/resume/%s.%s", 
+                                    vendorName, applicantName, applicantName, extension);
+                                
+                                var result = ingestionService.storeAndExtract(resumeFile, customPath);
                                 resumePath = result.filePath();
                                 resumeText = result.extractedText();
+                                
                         } else if (existingCandidate != null && existingCandidate.getResumeFilePath() != null) {
                                 log.debug("Using existing resume for candidate: {}", existingCandidate.getId());
-                                resumePath = existingCandidate.getResumeFilePath();
+                                String currentPath = existingCandidate.getResumeFilePath();
+                                
+                                // Check if we need to move it
+                                if (!currentPath.startsWith("job-applications/")) {
+                                    log.info("Moving resume from legacy/generic path '{}' to application structure", currentPath);
+                                    
+                                    // Determine extension from current path
+                                    String extension = "pdf";
+                                    if (currentPath.contains(".")) {
+                                        extension = currentPath.substring(currentPath.lastIndexOf(".") + 1);
+                                    }
+                                    
+                                    String newPath = String.format("job-applications/%s/%s/resume/%s.%s", 
+                                        vendorName, applicantName, applicantName, extension);
+                                        
+                                    // Move the file
+                                    try {
+                                        ingestionService.moveKey(currentPath, newPath);
+                                        
+                                        // Update Candidate
+                                        existingCandidate.setResumeFilePath(newPath);
+                                        candidateRepository.save(existingCandidate);
+                                        
+                                        resumePath = newPath;
+                                    } catch (Exception e) {
+                                        log.error("Failed to move resume file for candidate: {}", existingCandidate.getId(), e);
+                                        // Fallback to existing path if move fails
+                                        resumePath = currentPath;
+                                    }
+                                } else {
+                                    // Already in correct structure, just link it
+                                    resumePath = currentPath;
+                                }
                                 resumeText = ingestionService.extractTextFromPath(resumePath);
                         }
 
@@ -403,7 +456,36 @@ public class ApplicationService {
                 log.info("Uploading document '{}' (Category: {}) for Application ID: {} by {}",
                                 file.getOriginalFilename(), category, applicationId, uploadedBy);
                 JobApplication app = applicationRepository.findById(applicationId).orElseThrow();
-                var result = ingestionService.storeAndExtract(file);
+                
+                // Determine folder structure names
+                String vendorName = "Direct_Applicants";
+                if (app.getVendor() != null) {
+                    vendorName = app.getVendor().getName().replaceAll("[^a-zA-Z0-9._-]", "_");
+                }
+                String applicantName = (app.getFirstName() + "_" + app.getLastName()).replaceAll("[^a-zA-Z0-9._-]", "_");
+                
+                String originalFilename = file.getOriginalFilename();
+                String extension = "";
+                String baseFilename = "file";
+                
+                if (originalFilename != null) {
+                    int dotIndex = originalFilename.lastIndexOf(".");
+                    if (dotIndex != -1) {
+                        extension = originalFilename.substring(dotIndex); // includes dot
+                        baseFilename = originalFilename.substring(0, dotIndex);
+                    } else {
+                        baseFilename = originalFilename;
+                    }
+                }
+                
+                String sanitizedCategory = category.replaceAll("[^a-zA-Z0-9._-]", "_");
+                String sanitizedFilename = baseFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
+                
+                // Construct path: job-applications/<vendor>/<applicant>/documents/<category>-<filename>.ext
+                String customPath = String.format("job-applications/%s/%s/documents/%s-%s%s", 
+                                    vendorName, applicantName, sanitizedCategory, sanitizedFilename, extension);
+
+                var result = ingestionService.storeAndExtract(file, customPath);
 
                 ApplicationDocuments doc = ApplicationDocuments.builder()
                                 .application(app)

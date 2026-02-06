@@ -37,51 +37,53 @@ public class ResumeIngestionService {
      * @param file The MultipartFile to ingest
      * @return IngestionResult containing the storage key and extracted text
      */
-    public IngestionResult storeAndExtract(MultipartFile file) {
-        return storeAndExtract(file, null);
-    }
-
-    public IngestionResult storeAndExtract(MultipartFile file, String candidateName) {
+    /**
+     * Store a file and extract its text content.
+     *
+     * @param file The MultipartFile to ingest
+     * @param customKey Optional custom storage key/path. If null, a default path is generated.
+     * @return IngestionResult containing the storage key and extracted text
+     */
+    public IngestionResult storeAndExtract(MultipartFile file, String customKey) {
         try {
             log.info("Starting ingestion for file: {}", file.getOriginalFilename());
 
-            String originalFilename = file.getOriginalFilename();
-            String extension = "pdf"; // Default
-            if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
-            }
-
-            String baseName;
-            if (candidateName != null && !candidateName.isBlank()) {
-                baseName = candidateName.replaceAll("[^a-zA-Z0-9._-]", "_");
+            String storageKey;
+            
+            if (customKey != null && !customKey.isBlank()) {
+                // Use provided custom key directly
+                storageKey = storageService.uploadWithKey(file, customKey);
             } else {
-                // If no candidate name, use original filename without extension or hash
-                if (originalFilename != null) {
-                    baseName = originalFilename.substring(0, originalFilename.lastIndexOf(".")).replaceAll("[^a-zA-Z0-9._-]", "_");
-                } else {
-                    baseName = "resume_" + java.util.UUID.randomUUID().toString();
+                // Default legacy behavior: generate path in resumes/
+                String originalFilename = file.getOriginalFilename();
+                String extension = "pdf"; 
+                if (originalFilename != null && originalFilename.contains(".")) {
+                    extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
                 }
+                String baseName = "resume_" + java.util.UUID.randomUUID().toString();
+                String key = "resumes/" + baseName + "." + extension;
+                storageKey = storageService.uploadWithKey(file, key);
             }
 
-            // Enforce structure: uploads/resumes/Name_resume.ext
-            // Note: If using original filename, we append _resume to follow convention
-            String key = "resumes/" + baseName + "_resume." + extension;
-
-            // 1. Store file using StorageService with custom key
-            String storageKey = storageService.uploadWithKey(file, key);
-
-            // 2. Extract text from the file
+            // Extract text from the file
             String text = extractText(file.getInputStream(), file.getOriginalFilename());
 
-            log.info("Successfully ingested and extracted text from resume: {}, key: {}",
+            log.info("Successfully ingested and extracted text: {}, key: {}",
                     file.getOriginalFilename(), storageKey);
 
             return new IngestionResult(storageKey, text);
 
         } catch (IOException e) {
-            log.error("Failed to ingest resume: {}", file.getOriginalFilename(), e);
-            throw new RuntimeException("Resume ingestion failed", e);
+            log.error("Failed to ingest file: {}", file.getOriginalFilename(), e);
+            throw new RuntimeException("File ingestion failed", e);
         }
+    }
+
+    /**
+     * Legacy method for backward compatibility
+     */
+    public IngestionResult storeAndExtract(MultipartFile file) {
+        return storeAndExtract(file, null);
     }
 
     /**
@@ -142,6 +144,13 @@ public class ResumeIngestionService {
         }
         // For S3, the key itself is the identifier
         return storageKey;
+    }
+
+    /**
+     * Move a stored file to a new location.
+     */
+    public void moveKey(String sourceKey, String destinationKey) {
+        storageService.move(sourceKey, destinationKey);
     }
 
     private String extractText(InputStream inputStream, String filename) throws IOException {

@@ -200,6 +200,35 @@ public class S3StorageService implements StorageService {
         }
     }
 
+    @Override
+    public void move(String sourceKey, String destinationKey) {
+        log.info("Moving file in S3 from {} to {}", sourceKey, destinationKey);
+        try {
+            // 1. Copy Object
+            CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+                    .sourceBucket(bucketName)
+                    .sourceKey(sourceKey)
+                    .destinationBucket(bucketName)
+                    .destinationKey(destinationKey)
+                    .build();
+
+            s3Client.copyObject(copyRequest);
+
+            // 2. Delete Original
+            DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(sourceKey)
+                    .build();
+
+            s3Client.deleteObject(deleteRequest);
+            log.info("Successfully moved file in S3");
+
+        } catch (Exception e) {
+            log.error("Failed to move file in S3", e);
+            throw new RuntimeException("Failed to move file in S3", e);
+        }
+    }
+
     private String generateKey(String directory, String originalFilename) {
         String uuid = UUID.randomUUID().toString();
         String sanitizedFilename = originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "file";

@@ -116,7 +116,7 @@ public class ApplicationController {
     }
 
     @PostMapping(value = "/{id}/documents", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TA')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','HR_ADMIN', 'TA', 'VENDOR')")
     public ResponseEntity<ApiResponse<Void>> uploadDocument(
             @PathVariable UUID id,
             @RequestParam("category") String category,
