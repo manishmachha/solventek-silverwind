@@ -2,7 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Asset, AssetAssignment, AssetCondition } from '../models/asset.model';
+import { ApiResponse } from '../models/api-response.model';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface PageResponse<T> {
   content: T[];
@@ -24,11 +26,15 @@ export class AssetService {
   listAssets(query?: string, page = 0, size = 10): Observable<PageResponse<Asset>> {
     let params = new HttpParams().set('page', page).set('size', size);
     if (query) params = params.set('q', query);
-    return this.http.get<PageResponse<Asset>>(this.apiUrl, { params });
+    return this.http
+      .get<ApiResponse<PageResponse<Asset>>>(this.apiUrl, { params })
+      .pipe(map((response) => response.data));
   }
 
   getAsset(id: string): Observable<Asset> {
-    return this.http.get<Asset>(`${this.apiUrl}/${id}`);
+    return this.http
+      .get<ApiResponse<Asset>>(`${this.apiUrl}/${id}`)
+      .pipe(map((response) => response.data));
   }
 
   createAsset(asset: Partial<Asset>): Observable<Asset> {
@@ -43,7 +49,9 @@ export class AssetService {
     if (asset.active !== undefined) params = params.set('active', asset.active);
     if (asset.totalQuantity) params = params.set('totalQuantity', asset.totalQuantity);
 
-    return this.http.post<Asset>(this.apiUrl, null, { params });
+    return this.http
+      .post<ApiResponse<Asset>>(this.apiUrl, null, { params })
+      .pipe(map((response) => response.data));
   }
 
   updateAsset(id: string, asset: Partial<Asset>): Observable<Asset> {
@@ -57,11 +65,13 @@ export class AssetService {
     if (asset.active !== undefined) params = params.set('active', asset.active);
     if (asset.totalQuantity) params = params.set('totalQuantity', asset.totalQuantity);
 
-    return this.http.put<Asset>(`${this.apiUrl}/${id}`, null, { params });
+    return this.http
+      .put<ApiResponse<Asset>>(`${this.apiUrl}/${id}`, null, { params })
+      .pipe(map((response) => response.data));
   }
 
   deleteAsset(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${id}`).pipe(map(() => void 0));
   }
 
   // ============ ASSIGNMENT (Admin) ============
@@ -78,13 +88,17 @@ export class AssetService {
     if (condition) params = params.set('condition', condition);
     if (notes) params = params.set('notes', notes);
 
-    return this.http.post<AssetAssignment>(`${this.apiUrl}/${assetId}/assign/${userId}`, null, {
-      params,
-    });
+    return this.http
+      .post<ApiResponse<AssetAssignment>>(`${this.apiUrl}/${assetId}/assign/${userId}`, null, {
+        params,
+      })
+      .pipe(map((response) => response.data));
   }
 
   getAssetHistory(assetId: string): Observable<AssetAssignment[]> {
-    return this.http.get<AssetAssignment[]>(`${this.apiUrl}/${assetId}/history`);
+    return this.http
+      .get<ApiResponse<AssetAssignment[]>>(`${this.apiUrl}/${assetId}/history`)
+      .pipe(map((response) => response.data));
   }
 
   confirmReturn(
@@ -98,23 +112,26 @@ export class AssetService {
     if (conditionOnReturn) params = params.set('conditionOnReturn', conditionOnReturn);
     if (notes) params = params.set('notes', notes);
 
-    return this.http.post<AssetAssignment>(
-      `${this.apiUrl}/assignments/${assignmentId}/confirm-return`,
-      null,
-      { params },
-    );
+    return this.http
+      .post<
+        ApiResponse<AssetAssignment>
+      >(`${this.apiUrl}/assignments/${assignmentId}/confirm-return`, null, { params })
+      .pipe(map((response) => response.data));
   }
 
   // ============ EMPLOYEE SELF-SERVICE ============
 
   getMyAssets(): Observable<AssetAssignment[]> {
-    return this.http.get<AssetAssignment[]>(`${this.apiUrl}/my-assets`);
+    return this.http
+      .get<ApiResponse<AssetAssignment[]>>(`${this.apiUrl}/my-assets`)
+      .pipe(map((response) => response.data));
   }
 
   requestReturn(assignmentId: string): Observable<AssetAssignment> {
-    return this.http.post<AssetAssignment>(
-      `${this.apiUrl}/assignments/${assignmentId}/request-return`,
-      null,
-    );
+    return this.http
+      .post<
+        ApiResponse<AssetAssignment>
+      >(`${this.apiUrl}/assignments/${assignmentId}/request-return`, null)
+      .pipe(map((response) => response.data));
   }
 }

@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.solventek.silverwind.common.BaseEntity;
 import com.solventek.silverwind.jobs.Job;
 import com.solventek.silverwind.org.Organization;
+import com.solventek.silverwind.recruitment.Candidate;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Table(name = "job_applications")
@@ -42,7 +45,7 @@ public class JobApplication extends BaseEntity {
     private String portfolioUrl;
 
     @ElementCollection
-    private java.util.List<String> skills;
+    private List<String> skills;
 
     private String location;
 
@@ -63,7 +66,7 @@ public class JobApplication extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "candidate_id")
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-    private com.solventek.silverwind.recruitment.Candidate candidate;
+    private Candidate candidate;
 
     private Integer unreadCountForAdmin;
 }

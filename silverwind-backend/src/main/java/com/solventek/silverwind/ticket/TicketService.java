@@ -6,8 +6,12 @@ import com.solventek.silverwind.notifications.Notification.NotificationCategory;
 import com.solventek.silverwind.notifications.Notification.NotificationPriority;
 import com.solventek.silverwind.notifications.NotificationService;
 import com.solventek.silverwind.notifications.NotificationService.NotificationBuilder;
+import com.solventek.silverwind.org.Organization;
+import com.solventek.silverwind.org.OrganizationRepository;
+import com.solventek.silverwind.timeline.TimelineService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,9 +28,9 @@ public class TicketService {
     private final EmployeeRepository employeeRepository;
     private final TicketHistoryRepository ticketHistoryRepository;
     private final TicketCommentRepository ticketCommentRepository;
-    private final com.solventek.silverwind.org.OrganizationRepository organizationRepository;
+    private final OrganizationRepository organizationRepository;
     private final NotificationService notificationService;
-    private final com.solventek.silverwind.timeline.TimelineService timelineService;
+    private final TimelineService timelineService;
 
     // A simple counter for ticket IDs, in production this should be a DB sequence
     private static final AtomicLong TICKET_COUNTER = new AtomicLong(System.currentTimeMillis() % 100000);
@@ -82,7 +86,7 @@ public class TicketService {
             Employee employee = employeeRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            com.solventek.silverwind.org.Organization targetOrg;
+            Organization targetOrg;
 
             // Logic:
             // SUPER_ADMIN / HR_ADMIN: Can specify ANY targetOrg (if passed).
@@ -97,7 +101,7 @@ public class TicketService {
                 if (!isSameOrg && !hasPrivilege) {
                     log.warn("Ticket creation denied: User {} tried to create ticket for another org {}", userId,
                             targetOrgId);
-                    throw new org.springframework.security.access.AccessDeniedException(
+                    throw new AccessDeniedException(
                             "You do not have permission to assign tickets to other organizations.");
                 }
 

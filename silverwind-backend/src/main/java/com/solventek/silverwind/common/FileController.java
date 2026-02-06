@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.servlet.HandlerMapping;
 
+import java.nio.file.Files;
+
 @RestController
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
@@ -32,7 +34,7 @@ public class FileController {
         String contentType = "application/octet-stream";
         try {
             if (resource.getFile().exists()) {
-                contentType = java.nio.file.Files.probeContentType(resource.getFile().toPath());
+                contentType = Files.probeContentType(resource.getFile().toPath());
             }
         } catch (Exception e) {
             log.warn("Could not determine content type for {}", key);

@@ -15,6 +15,7 @@ export interface Job {
 
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -42,6 +43,14 @@ export class OrganizationService {
   uploadLogo(id: string, file: File) {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<string>(`${environment.apiUrl}/organizations/${id}/logo`, formData);
+    return this.http
+      .post<ApiResponse<string>>(`${environment.apiUrl}/organizations/${id}/logo`, formData)
+      .pipe(map((res) => res.data));
   }
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
 }

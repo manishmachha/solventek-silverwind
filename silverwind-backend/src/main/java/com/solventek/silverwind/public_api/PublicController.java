@@ -8,6 +8,7 @@ import com.solventek.silverwind.jobs.JobService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,7 +28,7 @@ public class PublicController {
         return ResponseEntity.ok(ApiResponse.success(jobService.getPublishedJobs(pageable)));
     }
 
-    @PostMapping(value = "/applications/jobs/{jobId}/apply", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/applications/jobs/{jobId}/apply", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> apply(
             @PathVariable UUID jobId,
             @RequestPart("data") ApplicationController.ApplyRequest request,

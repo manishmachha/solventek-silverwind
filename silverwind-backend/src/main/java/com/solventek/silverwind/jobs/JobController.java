@@ -1,5 +1,6 @@
 package com.solventek.silverwind.jobs;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.solventek.silverwind.common.ApiResponse;
 import com.solventek.silverwind.org.OrganizationType;
 import com.solventek.silverwind.security.UserPrincipal;
@@ -10,10 +11,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
@@ -39,11 +42,11 @@ public class JobController {
         
         // Verify Solventek org type
         if (!OrganizationType.SOLVENTEK.name().equals(currentUser.getOrgType())) {
-            throw new org.springframework.security.access.AccessDeniedException(
+            throw new AccessDeniedException(
                 "Only Solventek can create jobs");
         }
         
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Job created successfully.",
                 jobService.createJob(
                         currentUser.getOrgId(),
                         request.getTitle(),
@@ -96,7 +99,7 @@ public class JobController {
             @PathVariable UUID id,
             @RequestBody UpdateStatusRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Job status updated successfully.",
                 jobService.updateStatus(id, request.getStatus(), currentUser.getId(), request.getMessage())));
     }
 
@@ -105,14 +108,14 @@ public class JobController {
         @NotBlank
         private String title;
         private String description;
-        @com.fasterxml.jackson.annotation.JsonProperty("employmentType")
+        @JsonProperty("employmentType")
         private String employmentType;
         private String requirements;
         private String rolesAndResponsibilities;
         private String experience;
         private String skills;
-        private java.math.BigDecimal billRate;
-        private java.math.BigDecimal payRate;
+        private BigDecimal billRate;
+        private BigDecimal payRate;
         private String status; // DRAFT or SUBMITTED
     }
 
@@ -131,7 +134,7 @@ public class JobController {
             @PathVariable UUID id,
             @RequestBody @Valid UpdateJobRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Job updated successfully.",
                 jobService.updateJob(id, request.getTitle(), request.getDescription(), request.getEmploymentType(),
                         request.getBillRate(), request.getPayRate(), currentUser.getId())));
     }
@@ -145,7 +148,7 @@ public class JobController {
             @PathVariable UUID id,
             @AuthenticationPrincipal UserPrincipal currentUser) {
         jobService.deleteJob(id, currentUser.getId());
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(ApiResponse.success("Job deleted successfully.", null));
     }
 
     @Data
@@ -153,10 +156,10 @@ public class JobController {
         @NotBlank
         private String title;
         private String description;
-        @com.fasterxml.jackson.annotation.JsonProperty("type")
+        @JsonProperty("type")
         private String employmentType;
-        private java.math.BigDecimal billRate;
-        private java.math.BigDecimal payRate;
+        private BigDecimal billRate;
+        private BigDecimal payRate;
     }
 
     /**
@@ -167,7 +170,7 @@ public class JobController {
     public ResponseEntity<ApiResponse<Job>> verifyJob(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(jobService.verifyJob(id, currentUser.getId())));
+        return ResponseEntity.ok(ApiResponse.success("Job verified successfully.", jobService.verifyJob(id, currentUser.getId())));
     }
 
     /**
@@ -179,7 +182,7 @@ public class JobController {
             @PathVariable UUID id,
             @RequestBody @Valid EnrichJobRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Job enriched with AI successfully.",
                 jobService.enrichJob(id, request.getRequirements(), request.getRolesAndResponsibilities(),
                         request.getExperience(), request.getSkills(), currentUser.getId())));
     }
@@ -193,7 +196,7 @@ public class JobController {
             @PathVariable UUID id,
             @RequestBody @Valid ApproveJobRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Job approved successfully.",
                 jobService.approveJob(id, request.getBillRate(), request.getPayRate(), currentUser.getId())));
     }
 
@@ -205,7 +208,7 @@ public class JobController {
     public ResponseEntity<ApiResponse<Job>> publishJob(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(jobService.publishJob(id, currentUser.getId())));
+        return ResponseEntity.ok(ApiResponse.success("Job published successfully.", jobService.publishJob(id, currentUser.getId())));
     }
 
     @Data
@@ -222,7 +225,7 @@ public class JobController {
 
     @Data
     public static class ApproveJobRequest {
-        private java.math.BigDecimal billRate;
-        private java.math.BigDecimal payRate;
+        private BigDecimal billRate;
+        private BigDecimal payRate;
     }
 }

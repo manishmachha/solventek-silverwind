@@ -1,17 +1,26 @@
 package com.solventek.silverwind.jobs;
 
+import com.solventek.silverwind.auth.Employee;
+import com.solventek.silverwind.auth.EmployeeRepository;
+import com.solventek.silverwind.enums.EmploymentType;
+import com.solventek.silverwind.notifications.NotificationService;
 import com.solventek.silverwind.org.Organization;
 import com.solventek.silverwind.org.OrganizationRepository;
+import com.solventek.silverwind.org.OrganizationService;
+import com.solventek.silverwind.org.OrganizationStatus;
+import com.solventek.silverwind.org.OrganizationType;
+import com.solventek.silverwind.rbac.Role;
 import com.solventek.silverwind.timeline.TimelineService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.extern.slf4j.Slf4j;
-
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,23 +31,23 @@ public class JobService {
 
     private final JobRepository jobRepository;
     private final OrganizationRepository organizationRepository;
-    private final com.solventek.silverwind.org.OrganizationService organizationService;
-    private final com.solventek.silverwind.auth.EmployeeRepository employeeRepository;
+    private final OrganizationService organizationService;
+    private final EmployeeRepository employeeRepository;
     private final TimelineService timelineService;
-    private final com.solventek.silverwind.notifications.NotificationService notificationService;
+    private final NotificationService notificationService;
 
     private void validateAccess(Job job, UUID actorId) {
         log.trace("Validating access for Job ID: {} and Actor ID: {}", job.getId(), actorId);
-        com.solventek.silverwind.auth.Employee actor = employeeRepository.findById(actorId)
+        Employee actor = employeeRepository.findById(actorId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         // 1. Same Org Check
         boolean isSameOrg = actor.getOrganization().getId().equals(job.getOrganization().getId());
 
         // 2. Solventek Admin Override (Global Control)
-        com.solventek.silverwind.rbac.Role role = actor.getRole();
+        Role role = actor.getRole();
         boolean isGlobalAdmin = actor.getOrganization()
-                .getType() == com.solventek.silverwind.org.OrganizationType.SOLVENTEK &&
+                .getType() == OrganizationType.SOLVENTEK &&
                 role != null &&
                 (role.getName().equals("SUPER_ADMIN") ||
                         role.getName().equals("HR_ADMIN") ||
@@ -46,7 +55,7 @@ public class JobService {
 
         if (!isSameOrg && !isGlobalAdmin) {
             log.warn("Access denied for User {} on Job {}", actorId, job.getId());
-            throw new org.springframework.security.access.AccessDeniedException(
+            throw new AccessDeniedException(
                     "You do not have permission to modify this job.");
         }
     }
@@ -54,7 +63,7 @@ public class JobService {
     @Transactional
     public Job createJob(UUID orgId, String title, String description, String employmentType,
             String requirements, String rolesAndResponsibilities, String experience, String skills,
-            java.math.BigDecimal billRate, java.math.BigDecimal payRate, String status) {
+            BigDecimal billRate, BigDecimal payRate, String status) {
         log.info("Creating job for Organization ID: {}. Title: {}", orgId, title);
         try {
             Organization org = organizationRepository.findById(orgId)
@@ -75,7 +84,7 @@ public class JobService {
                     .organization(org)
                     .title(title)
                     .description(description)
-                    .employmentType(com.solventek.silverwind.enums.EmploymentType.valueOf(employmentType))
+                    .employmentType(EmploymentType.valueOf(employmentType))
                     .requirements(requirements)
                     .rolesAndResponsibilities(rolesAndResponsibilities)
                     .experience(experience)
@@ -173,14 +182,14 @@ public class JobService {
 
     @Transactional
     public Job updateJob(UUID jobId, String title, String description, String employmentType,
-            java.math.BigDecimal billRate, java.math.BigDecimal payRate, UUID actorId) {
+            BigDecimal billRate, BigDecimal payRate, UUID actorId) {
         log.info("Updating details for Job ID: {} by Actor ID: {}", jobId, actorId);
         try {
             Job job = getJob(jobId);
             validateAccess(job, actorId);
             job.setTitle(title);
             job.setDescription(description);
-            job.setEmploymentType(com.solventek.silverwind.enums.EmploymentType.valueOf(employmentType));
+            job.setEmploymentType(EmploymentType.valueOf(employmentType));
             if (billRate != null)
                 job.setBillRate(billRate);
             if (payRate != null)
@@ -249,7 +258,7 @@ public class JobService {
     }
 
     @Transactional
-    public Job approveJob(UUID jobId, java.math.BigDecimal billRate, java.math.BigDecimal payRate, UUID actorId) {
+    public Job approveJob(UUID jobId, BigDecimal billRate, BigDecimal payRate, UUID actorId) {
         log.info("Approving Job ID: {} by Actor ID: {}", jobId, actorId);
         try {
             Job job = getJob(jobId);
@@ -303,8 +312,8 @@ public class JobService {
 
             // Notify ALL Approved Vendors
             organizationRepository
-                    .findByTypeAndStatus(com.solventek.silverwind.org.OrganizationType.VENDOR,
-                            com.solventek.silverwind.org.OrganizationStatus.APPROVED)
+                    .findByTypeAndStatus(OrganizationType.VENDOR,
+                            OrganizationStatus.APPROVED)
                     .forEach(vendorOrg -> {
                         employeeRepository.findByOrganizationId(vendorOrg.getId()).forEach(vendorUser -> {
                             notificationService.sendNotification(vendorUser.getId(), "New Job Opportunity",

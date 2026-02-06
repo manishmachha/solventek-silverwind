@@ -81,13 +81,24 @@ export class UserService {
   uploadProfilePhoto(userId: string, file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post(`${this.baseUrl}/${userId}/photo`, formData);
+    return this.http
+      .post<ApiResponse<any>>(`${this.baseUrl}/${userId}/photo`, formData)
+      .pipe(map((res) => res.data));
   }
 
   /**
    * Get profile photo as blob
    */
   getProfilePhoto(userId: string): Observable<Blob> {
+    // Blob responses are not wrapped in ApiResponse usually, confirming via controller logic
+    // Controller logic: ResponseEntity<Resource> with contentType
+    // So this remains as is.
     return this.http.get(`${this.baseUrl}/${userId}/photo`, { responseType: 'blob' });
   }
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
 }

@@ -10,6 +10,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "resume_analysis")
@@ -21,7 +22,7 @@ import java.time.LocalDateTime;
 public class ResumeAnalysis extends BaseEntity {
 
     @Column(nullable = false)
-    private java.util.UUID applicationId; // Loose coupling or ManyToOne? Let's use loose for now to avoid circular
+    private UUID applicationId; // Loose coupling or ManyToOne? Let's use loose for now to avoid circular
                                           // deps, or update JobApplication to have OneToMany.
     // Actually looser coupling by ID is fine here, but usually a Join is better.
     // The reference used loose ID. I'll stick to ID for simplicity unless I need

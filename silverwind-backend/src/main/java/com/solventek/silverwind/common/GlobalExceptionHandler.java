@@ -6,9 +6,11 @@ import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -384,7 +386,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         }
 
         // -------------------------
-        // 13) Final fallback: any uncaught exception
+        // 13) Entity Not Found
+        // -------------------------
+        @ExceptionHandler(EntityNotFoundException.class)
+        public ResponseEntity<ApiErrorResponse> handleEntityNotFound(EntityNotFoundException ex, HttpServletRequest req) {
+                ApiErrorResponse body = base(req, 404, "NOT_FOUND",
+                                ex.getMessage() != null ? ex.getMessage() : "Requested resource not found.")
+                                .setHints(List.of("Verify the ID and try again."));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+        }
+
+        // -------------------------
+        // 14) Final fallback: any uncaught exception
         // -------------------------
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ApiErrorResponse> handleAny(Exception ex, HttpServletRequest req) {
@@ -405,15 +418,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         @ExceptionHandler(LockedException.class)
         public ResponseEntity<ApiErrorResponse> handleLocked(LockedException ex, HttpServletRequest req) {
                 ApiErrorResponse body = ApiErrorResponse.builder()
-                                .timestamp(java.time.Instant.now().toString())
+                                .timestamp(Instant.now().toString())
                                 .status(423) // 423 Locked (WebDAV) - commonly used for locked accounts
                                 .error(HttpStatus.LOCKED.name())
                                 .errorCode("ACCOUNT_LOCKED")
                                 .message("Your account is locked. Login is temporarily blocked.")
                                 .path(req.getRequestURI())
                                 .method(req.getMethod())
-                                .traceId(java.util.UUID.randomUUID().toString())
-                                .requestId(java.util.UUID.randomUUID().toString())
+                                .traceId(UUID.randomUUID().toString())
+                                .requestId(UUID.randomUUID().toString())
                                 .security(ApiErrorResponse.SecurityDetails.builder()
                                                 .problem("ACCOUNT_LOCKED")
                                                 .detail(safeMsg(ex))
@@ -443,7 +456,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 String traceId = getOrCreateTraceId();
 
                 return ApiErrorResponse.builder()
-                                .timestamp(java.time.Instant.now().toString())
+                                .timestamp(Instant.now().toString())
                                 .status(status)
                                 .error(HttpStatus.valueOf(status).name())
                                 .message(message)

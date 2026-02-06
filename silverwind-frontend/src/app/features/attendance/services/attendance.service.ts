@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { Attendance, AttendanceStatus, TimesheetSummary } from '../models/attendance.model';
+import { ApiResponse } from '../../../core/models/api-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -42,25 +44,35 @@ export class AttendanceService {
 
   // Revised checkIn to matching backend signature requirement
   checkInUser(userId: string): Observable<Attendance> {
-    return this.http.post<Attendance>(`${this.apiUrl}/check-in`, {}, { params: { userId } });
+    return this.http
+      .post<ApiResponse<Attendance>>(`${this.apiUrl}/check-in`, {}, { params: { userId } })
+      .pipe(map((res) => res.data));
   }
 
   checkOut(): Observable<Attendance> {
-    return this.http.post<Attendance>(`${this.apiUrl}/check-out`, {});
+    return this.http
+      .post<ApiResponse<Attendance>>(`${this.apiUrl}/check-out`, {})
+      .pipe(map((res) => res.data));
   }
 
   getMyAttendance(): Observable<Attendance[]> {
-    return this.http.get<Attendance[]>(`${this.apiUrl}/my`);
+    return this.http
+      .get<ApiResponse<Attendance[]>>(`${this.apiUrl}/my`)
+      .pipe(map((res) => res.data));
   }
 
   getMyAttendanceByRange(startDate: string, endDate: string): Observable<Attendance[]> {
     const params = new HttpParams().set('startDate', startDate).set('endDate', endDate);
-    return this.http.get<Attendance[]>(`${this.apiUrl}/my/range`, { params });
+    return this.http
+      .get<ApiResponse<Attendance[]>>(`${this.apiUrl}/my/range`, { params })
+      .pipe(map((res) => res.data));
   }
 
   getMyTimesheet(startDate: string, endDate: string): Observable<TimesheetSummary> {
     const params = new HttpParams().set('startDate', startDate).set('endDate', endDate);
-    return this.http.get<TimesheetSummary>(`${this.apiUrl}/timesheet/my`, { params });
+    return this.http
+      .get<ApiResponse<TimesheetSummary>>(`${this.apiUrl}/timesheet/my`, { params })
+      .pipe(map((res) => res.data));
   }
 
   downloadMyTimesheet(startDate: string, endDate: string): Observable<Blob> {
@@ -74,7 +86,9 @@ export class AttendanceService {
   // ============ ADMIN ENDPOINTS ============
 
   getEmployeeAttendance(userId: string): Observable<Attendance[]> {
-    return this.http.get<Attendance[]>(`${this.apiUrl}/employee/${userId}`);
+    return this.http
+      .get<ApiResponse<Attendance[]>>(`${this.apiUrl}/employee/${userId}`)
+      .pipe(map((res) => res.data));
   }
 
   getEmployeeAttendanceByRange(
@@ -83,17 +97,23 @@ export class AttendanceService {
     endDate: string,
   ): Observable<Attendance[]> {
     const params = new HttpParams().set('startDate', startDate).set('endDate', endDate);
-    return this.http.get<Attendance[]>(`${this.apiUrl}/employee/${userId}/range`, { params });
+    return this.http
+      .get<ApiResponse<Attendance[]>>(`${this.apiUrl}/employee/${userId}/range`, { params })
+      .pipe(map((res) => res.data));
   }
 
   getAllAttendanceByDate(date: string): Observable<Attendance[]> {
     const params = new HttpParams().set('date', date);
-    return this.http.get<Attendance[]>(`${this.apiUrl}/date`, { params });
+    return this.http
+      .get<ApiResponse<Attendance[]>>(`${this.apiUrl}/date`, { params })
+      .pipe(map((res) => res.data));
   }
 
   getAllAttendanceByRange(startDate: string, endDate: string): Observable<Attendance[]> {
     const params = new HttpParams().set('startDate', startDate).set('endDate', endDate);
-    return this.http.get<Attendance[]>(`${this.apiUrl}/range`, { params });
+    return this.http
+      .get<ApiResponse<Attendance[]>>(`${this.apiUrl}/range`, { params })
+      .pipe(map((res) => res.data));
   }
 
   markAttendance(
@@ -108,7 +128,9 @@ export class AttendanceService {
       params = params.set('notes', notes);
     }
 
-    return this.http.post<Attendance>(`${this.apiUrl}/mark`, {}, { params });
+    return this.http
+      .post<ApiResponse<Attendance>>(`${this.apiUrl}/mark`, {}, { params })
+      .pipe(map((res) => res.data));
   }
 
   getEmployeeTimesheet(
@@ -117,7 +139,9 @@ export class AttendanceService {
     endDate: string,
   ): Observable<TimesheetSummary> {
     const params = new HttpParams().set('startDate', startDate).set('endDate', endDate);
-    return this.http.get<TimesheetSummary>(`${this.apiUrl}/timesheet/${userId}`, { params });
+    return this.http
+      .get<ApiResponse<TimesheetSummary>>(`${this.apiUrl}/timesheet/${userId}`, { params })
+      .pipe(map((res) => res.data));
   }
 
   downloadEmployeeTimesheet(userId: string, startDate: string, endDate: string): Observable<Blob> {

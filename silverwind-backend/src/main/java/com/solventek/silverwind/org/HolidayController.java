@@ -1,8 +1,10 @@
 package com.solventek.silverwind.org;
 
+import com.solventek.silverwind.common.ApiResponse;
 import com.solventek.silverwind.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -24,14 +26,14 @@ public class HolidayController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public List<Holiday> getAllHolidays(@AuthenticationPrincipal UserPrincipal currentUser) {
+    public ResponseEntity<ApiResponse<List<Holiday>>> getAllHolidays(@AuthenticationPrincipal UserPrincipal currentUser) {
         log.info("API: List All Holidays Request for Org: {}", currentUser.getOrgId());
-        return holidayService.getAllHolidays(currentUser.getOrgId());
+        return ResponseEntity.ok(ApiResponse.success(holidayService.getAllHolidays(currentUser.getOrgId())));
     }
 
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
     @PostMapping
-    public Holiday addHoliday(
+    public ResponseEntity<ApiResponse<Holiday>> addHoliday(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @RequestParam LocalDate date,
             @RequestParam String name,
@@ -39,13 +41,15 @@ public class HolidayController {
             @RequestParam(defaultValue = "true") boolean isMandatory) {
 
         log.info("API: Add Holiday Request. Org: {}, Date: {}, Name: {}", currentUser.getOrgId(), date, name);
-        return holidayService.addHoliday(currentUser.getOrgId(), date, name, description, isMandatory);
+        Holiday holiday = holidayService.addHoliday(currentUser.getOrgId(), date, name, description, isMandatory);
+        return ResponseEntity.ok(ApiResponse.success("Holiday created successfully.", holiday));
     }
 
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
     @DeleteMapping("/{id}")
-    public void deleteHoliday(@AuthenticationPrincipal UserPrincipal currentUser, @PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> deleteHoliday(@AuthenticationPrincipal UserPrincipal currentUser, @PathVariable UUID id) {
         log.info("API: Delete Holiday Request. Org: {}, ID: {}", currentUser.getOrgId(), id);
         holidayService.deleteHoliday(currentUser.getOrgId(), id);
+        return ResponseEntity.ok(ApiResponse.success("Holiday deleted successfully.", null));
     }
 }

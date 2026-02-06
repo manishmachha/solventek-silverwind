@@ -1,7 +1,8 @@
 package com.solventek.silverwind.storage;
 
+import com.solventek.silverwind.config.AwsProperties;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.InputStreamResource;
@@ -31,40 +32,28 @@ import java.util.UUID;
 @Primary
 @ConditionalOnProperty(name = "aws.s3.enabled", havingValue = "true")
 @Slf4j
+@RequiredArgsConstructor
 public class S3StorageService implements StorageService {
 
-    @Value("${aws.s3.bucket-name}")
-    private String bucketName;
-
-    @Value("${aws.s3.region}")
-    private String region;
-
-    @Value("${aws.s3.access-key}")
-    private String accessKey;
-
-    @Value("${aws.s3.secret-key}")
-    private String secretKey;
-
-    @Value("${aws.s3.presigned-url-expiration-minutes:60}")
-    private int presignedUrlExpirationMinutes;
+    private final AwsProperties awsProperties;
 
     private S3Client s3Client;
     private S3Presigner s3Presigner;
 
     @PostConstruct
     public void init() {
-        log.info("Initializing S3 Storage Service for bucket: {} in region: {}", bucketName, region);
+        log.info("Initializing S3 Storage Service for bucket: {} in region: {}", awsProperties.getBucketName(), awsProperties.getRegion());
 
-        AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
+        AwsBasicCredentials credentials = AwsBasicCredentials.create(awsProperties.getAccessKey(), awsProperties.getSecretKey());
         StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(credentials);
 
         this.s3Client = S3Client.builder()
-                .region(Region.of(region))
+                .region(Region.of(awsProperties.getRegion()))
                 .credentialsProvider(credentialsProvider)
                 .build();
 
         this.s3Presigner = S3Presigner.builder()
-                .region(Region.of(region))
+                .region(Region.of(awsProperties.getRegion()))
                 .credentialsProvider(credentialsProvider)
                 .build();
 
@@ -84,11 +73,11 @@ public class S3StorageService implements StorageService {
     @Override
     public String upload(MultipartFile file, String directory) {
         String key = generateKey(directory, file.getOriginalFilename());
-        log.info("Uploading file to S3: bucket={}, key={}", bucketName, key);
+        log.info("Uploading file to S3: bucket={}, key={}", awsProperties.getBucketName(), key);
 
         try {
             PutObjectRequest request = PutObjectRequest.builder()
-                    .bucket(bucketName)
+                    .bucket(awsProperties.getBucketName())
                     .key(key)
                     .contentType(file.getContentType())
                     .contentLength(file.getSize())
@@ -106,11 +95,11 @@ public class S3StorageService implements StorageService {
 
     @Override
     public String uploadWithKey(MultipartFile file, String key) {
-        log.info("Uploading file to S3 with custom key: bucket={}, key={}", bucketName, key);
+        log.info("Uploading file to S3 with custom key: bucket={}, key={}", awsProperties.getBucketName(), key);
 
         try {
             PutObjectRequest request = PutObjectRequest.builder()
-                    .bucket(bucketName)
+                    .bucket(awsProperties.getBucketName())
                     .key(key)
                     .contentType(file.getContentType())
                     .contentLength(file.getSize())
@@ -128,11 +117,11 @@ public class S3StorageService implements StorageService {
 
     @Override
     public Resource download(String key) {
-        log.debug("Downloading file from S3: bucket={}, key={}", bucketName, key);
+        log.debug("Downloading file from S3: bucket={}, key={}", awsProperties.getBucketName(), key);
 
         try {
             GetObjectRequest request = GetObjectRequest.builder()
-                    .bucket(bucketName)
+                    .bucket(awsProperties.getBucketName())
                     .key(key)
                     .build();
 
@@ -147,15 +136,15 @@ public class S3StorageService implements StorageService {
 
     @Override
     public String getPresignedUrl(String key, Duration expiration) {
-        log.debug("Generating presigned URL for: bucket={}, key={}, expiration={}", bucketName, key, expiration);
+        log.debug("Generating presigned URL for: bucket={}, key={}, expiration={}", awsProperties.getBucketName(), key, expiration);
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucketName)
+                .bucket(awsProperties.getBucketName())
                 .key(key)
                 .build();
 
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(expiration != null ? expiration : Duration.ofMinutes(presignedUrlExpirationMinutes))
+                .signatureDuration(expiration != null ? expiration : Duration.ofMinutes(awsProperties.getPresignedUrlExpirationMinutes()))
                 .getObjectRequest(getObjectRequest)
                 .build();
 
@@ -167,11 +156,11 @@ public class S3StorageService implements StorageService {
 
     @Override
     public void delete(String key) {
-        log.info("Deleting file from S3: bucket={}, key={}", bucketName, key);
+        log.info("Deleting file from S3: bucket={}, key={}", awsProperties.getBucketName(), key);
 
         try {
             DeleteObjectRequest request = DeleteObjectRequest.builder()
-                    .bucket(bucketName)
+                    .bucket(awsProperties.getBucketName())
                     .key(key)
                     .build();
 
@@ -188,7 +177,7 @@ public class S3StorageService implements StorageService {
     public boolean exists(String key) {
         try {
             HeadObjectRequest request = HeadObjectRequest.builder()
-                    .bucket(bucketName)
+                    .bucket(awsProperties.getBucketName())
                     .key(key)
                     .build();
 
@@ -206,9 +195,9 @@ public class S3StorageService implements StorageService {
         try {
             // 1. Copy Object
             CopyObjectRequest copyRequest = CopyObjectRequest.builder()
-                    .sourceBucket(bucketName)
+                    .sourceBucket(awsProperties.getBucketName())
                     .sourceKey(sourceKey)
-                    .destinationBucket(bucketName)
+                    .destinationBucket(awsProperties.getBucketName())
                     .destinationKey(destinationKey)
                     .build();
 
@@ -216,7 +205,7 @@ public class S3StorageService implements StorageService {
 
             // 2. Delete Original
             DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
-                    .bucket(bucketName)
+                    .bucket(awsProperties.getBucketName())
                     .key(sourceKey)
                     .build();
 

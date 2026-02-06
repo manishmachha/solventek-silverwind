@@ -1,5 +1,9 @@
 package com.solventek.silverwind.org;
 
+import com.solventek.silverwind.common.ApiResponse;
+
+import lombok.Builder;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -28,30 +32,30 @@ public class PayrollController {
 
     @GetMapping("/my-slips")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public List<PayrollResponse> getMyPayslips() {
+    public ResponseEntity<ApiResponse<List<PayrollResponse>>> getMyPayslips() {
         log.info("API: Get My Payslips");
-        return payrollService.getMyPayslips().stream().map(this::toPayrollResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(payrollService.getMyPayslips().stream().map(this::toPayrollResponse).toList()));
     }
 
     @GetMapping("/my-structure")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public SalaryStructureResponse getMySalaryStructure() {
+    public ResponseEntity<ApiResponse<SalaryStructureResponse>> getMySalaryStructure() {
         log.info("API: Get My Salary Structure");
-        return toStructureResponse(payrollService.getMySalaryStructure());
+        return ResponseEntity.ok(ApiResponse.success(toStructureResponse(payrollService.getMySalaryStructure())));
     }
 
     @GetMapping("/my/history")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public List<PayrollResponse> getMyPayrollHistory(@RequestParam int year) {
+    public ResponseEntity<ApiResponse<List<PayrollResponse>>> getMyPayrollHistory(@RequestParam int year) {
         log.info("API: Get My Payroll History for year {}", year);
-        return payrollService.getMyPayslipsByYear(year).stream().map(this::toPayrollResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(payrollService.getMyPayslipsByYear(year).stream().map(this::toPayrollResponse).toList()));
     }
 
     @GetMapping("/salary-revisions/my")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public List<SalaryRevisionResponse> getMySalaryRevisions() {
+    public ResponseEntity<ApiResponse<List<SalaryRevisionResponse>>> getMySalaryRevisions() {
         log.info("API: Get My Salary Revisions");
-        return payrollService.getMySalaryRevisions().stream().map(this::toRevisionResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(payrollService.getMySalaryRevisions().stream().map(this::toRevisionResponse).toList()));
     }
 
     @GetMapping("/{payrollId}/download")
@@ -72,21 +76,21 @@ public class PayrollController {
 
     @GetMapping("/structures")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public List<SalaryStructureResponse> getAllSalaryStructures() {
+    public ResponseEntity<ApiResponse<List<SalaryStructureResponse>>> getAllSalaryStructures() {
         log.info("API: List All Salary Structures");
-        return payrollService.listAllSalaryStructures().stream().map(this::toStructureResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(payrollService.listAllSalaryStructures().stream().map(this::toStructureResponse).toList()));
     }
 
     @GetMapping("/employee/{userId}/structure")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public SalaryStructureResponse getEmployeeSalaryStructure(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse<SalaryStructureResponse>> getEmployeeSalaryStructure(@PathVariable UUID userId) {
         log.info("API: Get Salary Structure for user {}", userId);
-        return toStructureResponse(payrollService.getSalaryStructure(userId));
+        return ResponseEntity.ok(ApiResponse.success(toStructureResponse(payrollService.getSalaryStructure(userId))));
     }
 
     @PostMapping("/employee/{userId}/structure")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public SalaryStructureResponse saveSalaryStructure(
+    public ResponseEntity<ApiResponse<SalaryStructureResponse>> saveSalaryStructure(
             @PathVariable UUID userId,
             @RequestParam BigDecimal basic,
             @RequestParam BigDecimal da,
@@ -100,44 +104,44 @@ public class PayrollController {
         log.info("API: Save Salary Structure for user {}", userId);
         SalaryStructure saved = payrollService.saveSalaryStructure(userId, basic, da, hra, medicalAllowance,
                 specialAllowance, lta, communicationAllowance, otherEarnings, epfDeduction);
-        return toStructureResponse(saved);
+        return ResponseEntity.ok(ApiResponse.success("Salary structure saved successfully.", toStructureResponse(saved)));
     }
 
     @PostMapping("/generate")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public PayrollResponse generatePayroll(@RequestParam UUID userId,
+    public ResponseEntity<ApiResponse<PayrollResponse>> generatePayroll(@RequestParam UUID userId,
             @RequestParam int month,
             @RequestParam int year) {
         log.info("API: Generate Payroll for user {} for {}/{}", userId, month, year);
-        return toPayrollResponse(payrollService.generatePayroll(userId, month, year));
+        return ResponseEntity.ok(ApiResponse.success("Payroll generated successfully.", toPayrollResponse(payrollService.generatePayroll(userId, month, year))));
     }
 
     @PatchMapping("/{payrollId}/pay")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public PayrollResponse markAsPaid(@PathVariable UUID payrollId) {
+    public ResponseEntity<ApiResponse<PayrollResponse>> markAsPaid(@PathVariable UUID payrollId) {
         log.info("API: Mark Payroll {} as Paid", payrollId);
-        return toPayrollResponse(payrollService.markAsPaid(payrollId));
+        return ResponseEntity.ok(ApiResponse.success("Payroll marked as paid.", toPayrollResponse(payrollService.markAsPaid(payrollId))));
     }
 
     @GetMapping("/history")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public List<PayrollResponse> getPayrollHistory(@RequestParam int month, @RequestParam int year) {
+    public ResponseEntity<ApiResponse<List<PayrollResponse>>> getPayrollHistory(@RequestParam int month, @RequestParam int year) {
         log.info("API: Get Payroll History for {}/{}", month, year);
-        return payrollService.getPayrollsByMonth(month, year).stream().map(this::toPayrollResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(payrollService.getPayrollsByMonth(month, year).stream().map(this::toPayrollResponse).toList()));
     }
 
     @GetMapping("/employee/{userId}/history")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public List<PayrollResponse> getEmployeePayrollHistory(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse<List<PayrollResponse>>> getEmployeePayrollHistory(@PathVariable UUID userId) {
         log.info("API: Get Payroll History for user {}", userId);
-        return payrollService.getPayrollsByUser(userId).stream().map(this::toPayrollResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(payrollService.getPayrollsByUser(userId).stream().map(this::toPayrollResponse).toList()));
     }
 
     @GetMapping("/salary-revisions/{userId}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public List<SalaryRevisionResponse> getEmployeeSalaryRevisions(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse<List<SalaryRevisionResponse>>> getEmployeeSalaryRevisions(@PathVariable UUID userId) {
         log.info("API: Get Salary Revisions for user {}", userId);
-        return payrollService.getSalaryRevisions(userId).stream().map(this::toRevisionResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(payrollService.getSalaryRevisions(userId).stream().map(this::toRevisionResponse).toList()));
     }
 
     // ============ RESPONSE MAPPING ============
@@ -198,8 +202,8 @@ public class PayrollController {
 
     // ============ DTOs ============
 
-    @lombok.Builder
-    @lombok.Data
+    @Builder
+    @Data
     public static class PayrollResponse {
         private UUID id;
         private UUID userId;
@@ -222,8 +226,8 @@ public class PayrollController {
         private String status;
     }
 
-    @lombok.Builder
-    @lombok.Data
+    @Builder
+    @Data
     public static class SalaryStructureResponse {
         private UUID id;
         private UUID userId;

@@ -147,11 +147,9 @@ export class MarkAttendanceModalComponent implements OnChanges {
       )
       .subscribe({
         next: (res: Attendance) => {
-          this.dialogService.open('Success', 'Attendance marked successfully');
           this.saved.emit();
           this.onClose();
         },
-        error: (err: any) => this.dialogService.open('Error', 'Failed to mark attendance'),
       });
   }
 

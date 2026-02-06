@@ -27,7 +27,7 @@ public class InterviewController {
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TA')")
     public ResponseEntity<ApiResponse<Interview>> scheduleInterview(
             @RequestBody @Valid ScheduleRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Interview scheduled successfully.",
                 interviewService.scheduleInterview(request.getApplicationId(), request.getInterviewerId(),
                         request.getScheduledAt(), request.getDurationMinutes(), request.getType(),
                         request.getMeetingLink())));
@@ -38,7 +38,7 @@ public class InterviewController {
     public ResponseEntity<ApiResponse<Interview>> submitFeedback(
             @PathVariable UUID id,
             @RequestBody @Valid FeedbackRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Feedback submitted successfully.",
                 interviewService.submitFeedback(id, request.getFeedback(), request.getRating(), request.isPassed())));
     }
 

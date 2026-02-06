@@ -4,9 +4,9 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
+import com.solventek.silverwind.config.JwtProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -15,18 +15,15 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Component
+@RequiredArgsConstructor
 public class JwtTokenProvider {
 
-    @Value("${app.jwt.secret}")
-    private String jwtSecret;
-
-    @Value("${app.jwt.expiration-ms}")
-    private long jwtExpirationDate;
+    private final JwtProperties jwtProperties;
 
     public String generateToken(Authentication authentication, Map<String, Object> additionalClaims) {
         String username = authentication.getName();
         Date currentDate = new Date();
-        Date expireDate = new Date(currentDate.getTime() + jwtExpirationDate);
+        Date expireDate = new Date(currentDate.getTime() + jwtProperties.getExpirationMs());
 
         return Jwts.builder()
                 .claims(additionalClaims)
@@ -38,7 +35,7 @@ public class JwtTokenProvider {
     }
 
     private SecretKey key() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getSecret()));
     }
 
     public String getUsername(String token) {

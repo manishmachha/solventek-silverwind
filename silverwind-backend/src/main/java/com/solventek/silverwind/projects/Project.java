@@ -4,7 +4,9 @@ import com.solventek.silverwind.org.Organization;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -42,8 +44,8 @@ public class Project {
     }
 
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("project")
+    @JsonIgnoreProperties("project")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private java.util.List<ProjectAllocation> allocations;
+    private List<ProjectAllocation> allocations;
 }

@@ -34,7 +34,7 @@ public class EmployeeController {
             @AuthenticationPrincipal UserPrincipal currentUser,
             @RequestBody @jakarta.validation.Valid CreateEmployeeRequest request) {
 
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Employee created successfully.",
                 employeeService.createEmployee(currentUser.getOrgId(), request.firstName, request.lastName, request.email,
                         request.phone, request.dateOfBirth, request.gender, request.profilePhotoUrl,
                         request.employeeCode, request.dateOfJoining, request.employmentStatus, request.department,
@@ -50,7 +50,7 @@ public class EmployeeController {
             @AuthenticationPrincipal UserPrincipal currentUser,
             @RequestBody @jakarta.validation.Valid CreateEmployeeRequest request) {
 
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Employee updated successfully.",
                 employeeService.updateEmployee(id, currentUser.getOrgId(), request.firstName, request.lastName,
                         request.phone, request.dateOfBirth, request.gender, request.profilePhotoUrl,
                         request.employeeCode, request.dateOfJoining, request.employmentStatus, request.department,
@@ -79,7 +79,7 @@ public class EmployeeController {
             @PathVariable UUID id,
             @RequestBody PersonalDetailsRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Personal details updated successfully.",
                 employeeService.updatePersonalDetails(id, currentUser.getId(), request.firstName, request.lastName,
                         request.dateOfBirth, request.gender, request.profilePhotoUrl)));
     }
@@ -90,7 +90,7 @@ public class EmployeeController {
             @PathVariable UUID id,
             @RequestBody EmploymentDetailsRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Employment details updated successfully.",
                 employeeService.updateEmploymentDetails(id, currentUser.getId(), request.employeeCode,
                         request.dateOfJoining,
                         request.employmentStatus, request.department, request.designation,
@@ -103,7 +103,7 @@ public class EmployeeController {
             @PathVariable UUID id,
             @RequestBody ContactInfoRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Contact info updated successfully.",
                 employeeService.updateContactInfo(id, currentUser.getId(), request.phone, request.address,
                         request.emergencyContact)));
     }
@@ -114,7 +114,7 @@ public class EmployeeController {
             @PathVariable UUID id,
             @RequestBody BankDetailsRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Bank details updated successfully.",
                 employeeService.updateBankDetails(id, currentUser.getId(), request.bankDetails, request.taxIdPan)));
     }
 
@@ -124,7 +124,7 @@ public class EmployeeController {
             @PathVariable UUID id,
             @RequestBody UpdateManagerRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Manager updated successfully.",
                 employeeService.updateManager(id, request.managerId, currentUser.getId())));
     }
 
@@ -134,7 +134,7 @@ public class EmployeeController {
             @PathVariable UUID id,
             @RequestBody UpdateStatusRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Account status updated successfully.",
                 employeeService.updateAccountStatus(id, currentUser.getId(), request.enabled, request.accountLocked)));
     }
 
@@ -144,7 +144,7 @@ public class EmployeeController {
             @PathVariable UUID id,
             @RequestBody EmploymentStatusRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Employment status updated successfully.",
                 employeeService.updateEmploymentStatus(id, currentUser.getId(), request.employmentStatus)));
     }
 
@@ -240,7 +240,7 @@ public class EmployeeController {
             @RequestBody(required = false) ConvertToFteRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
         LocalDate conversionDate = request != null ? request.conversionDate : null;
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Converted to FTE successfully.",
                 employeeService.convertToFullTime(id, currentUser.getId(), conversionDate)));
     }
 
@@ -255,7 +255,7 @@ public class EmployeeController {
             @PathVariable UUID id,
             @RequestBody ChangePasswordRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Password changed successfully.",
                 employeeService.changePassword(id, currentUser.getId(), request.newPassword)));
     }
 
@@ -271,7 +271,7 @@ public class EmployeeController {
             @PathVariable UUID id,
             @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Photo uploaded successfully.",
                 employeeService.uploadProfilePhoto(id, currentUser.getId(), file)));
     }
     @GetMapping("/{id}/photo")

@@ -22,9 +22,18 @@ public class ApiResponse<T> {
     @Builder.Default
     private String traceId = MDC.get("traceId");
 
+    private String message;
     private boolean success;
     private T data;
     private ApiError error;
+
+    public static <T> ApiResponse<T> success(String message, T data) {
+        return ApiResponse.<T>builder()
+                .success(true)
+                .message(message)
+                .data(data)
+                .build();
+    }
 
     public static <T> ApiResponse<T> success(T data) {
         return ApiResponse.<T>builder()

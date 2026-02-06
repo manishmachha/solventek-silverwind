@@ -37,7 +37,7 @@ public class ProjectController {
     public ResponseEntity<ApiResponse<Project>> createProject(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @RequestBody @Valid CreateProjectRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Project created successfully.",
                 projectService.createProject(currentUser.getOrgId(), request.name, request.description,
                         request.clientOrgId, request.startDate, request.endDate)));
     }
@@ -47,7 +47,7 @@ public class ProjectController {
     public ResponseEntity<ApiResponse<ProjectAllocation>> allocateUser(
             @PathVariable UUID id,
             @RequestBody @Valid AllocateUserRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("User allocated to project successfully.",
                 projectService.allocateUser(id, request.userId, request.startDate, request.endDate, request.percentage,
                         request.billingRole)));
     }

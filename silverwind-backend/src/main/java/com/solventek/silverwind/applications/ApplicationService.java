@@ -1,21 +1,33 @@
 package com.solventek.silverwind.applications;
 
+import com.solventek.silverwind.applications.ApplicationController.ApplyRequest;
+import com.solventek.silverwind.auth.Employee;
+import com.solventek.silverwind.auth.EmployeeRepository;
 import com.solventek.silverwind.jobs.Job;
 import com.solventek.silverwind.jobs.JobRepository;
+import com.solventek.silverwind.notifications.Notification.NotificationCategory;
+import com.solventek.silverwind.notifications.Notification.NotificationPriority;
+import com.solventek.silverwind.notifications.NotificationService;
 import com.solventek.silverwind.org.Organization;
 import com.solventek.silverwind.org.OrganizationRepository;
+import com.solventek.silverwind.org.OrganizationService;
+import com.solventek.silverwind.recruitment.Candidate;
+import com.solventek.silverwind.recruitment.CandidateRepository;
+import com.solventek.silverwind.timeline.TimelineEvent;
 import com.solventek.silverwind.timeline.TimelineService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -26,21 +38,21 @@ public class ApplicationService {
         private final JobApplicationRepository applicationRepository;
         private final JobRepository jobRepository;
         private final OrganizationRepository organizationRepository;
-        private final com.solventek.silverwind.org.OrganizationService organizationService;
+        private final OrganizationService organizationService;
         private final TimelineService timelineService;
-        private final com.solventek.silverwind.auth.EmployeeRepository employeeRepository;
-        private final com.solventek.silverwind.notifications.NotificationService notificationService;
+        private final EmployeeRepository employeeRepository;
+        private final NotificationService notificationService;
 
         // AI & Documents Dependencies
         private final ResumeIngestionService ingestionService;
         private final ResumeAnalysisOrchestratorService analysisOrchestrator;
         private final ApplicationDocumentsRepository documentsRepository;
         private final ResumeAnalysisRepository analysisRepository;
-        private final com.solventek.silverwind.recruitment.CandidateRepository candidateRepository;
+        private final CandidateRepository candidateRepository;
 
         @Transactional
         public JobApplication apply(UUID jobId,
-                        com.solventek.silverwind.applications.ApplicationController.ApplyRequest request,
+                        ApplyRequest request,
                         MultipartFile resumeFile,
                         UUID vendorOrgId) {
                 log.info("Processing job application for Job ID: {} from: {}", jobId, request.getEmail());
@@ -64,7 +76,7 @@ public class ApplicationService {
                         // Ingest or Link Resume
                         String resumePath = null;
                         String resumeText = null;
-                        com.solventek.silverwind.recruitment.Candidate existingCandidate = null;
+                        Candidate existingCandidate = null;
 
                         if (request.getCandidateId() != null) {
                             existingCandidate = candidateRepository.findById(request.getCandidateId()).orElse(null);
@@ -160,7 +172,7 @@ public class ApplicationService {
                         log.info("Application saved with ID: {}", app.getId());
 
                         UUID targetUserId = employeeRepository.findByEmail(request.getEmail())
-                                        .map(com.solventek.silverwind.auth.Employee::getId).orElse(null);
+                                        .map(Employee::getId).orElse(null);
 
                         timelineService.createEvent(job.getOrganization().getId(), "APPLICATION", app.getId(), "APPLY",
                                         "New Application", null, targetUserId,
@@ -169,12 +181,12 @@ public class ApplicationService {
                                         null);
 
                         // Notify Job Organization (Client/Solventek) Admins with rich notification
-                        java.util.List<com.solventek.silverwind.auth.Employee> admins = employeeRepository
+                        List<Employee> admins = employeeRepository
                                         .findByOrganizationId(job.getOrganization().getId());
                         log.debug("Notifying {} admins about new application", admins.size());
                         for (var admin : admins) {
                                 notificationService.sendNotification(
-                                                com.solventek.silverwind.notifications.NotificationService.NotificationBuilder
+                                                NotificationService.NotificationBuilder
                                                                 .create()
                                                                 .recipient(admin.getId())
                                                                 .title("📋 New Application Received")
@@ -186,8 +198,8 @@ public class ApplicationService {
                                                                                                 ? request.getExperienceYears()
                                                                                                                 + " years of experience."
                                                                                                 : ""))
-                                                                .category(com.solventek.silverwind.notifications.Notification.NotificationCategory.APPLICATION)
-                                                                .priority(com.solventek.silverwind.notifications.Notification.NotificationPriority.NORMAL)
+                                                                .category(NotificationCategory.APPLICATION)
+                                                                .priority(NotificationPriority.NORMAL)
                                                                 .refEntity("APPLICATION", app.getId())
                                                                 .actionUrl("/applications/" + app.getId())
                                                                 .icon("bi-file-earmark-person")
@@ -200,12 +212,12 @@ public class ApplicationService {
                         // Notify Candidate if they are a registered user
                         if (targetUserId != null) {
                                 notificationService.sendNotification(
-                                        com.solventek.silverwind.notifications.NotificationService.NotificationBuilder.create()
+                                        NotificationService.NotificationBuilder.create()
                                                 .recipient(targetUserId)
                                                 .title("Application Submitted Successfully")
                                                 .body("Your application for " + job.getTitle() + " at " + job.getOrganization().getName() + " has been received.")
-                                                .category(com.solventek.silverwind.notifications.Notification.NotificationCategory.APPLICATION)
-                                                .priority(com.solventek.silverwind.notifications.Notification.NotificationPriority.NORMAL)
+                                                .category(NotificationCategory.APPLICATION)
+                                                .priority(NotificationPriority.NORMAL)
                                                 .refEntity("APPLICATION", app.getId())
                                                 .actionUrl("/applications/" + app.getId())
                                                 .icon("bi-check-circle")
@@ -259,7 +271,7 @@ public class ApplicationService {
                         applicationRepository.save(app);
 
                         UUID targetUserId = employeeRepository.findByEmail(app.getEmail())
-                                        .map(com.solventek.silverwind.auth.Employee::getId).orElse(null);
+                                        .map(Employee::getId).orElse(null);
 
                         timelineService.createEvent(app.getJob().getOrganization().getId(), "APPLICATION", app.getId(),
                                         "STATUS_CHANGE", "Status Updated",
@@ -267,13 +279,13 @@ public class ApplicationService {
 
                         // Notify Vendor Admins with TRACKING category (shows in Track Applications)
                         if (app.getVendor() != null) {
-                                java.util.List<com.solventek.silverwind.auth.Employee> vendorAdmins = employeeRepository
+                                List<Employee> vendorAdmins = employeeRepository
                                                 .findByOrganizationId(app.getVendor().getId());
                                 log.debug("Notifying {} vendor admins about status update", vendorAdmins.size());
                                 String statusEmoji = getStatusEmoji(status);
                                 for (var admin : vendorAdmins) {
                                         notificationService.sendNotification(
-                                                        com.solventek.silverwind.notifications.NotificationService.NotificationBuilder
+                                                        NotificationService.NotificationBuilder
                                                                         .create()
                                                                         .recipient(admin.getId())
                                                                         .title(statusEmoji
@@ -284,10 +296,10 @@ public class ApplicationService {
                                                                                         + app.getJob().getTitle()
                                                                                         + " moved from "
                                                                                         + oldStatus + " to " + status)
-                                                                        .category(com.solventek.silverwind.notifications.Notification.NotificationCategory.TRACKING)
+                                                                        .category(NotificationCategory.TRACKING)
                                                                         .priority(status == ApplicationStatus.ONBOARDED
-                                                                                        ? com.solventek.silverwind.notifications.Notification.NotificationPriority.HIGH
-                                                                                        : com.solventek.silverwind.notifications.Notification.NotificationPriority.NORMAL)
+                                                                                        ? NotificationPriority.HIGH
+                                                                                        : NotificationPriority.NORMAL)
                                                                         .refEntity("APPLICATION", app.getId())
                                                                         .actionUrl("/track-applications")
                                                                         .icon("bi-arrow-left-right")
@@ -302,12 +314,12 @@ public class ApplicationService {
                         // Notify Candidate
                         if (targetUserId != null) {
                                 notificationService.sendNotification(
-                                        com.solventek.silverwind.notifications.NotificationService.NotificationBuilder.create()
+                                        NotificationService.NotificationBuilder.create()
                                                 .recipient(targetUserId)
                                                 .title("Application Status Update")
                                                 .body("Your application for " + app.getJob().getTitle() + " has been updated to: " + status)
-                                                .category(com.solventek.silverwind.notifications.Notification.NotificationCategory.APPLICATION)
-                                                .priority(com.solventek.silverwind.notifications.Notification.NotificationPriority.NORMAL)
+                                                .category(NotificationCategory.APPLICATION)
+                                                .priority(NotificationPriority.NORMAL)
                                                 .refEntity("APPLICATION", app.getId())
                                                 .actionUrl("/applications/" + app.getId())
                                                 .icon("bi-info-circle")
@@ -415,7 +427,7 @@ public class ApplicationService {
 
                         // Notify Vendor
                         if (app.getVendor() != null) {
-                                java.util.List<com.solventek.silverwind.auth.Employee> vendorAdmins = employeeRepository
+                                List<Employee> vendorAdmins = employeeRepository
                                                 .findByOrganizationId(app.getVendor().getId());
                                 log.debug("Notifying vendor about decision for Application ID: {}", applicationId);
                                 vendorAdmins.forEach(admin -> notificationService.sendNotification(admin.getId(),
@@ -428,12 +440,12 @@ public class ApplicationService {
                         // Notify Candidate
                         if (targetUserId != null) {
                                 notificationService.sendNotification(
-                                        com.solventek.silverwind.notifications.NotificationService.NotificationBuilder.create()
+                                        NotificationService.NotificationBuilder.create()
                                                 .recipient(targetUserId)
                                                 .title("Application Decision Update")
                                                 .body("An update has been made to your application for " + app.getJob().getTitle() + ". Please check your status.")
-                                                .category(com.solventek.silverwind.notifications.Notification.NotificationCategory.APPLICATION)
-                                                .priority(com.solventek.silverwind.notifications.Notification.NotificationPriority.HIGH)
+                                                .category(NotificationCategory.APPLICATION)
+                                                .priority(NotificationPriority.HIGH)
                                                 .refEntity("APPLICATION", app.getId())
                                                 .actionUrl("/applications/" + app.getId())
                                                 .icon(approved ? "bi-check-circle-fill" : "bi-x-circle-fill")
@@ -505,7 +517,7 @@ public class ApplicationService {
                                 "Document uploaded: " + category, null);
         }
 
-        public java.util.List<ApplicationDocuments> getDocuments(UUID applicationId) {
+        public List<ApplicationDocuments> getDocuments(UUID applicationId) {
                 log.debug("Fetching documents for Application ID: {}", applicationId);
                 return documentsRepository.findByApplicationIdOrderByUploadedAtDesc(applicationId);
         }
@@ -515,13 +527,13 @@ public class ApplicationService {
                 return analysisRepository.findTopByApplicationIdOrderByAnalyzedAtDesc(applicationId).orElse(null);
         }
 
-        @org.springframework.scheduling.annotation.Async("analysisExecutor")
+        @Async("analysisExecutor")
         public void triggerManualAnalysis(UUID applicationId) {
                 log.info("Triggering manual analysis for Application ID: {}", applicationId);
                 analysisOrchestrator.analyzeApplicationAsync(applicationId);
         }
 
-        public Page<com.solventek.silverwind.timeline.TimelineEvent> getTimeline(UUID applicationId,
+        public Page<TimelineEvent> getTimeline(UUID applicationId,
                         Pageable pageable) {
                 log.debug("Fetching timeline for Application ID: {}", applicationId);
                 return timelineService.getApplicationTimeline(applicationId, pageable);
@@ -538,7 +550,7 @@ public class ApplicationService {
                 // Determine Actor ID from userId (username)
                 // Ideally we look up user by username.
                 // For now, let's assume we pass the User object or look it up.
-                com.solventek.silverwind.auth.Employee actor = employeeRepository.findByEmail(userId).orElse(null);
+                Employee actor = employeeRepository.findByEmail(userId).orElse(null);
                 UUID actorId = actor != null ? actor.getId() : null;
 
                 JobApplication app = getApplication(applicationId);
@@ -554,12 +566,12 @@ public class ApplicationService {
                         try {
                                 // 1. Notify Actor (Confirmation)
                                 notificationService.sendNotification(
-                                        com.solventek.silverwind.notifications.NotificationService.NotificationBuilder.create()
+                                        NotificationService.NotificationBuilder.create()
                                                 .recipient(actor.getId())
                                                 .title("Comment Added")
                                                 .body("You added a comment to " + app.getFirstName() + " " + app.getLastName() + "'s application.")
-                                                .category(com.solventek.silverwind.notifications.Notification.NotificationCategory.APPLICATION)
-                                                .priority(com.solventek.silverwind.notifications.Notification.NotificationPriority.LOW)
+                                                .category(NotificationCategory.APPLICATION)
+                                                .priority(NotificationPriority.LOW)
                                                 .refEntity("APPLICATION", app.getId())
                                                 .actionUrl("/applications/" + app.getId())
                                                 .icon("bi-chat-left-text")
@@ -573,17 +585,17 @@ public class ApplicationService {
                                 if (targetOrg != null) {
                                         java.util.List<com.solventek.silverwind.auth.Employee> recipients = employeeRepository.findByOrganizationId(targetOrg.getId());
                                         
-                                        for (com.solventek.silverwind.auth.Employee recipient : recipients) {
+                                        for (Employee recipient : recipients) {
                                                 // Don't notify self if logic somehow overlaps
                                                 if (recipient.getId().equals(actor.getId())) continue;
 
                                                 notificationService.sendNotification(
-                                                        com.solventek.silverwind.notifications.NotificationService.NotificationBuilder.create()
+                                                        NotificationService.NotificationBuilder.create()
                                                                 .recipient(recipient.getId())
                                                                 .title("New Comment on Application")
                                                                 .body(actor.getFirstName() + " added a comment: \"" + (message.length() > 50 ? message.substring(0, 47) + "..." : message) + "\"")
-                                                                .category(com.solventek.silverwind.notifications.Notification.NotificationCategory.APPLICATION)
-                                                                .priority(com.solventek.silverwind.notifications.Notification.NotificationPriority.NORMAL)
+                                                                .category(NotificationCategory.APPLICATION)
+                                                                .priority(NotificationPriority.NORMAL)
                                                                 .refEntity("APPLICATION", app.getId())
                                                                 .actionUrl("/applications/" + app.getId())
                                                                 .icon("bi-chat-dots")

@@ -1,6 +1,7 @@
 package com.solventek.silverwind.ticket;
 
 import com.solventek.silverwind.auth.Employee;
+import com.solventek.silverwind.org.Organization;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -62,7 +63,7 @@ public class Ticket {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "target_org_id", nullable = false)
-    private com.solventek.silverwind.org.Organization targetOrganization;
+    private Organization targetOrganization;
 
     // Requester (The employee/user who raised the ticket)
     @NotNull

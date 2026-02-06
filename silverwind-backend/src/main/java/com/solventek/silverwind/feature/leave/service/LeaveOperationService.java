@@ -11,10 +11,20 @@ import com.solventek.silverwind.feature.leave.entity.*;
 import com.solventek.silverwind.feature.leave.repository.LeaveBalanceRepository;
 import com.solventek.silverwind.feature.leave.repository.LeaveRequestRepository;
 import com.solventek.silverwind.feature.leave.repository.LeaveTypeRepository;
+import com.solventek.silverwind.notifications.Notification.NotificationCategory;
+import com.solventek.silverwind.notifications.Notification.NotificationPriority;
 import com.solventek.silverwind.notifications.NotificationService;
+import com.solventek.silverwind.timeline.TimelineService;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
 
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -30,7 +40,7 @@ public class LeaveOperationService {
     private final LeaveTypeRepository leaveTypeRepository;
     private final EmployeeRepository employeeRepository;
     private final NotificationService notificationService;
-    private final com.solventek.silverwind.timeline.TimelineService timelineService;
+    private final TimelineService timelineService;
 
     @Transactional
     public void submitLeaveRequest(UUID userId, LeaveRequestDTO dto) {
@@ -87,11 +97,11 @@ public class LeaveOperationService {
                     .recipient(employee.getManager().getId())
                     .title(title)
                     .body(body)
-                    .category(com.solventek.silverwind.notifications.Notification.NotificationCategory.LEAVE)
+                    .category(NotificationCategory.LEAVE)
                     .refEntity("LEAVE", request.getId())
                     .actionUrl(actionUrl)
                     .icon(icon)
-                    .priority(com.solventek.silverwind.notifications.Notification.NotificationPriority.NORMAL));
+                    .priority(NotificationPriority.NORMAL));
         } else {
             // Fallback: Notify all Org Admins
             notificationService.sendNotificationToOrgAdmins(employee.getOrganization().getId(), title, body, "LEAVE",
@@ -156,11 +166,11 @@ public class LeaveOperationService {
                 .recipient(request.getEmployee().getId())
                 .title(title)
                 .body(message)
-                .category(com.solventek.silverwind.notifications.Notification.NotificationCategory.LEAVE)
+                .category(NotificationCategory.LEAVE)
                 .refEntity("LEAVE", request.getId())
                 .actionUrl("/my-leaves")
                 .icon(icon)
-                .priority(com.solventek.silverwind.notifications.Notification.NotificationPriority.HIGH));
+                .priority(NotificationPriority.HIGH));
 
         // Create Timeline Event
         timelineService.createEvent(request.getOrganizationId(), "LEAVE", request.getId(),
@@ -200,11 +210,11 @@ public class LeaveOperationService {
                 .collect(Collectors.toList());
     }
 
-    public org.springframework.data.domain.Page<LeaveResponseDTO> getAllRequests(String search, LeaveStatus status,
-            UUID leaveTypeId, java.time.LocalDate startDate, java.time.LocalDate endDate,
+    public Page<LeaveResponseDTO> getAllRequests(String search, LeaveStatus status,
+            UUID leaveTypeId, LocalDate startDate, LocalDate endDate,
             UUID organizationId,
-            org.springframework.data.domain.Pageable pageable) {
-        org.springframework.data.jpa.domain.Specification<LeaveRequest> spec = createSpecification(search, status,
+            Pageable pageable) {
+        Specification<LeaveRequest> spec = createSpecification(search, status,
                 leaveTypeId, startDate, endDate, organizationId);
         return leaveRequestRepository.findAll(spec, pageable).map(this::mapToResponse);
     }
@@ -272,20 +282,20 @@ public class LeaveOperationService {
                 .build();
     }
 
-    private org.springframework.data.jpa.domain.Specification<LeaveRequest> createSpecification(String searchQuery,
+    private Specification<LeaveRequest> createSpecification(String searchQuery,
             LeaveStatus status,
-            UUID leaveTypeId, java.time.LocalDate startDate, java.time.LocalDate endDate, UUID organizationId) {
+            UUID leaveTypeId, LocalDate startDate, LocalDate endDate, UUID organizationId) {
         return (root, query, criteriaBuilder) -> {
-            java.util.List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+            List<Predicate> predicates = new ArrayList<>();
 
             // ORGANIZATION FILTER
             predicates.add(criteriaBuilder.equal(root.get("organizationId"), organizationId));
 
             if (searchQuery != null && !searchQuery.isEmpty()) {
                 String likePattern = "%" + searchQuery.toLowerCase() + "%";
-                jakarta.persistence.criteria.Predicate firstNameMatch = criteriaBuilder
+                Predicate firstNameMatch = criteriaBuilder
                         .like(criteriaBuilder.lower(root.get("employee").get("firstName")), likePattern);
-                jakarta.persistence.criteria.Predicate lastNameMatch = criteriaBuilder.like(
+                Predicate lastNameMatch = criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("employee").get("lastName")),
                         likePattern);
                 predicates.add(criteriaBuilder.or(firstNameMatch, lastNameMatch));
@@ -308,7 +318,7 @@ public class LeaveOperationService {
 
             query.orderBy(criteriaBuilder.desc(root.get("createdAt")));
 
-            return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
 }

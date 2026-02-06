@@ -11,6 +11,7 @@ import {
   TicketHistory,
   OrganizationSummary,
 } from '../models/ticket.model';
+import { ApiResponse } from '../models/api-response.model';
 import { environment } from '../../../environments/environment';
 
 export const SKIP_LOADER_INTERCEPTOR = new HttpContextToken<boolean>(() => false);
@@ -26,23 +27,31 @@ export class TicketService {
   private apiUrl = `${environment.apiUrl}/tickets`;
 
   getMyTickets(): Observable<Ticket[]> {
-    return this.http.get<Ticket[]>(`${this.apiUrl}/my`);
+    return this.http
+      .get<ApiResponse<Ticket[]>>(`${this.apiUrl}/my`)
+      .pipe(map((response) => response.data));
   }
 
   getMyTicketsForPolling(): Observable<Ticket[]> {
-    return this.http.get<Ticket[]>(`${this.apiUrl}/my`, {
-      context: new HttpContext().set(SKIP_LOADER_INTERCEPTOR, true),
-    });
+    return this.http
+      .get<ApiResponse<Ticket[]>>(`${this.apiUrl}/my`, {
+        context: new HttpContext().set(SKIP_LOADER_INTERCEPTOR, true),
+      })
+      .pipe(map((response) => response.data));
   }
 
   getAllTickets(): Observable<Ticket[]> {
-    return this.http.get<Ticket[]>(`${this.apiUrl}/all`);
+    return this.http
+      .get<ApiResponse<Ticket[]>>(`${this.apiUrl}/all`)
+      .pipe(map((response) => response.data));
   }
 
   getAllTicketsForPolling(): Observable<Ticket[]> {
-    return this.http.get<Ticket[]>(`${this.apiUrl}/all`, {
-      context: new HttpContext().set(SKIP_LOADER_INTERCEPTOR, true),
-    });
+    return this.http
+      .get<ApiResponse<Ticket[]>>(`${this.apiUrl}/all`, {
+        context: new HttpContext().set(SKIP_LOADER_INTERCEPTOR, true),
+      })
+      .pipe(map((response) => response.data));
   }
 
   createTicket(
@@ -53,72 +62,72 @@ export class TicketService {
     targetOrgId?: string,
     assignedToUserId?: string,
   ): Observable<Ticket> {
-    return this.http.post<Ticket>(`${this.apiUrl}/create`, {
-      subject,
-      description,
-      type,
-      priority,
-      targetOrgId,
-      assignedToUserId,
-    });
+    return this.http
+      .post<ApiResponse<Ticket>>(`${this.apiUrl}/create`, {
+        subject,
+        description,
+        type,
+        priority,
+        targetOrgId,
+        assignedToUserId,
+      })
+      .pipe(map((response) => response.data));
   }
 
   // ... existing methods ...
 
   getOrganizationUsers(orgId: string): Observable<any[]> {
     return this.http
-      .get<any>(`${environment.apiUrl}/organizations/${orgId}/employees`)
-      .pipe(map((response: any) => response.data || []));
+      .get<ApiResponse<any>>(`${environment.apiUrl}/organizations/${orgId}/employees`)
+      .pipe(map((response: ApiResponse<any>) => response.data || []));
   }
 
   updateStatus(id: string, status: TicketStatus): Observable<Ticket> {
-    return this.http.patch<Ticket>(`${this.apiUrl}/${id}/status`, { status });
+    return this.http
+      .patch<ApiResponse<Ticket>>(`${this.apiUrl}/${id}/status`, { status })
+      .pipe(map((response) => response.data));
   }
 
   getTicketById(id: string): Observable<Ticket> {
-    return this.http.get<Ticket>(`${this.apiUrl}/${id}`);
+    return this.http
+      .get<ApiResponse<Ticket>>(`${this.apiUrl}/${id}`)
+      .pipe(map((response) => response.data));
   }
 
   getHistory(id: string): Observable<TicketHistory[]> {
-    return this.http.get<TicketHistory[]>(`${this.apiUrl}/${id}/history`);
+    return this.http
+      .get<ApiResponse<TicketHistory[]>>(`${this.apiUrl}/${id}/history`)
+      .pipe(map((response) => response.data));
   }
 
   getComments(id: string): Observable<TicketComment[]> {
-    return this.http.get<TicketComment[]>(`${this.apiUrl}/${id}/comments`);
+    return this.http
+      .get<ApiResponse<TicketComment[]>>(`${this.apiUrl}/${id}/comments`)
+      .pipe(map((response) => response.data));
   }
 
   addComment(id: string, message: string): Observable<TicketComment> {
-    return this.http.post<TicketComment>(`${this.apiUrl}/${id}/comments`, { message });
+    return this.http
+      .post<ApiResponse<TicketComment>>(`${this.apiUrl}/${id}/comments`, { message })
+      .pipe(map((response) => response.data));
   }
 
   escalateTicket(id: string): Observable<Ticket> {
-    return this.http.patch<Ticket>(`${this.apiUrl}/${id}/escalate`, {});
+    return this.http
+      .patch<ApiResponse<Ticket>>(`${this.apiUrl}/${id}/escalate`, {})
+      .pipe(map((response) => response.data));
   }
 
   markAsRead(id: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${id}/mark-read`, {});
+    return this.http
+      .post<ApiResponse<void>>(`${this.apiUrl}/${id}/mark-read`, {})
+      .pipe(map(() => void 0));
   }
 
   // Helper for assignment dropdown
   getAllOrganizations(): Observable<OrganizationSummary[]> {
-    return this.http.get<any>(`${environment.apiUrl}/organizations`).pipe(
-      // API returns ApiResponse<List<Organization>>, we need to map it if structure differs
-      // The backend returns Organization entity list wrapped in ApiResponse
-      // The frontend uses OrganizationSummary interface
-      // We might need to map manual fields or just use what backend sends if matches enough
-      // Backend Organization has name, type, id. Summary has name, type, id.
-      // So simple mapping of response.data is likely enough.
-      // But wait, backend returns FULL Organization. Summary is subset. It's compatible.
-      // We need to map from ApiResponse structure.
-      // Assuming api response structure is standard { success: boolean, data: ... }
-      // TicketService uses HttpClient directly, not ApiService wrapper which might handle unpacking.
-      // User Service uses ApiService which handles ApiResponse unpacking.
-      // TicketService uses HttpClient.
-      // I should switch TicketService to use ApiService or handle unpacking manually.
-      // Given existing code uses HttpClient, I'll stick to it but I need to know the response structure.
-      // OrganizationService (Backend) returns ApiResponse.
-      // So:
-      map((response: any) => response.data || []),
-    );
+    return this.http
+      .get<ApiResponse<any>>(`${environment.apiUrl}/organizations`)
+      .pipe(map((response: ApiResponse<any>) => response.data || []));
   }
 }

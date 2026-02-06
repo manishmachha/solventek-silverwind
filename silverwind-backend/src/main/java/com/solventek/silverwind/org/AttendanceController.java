@@ -1,5 +1,7 @@
 package com.solventek.silverwind.org;
 
+import com.solventek.silverwind.common.ApiResponse;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -31,99 +33,99 @@ public class AttendanceController {
 
     @PostMapping("/check-in")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public AttendanceResponse checkIn(@RequestParam UUID userId) {
-        return toAttendanceResponse(attendanceService.checkIn(getCurrentUserId()));
+    public ResponseEntity<ApiResponse<AttendanceResponse>> checkIn(@RequestParam UUID userId) {
+        return ResponseEntity.ok(ApiResponse.success("Checked in successfully.", toAttendanceResponse(attendanceService.checkIn(getCurrentUserId()))));
     }
 
     @PostMapping("/check-out")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public AttendanceResponse checkOut() {
-        return toAttendanceResponse(attendanceService.checkOut(getCurrentUserId()));
+    public ResponseEntity<ApiResponse<AttendanceResponse>> checkOut() {
+        return ResponseEntity.ok(ApiResponse.success("Checked out successfully.", toAttendanceResponse(attendanceService.checkOut(getCurrentUserId()))));
     }
 
     @GetMapping("/my")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public List<AttendanceResponse> getMyAttendance() {
+    public ResponseEntity<ApiResponse<List<AttendanceResponse>>> getMyAttendance() {
         log.info("API: Get My Attendance");
-        return attendanceService.getMyAttendance().stream().map(this::toAttendanceResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(attendanceService.getMyAttendance().stream().map(this::toAttendanceResponse).toList()));
     }
 
     @GetMapping("/my/range")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public List<AttendanceResponse> getMyAttendanceByRange(
+    public ResponseEntity<ApiResponse<List<AttendanceResponse>>> getMyAttendanceByRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         log.info("API: Get My Attendance Range {} to {}", startDate, endDate);
-        return attendanceService.getMyAttendanceByRange(startDate, endDate).stream().map(this::toAttendanceResponse)
-                .toList();
+        return ResponseEntity.ok(ApiResponse.success(attendanceService.getMyAttendanceByRange(startDate, endDate).stream().map(this::toAttendanceResponse)
+                .toList()));
     }
 
     @GetMapping("/timesheet/my")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public TimesheetSummary getMyTimesheet(
+    public ResponseEntity<ApiResponse<TimesheetSummary>> getMyTimesheet(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         log.info("API: Get My Timesheet {} to {}", startDate, endDate);
-        return attendanceService.getMyTimesheet(startDate, endDate);
+        return ResponseEntity.ok(ApiResponse.success(attendanceService.getMyTimesheet(startDate, endDate)));
     }
 
     // ============ ADMIN ENDPOINTS ============
 
     @GetMapping("/employee/{userId}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public List<AttendanceResponse> getEmployeeAttendance(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse<List<AttendanceResponse>>> getEmployeeAttendance(@PathVariable UUID userId) {
         log.info("API: Get Employee {} Attendance", userId);
-        return attendanceService.getAttendanceByEmployee(userId).stream().map(this::toAttendanceResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(attendanceService.getAttendanceByEmployee(userId).stream().map(this::toAttendanceResponse).toList()));
     }
 
     @GetMapping("/employee/{userId}/range")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public List<AttendanceResponse> getEmployeeAttendanceByRange(
+    public ResponseEntity<ApiResponse<List<AttendanceResponse>>> getEmployeeAttendanceByRange(
             @PathVariable UUID userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         log.info("API: Get Employee {} Attendance Range", userId);
-        return attendanceService.getAttendanceByEmployeeAndRange(userId, startDate, endDate).stream()
-                .map(this::toAttendanceResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(attendanceService.getAttendanceByEmployeeAndRange(userId, startDate, endDate).stream()
+                .map(this::toAttendanceResponse).toList()));
     }
 
     @GetMapping("/date")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public List<AttendanceResponse> getAttendanceByDate(
+    public ResponseEntity<ApiResponse<List<AttendanceResponse>>> getAttendanceByDate(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         log.info("API: Get Attendance By Date {}", date);
-        return attendanceService.getAttendanceByDate(date).stream().map(this::toAttendanceResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(attendanceService.getAttendanceByDate(date).stream().map(this::toAttendanceResponse).toList()));
     }
 
     @GetMapping("/range")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public List<AttendanceResponse> getAttendanceByRange(
+    public ResponseEntity<ApiResponse<List<AttendanceResponse>>> getAttendanceByRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         log.info("API: Get Attendance Range All Employees");
-        return attendanceService.getAttendanceByRange(startDate, endDate).stream().map(this::toAttendanceResponse)
-                .toList();
+        return ResponseEntity.ok(ApiResponse.success(attendanceService.getAttendanceByRange(startDate, endDate).stream().map(this::toAttendanceResponse)
+                .toList()));
     }
 
     @PostMapping("/mark")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public AttendanceResponse markAttendance(
+    public ResponseEntity<ApiResponse<AttendanceResponse>> markAttendance(
             @RequestParam UUID userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam AttendanceStatus status,
             @RequestParam(required = false) String notes) {
         log.info("API: Mark Attendance User: {}, Date: {}, Status: {}", userId, date, status);
-        return toAttendanceResponse(attendanceService.adminMarkAttendance(userId, date, status, notes));
+        return ResponseEntity.ok(ApiResponse.success("Attendance marked successfully.", toAttendanceResponse(attendanceService.adminMarkAttendance(userId, date, status, notes))));
     }
 
     @GetMapping("/timesheet/{userId}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public TimesheetSummary getEmployeeTimesheet(
+    public ResponseEntity<ApiResponse<TimesheetSummary>> getEmployeeTimesheet(
             @PathVariable UUID userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         log.info("API: Get Employee {} Timesheet", userId);
-        return attendanceService.generateTimesheet(userId, startDate, endDate);
+        return ResponseEntity.ok(ApiResponse.success(attendanceService.generateTimesheet(userId, startDate, endDate)));
     }
 
     // ============ DOWNLOAD ENDPOINTS ============

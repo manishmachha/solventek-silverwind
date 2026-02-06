@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -62,7 +63,7 @@ public class NotificationController {
 
     @GetMapping("/unread-entity-ids/{category}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE', 'VENDOR')")
-    public ResponseEntity<ApiResponse<java.util.List<UUID>>> getUnreadEntityIds(
+    public ResponseEntity<ApiResponse<List<UUID>>> getUnreadEntityIds(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @PathVariable String category) {
         NotificationCategory cat = NotificationCategory.valueOf(category.toUpperCase());

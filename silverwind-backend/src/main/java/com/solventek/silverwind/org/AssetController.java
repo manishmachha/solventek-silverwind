@@ -1,5 +1,6 @@
 package com.solventek.silverwind.org;
 
+import com.solventek.silverwind.common.ApiResponse;
 import com.solventek.silverwind.enums.AssetCondition;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +31,7 @@ public class AssetController {
 
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
     @PostMapping
-    public AssetResponse createAsset(@RequestParam String assetTag,
+    public ResponseEntity<ApiResponse<AssetResponse>> createAsset(@RequestParam String assetTag,
             @RequestParam String assetType,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String model,
@@ -41,30 +43,30 @@ public class AssetController {
         log.info("API: Create Asset {}", assetTag);
         Asset asset = assetService.createAsset(assetTag, assetType, brand, model, serialNumber,
                 purchaseDate, warrantyUntil, active, totalQuantity);
-        return toResponse(asset);
+        return ResponseEntity.ok(ApiResponse.success("Asset created successfully.", toResponse(asset)));
     }
 
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
     @GetMapping
-    public Page<AssetResponse> listAssets(@RequestParam(required = false) String q,
+    public ResponseEntity<ApiResponse<Page<AssetResponse>>> listAssets(@RequestParam(required = false) String q,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort) {
         log.info("API: List Assets, q={}", q);
         Pageable pageable = PageRequest.of(page, size, parseSort(sort));
-        return assetService.listAssets(q, pageable).map(this::toResponse);
+        return ResponseEntity.ok(ApiResponse.success(assetService.listAssets(q, pageable).map(this::toResponse)));
     }
 
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
     @GetMapping("/{id}")
-    public AssetResponse getAsset(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<AssetResponse>> getAsset(@PathVariable UUID id) {
         log.info("API: Get Asset {}", id);
-        return toResponse(assetService.getAsset(id));
+        return ResponseEntity.ok(ApiResponse.success(toResponse(assetService.getAsset(id))));
     }
 
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
     @PutMapping("/{id}")
-    public AssetResponse updateAsset(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<AssetResponse>> updateAsset(@PathVariable UUID id,
             @RequestParam(required = false) String assetType,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String model,
@@ -76,62 +78,63 @@ public class AssetController {
         log.info("API: Update Asset {}", id);
         Asset asset = assetService.updateAsset(id, assetType, brand, model, serialNumber,
                 purchaseDate, warrantyUntil, active, totalQuantity);
-        return toResponse(asset);
+        return ResponseEntity.ok(ApiResponse.success("Asset updated successfully.", toResponse(asset)));
     }
 
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
     @DeleteMapping("/{id}")
-    public void deleteAsset(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> deleteAsset(@PathVariable UUID id) {
         log.info("API: Delete Asset {}", id);
         assetService.deleteAsset(id);
+        return ResponseEntity.ok(ApiResponse.success("Asset deleted successfully.", null));
     }
 
     // ============ ASSIGNMENT OPERATIONS ============
 
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
     @PostMapping("/{assetId}/assign/{userId}")
-    public AssignmentResponse assignAsset(@PathVariable UUID assetId,
+    public ResponseEntity<ApiResponse<AssignmentResponse>> assignAsset(@PathVariable UUID assetId,
             @PathVariable UUID userId,
             @RequestParam(required = false) LocalDate assignedOn,
             @RequestParam(required = false) AssetCondition condition,
             @RequestParam(required = false) String notes) {
         log.info("API: Assign Asset {} to User {}", assetId, userId);
         EmployeeAssetAssignment assignment = assetService.assignAsset(userId, assetId, assignedOn, condition, notes);
-        return toAssignmentResponse(assignment);
+        return ResponseEntity.ok(ApiResponse.success("Asset assigned successfully.", toAssignmentResponse(assignment)));
     }
 
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
     @GetMapping("/{assetId}/history")
-    public List<AssignmentResponse> getAssetHistory(@PathVariable UUID assetId) {
+    public ResponseEntity<ApiResponse<List<AssignmentResponse>>> getAssetHistory(@PathVariable UUID assetId) {
         log.info("API: Get Asset History {}", assetId);
-        return assetService.getAssetHistory(assetId).stream().map(this::toAssignmentResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(assetService.getAssetHistory(assetId).stream().map(this::toAssignmentResponse).toList()));
     }
 
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
     @PostMapping("/assignments/{assignmentId}/confirm-return")
-    public AssignmentResponse confirmReturn(@PathVariable UUID assignmentId,
+    public ResponseEntity<ApiResponse<AssignmentResponse>> confirmReturn(@PathVariable UUID assignmentId,
             @RequestParam(required = false) LocalDate returnedOn,
             @RequestParam(required = false) AssetCondition conditionOnReturn,
             @RequestParam(required = false) String notes) {
         log.info("API: Confirm Return for assignment {}", assignmentId);
         EmployeeAssetAssignment assignment = assetService.confirmReturn(assignmentId, returnedOn, conditionOnReturn, notes);
-        return toAssignmentResponse(assignment);
+        return ResponseEntity.ok(ApiResponse.success("Asset return confirmed.", toAssignmentResponse(assignment)));
     }
 
     // ============ EMPLOYEE SELF-SERVICE ============
 
     @GetMapping("/my-assets")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public List<AssignmentResponse> getMyAssets() {
+    public ResponseEntity<ApiResponse<List<AssignmentResponse>>> getMyAssets() {
         log.info("API: Get My Assets");
-        return assetService.getMyAssets().stream().map(this::toAssignmentResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(assetService.getMyAssets().stream().map(this::toAssignmentResponse).toList()));
     }
 
     @PostMapping("/assignments/{assignmentId}/request-return")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public AssignmentResponse requestReturn(@PathVariable UUID assignmentId) {
+    public ResponseEntity<ApiResponse<AssignmentResponse>> requestReturn(@PathVariable UUID assignmentId) {
         log.info("API: Request Return for assignment {}", assignmentId);
-        return toAssignmentResponse(assetService.requestReturn(assignmentId));
+        return ResponseEntity.ok(ApiResponse.success("Return requested successfully.", toAssignmentResponse(assetService.requestReturn(assignmentId))));
     }
 
     // ============ RESPONSE MAPPING ============

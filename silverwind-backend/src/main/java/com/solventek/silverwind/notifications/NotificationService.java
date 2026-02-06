@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -78,7 +80,7 @@ public class NotificationService {
     @Transactional
     public void sendNotificationToOrgAdmins(UUID orgId, String title, String body, String refType, UUID refId) {
         log.debug("Sending notifications to Org Admins of Org ID: {}", orgId);
-        java.util.List<Employee> admins = employeeRepository.findByOrganizationId(orgId);
+        List<Employee> admins = employeeRepository.findByOrganizationId(orgId);
         for (Employee admin : admins) {
             sendNotification(admin.getId(), title, body, refType, refId);
         }
@@ -90,7 +92,7 @@ public class NotificationService {
     @Transactional
     public void sendNotificationToOrg(UUID orgId, NotificationBuilder builder) {
         log.debug("Sending bulk notification to all users in Org ID: {}", orgId);
-        java.util.List<Employee> users = employeeRepository.findByOrganizationId(orgId);
+        List<Employee> users = employeeRepository.findByOrganizationId(orgId);
         for (Employee employee : users) {
             sendNotification(builder.recipient(employee.getId()));
         }
@@ -117,7 +119,7 @@ public class NotificationService {
         return notificationRepository.countUnread(userId);
     }
 
-    public java.util.List<UUID> getUnreadEntityIds(UUID userId, NotificationCategory category) {
+    public List<UUID> getUnreadEntityIds(UUID userId, NotificationCategory category) {
         log.trace("Getting unread entity IDs for User ID: {} and Category: {}", userId, category);
         return notificationRepository.findUnreadEntityIds(userId, category);
     }
@@ -302,7 +304,7 @@ public class NotificationService {
 
         public NotificationBuilder withMetadata(String key, Object value) {
             if (this.metadata == null) {
-                this.metadata = new java.util.HashMap<>();
+                this.metadata = new HashMap<>();
             }
             this.metadata.put(key, value);
             return this;

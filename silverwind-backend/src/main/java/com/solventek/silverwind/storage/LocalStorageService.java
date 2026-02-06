@@ -1,7 +1,8 @@
 package com.solventek.silverwind.storage;
 
+import com.solventek.silverwind.config.StorageProperties;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -26,16 +27,16 @@ import java.util.UUID;
 @Service
 @ConditionalOnProperty(name = "aws.s3.enabled", havingValue = "false", matchIfMissing = true)
 @Slf4j
+@RequiredArgsConstructor
 public class LocalStorageService implements StorageService {
 
-    @Value("${app.storage.upload-dir:uploads}")
-    private String uploadDir;
+    private final StorageProperties storageProperties;
 
     private Path rootLocation;
 
     @PostConstruct
     public void init() {
-        this.rootLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
+        this.rootLocation = Paths.get(storageProperties.getUploadDir()).toAbsolutePath().normalize();
         log.info("Initializing Local Storage Service at: {}", rootLocation);
 
         try {

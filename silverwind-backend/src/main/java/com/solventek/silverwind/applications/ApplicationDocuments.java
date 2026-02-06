@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.solventek.silverwind.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "application_documents")
@@ -32,12 +33,12 @@ public class ApplicationDocuments extends BaseEntity {
 
     private String uploadedBy; // User ID or Name
 
-    private java.time.LocalDateTime uploadedAt;
+    private LocalDateTime uploadedAt;
 
     @PrePersist
     public void prePersist() {
         if (uploadedAt == null)
-            uploadedAt = java.time.LocalDateTime.now();
+            uploadedAt = LocalDateTime.now();
     }
 
     public String getFilePath() {

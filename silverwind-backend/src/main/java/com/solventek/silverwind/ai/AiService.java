@@ -18,8 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.MalformedURLException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -57,7 +59,7 @@ public class AiService {
             // BeanOutputConverter
             Map<String, Object> insights = Map.of(
                     "raw_analysis", response,
-                    "generated_at", java.time.LocalDateTime.now().toString());
+                    "generated_at", LocalDateTime.now().toString());
 
             job.setAiInsights(insights);
             jobRepository.save(job);
@@ -137,7 +139,7 @@ public class AiService {
                             return null;
                         return new ApplicationMatch(UUID.fromString(appIdStr), 0.0); // Score unavailable in simple API
                     })
-                    .filter(java.util.Objects::nonNull)
+                    .filter(Objects::nonNull)
                     .distinct()
                     .collect(Collectors.toList());
 

@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,7 +18,7 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
 
     // Optional: Filter by specific statuses for Client View
     Page<JobApplication> findByJobOrganizationIdAndStatusIn(UUID organizationId,
-            java.util.List<ApplicationStatus> statuses, Pageable pageable);
+            List<ApplicationStatus> statuses, Pageable pageable);
 
     // Visibility for Org: Applications they SENT (Vendor) OR Applications they
     // RECEIVED (Job Owner)
@@ -34,7 +35,7 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     long countByJob_Organization_Id(UUID organizationId);
 
     @Query("SELECT a.status, COUNT(a) FROM JobApplication a JOIN a.job j JOIN j.organization o WHERE o.id = :organizationId GROUP BY a.status")
-    java.util.List<Object[]> countByJob_Organization_IdGroupedByStatus(UUID organizationId);
+    List<Object[]> countByJob_Organization_IdGroupedByStatus(UUID organizationId);
 
-    java.util.List<JobApplication> findByCandidateId(UUID candidateId);
+    List<JobApplication> findByCandidateId(UUID candidateId);
 }

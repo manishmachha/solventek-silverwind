@@ -56,14 +56,14 @@ public class OrganizationController {
     @PreAuthorize("hasAnyRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> approveVendor(@PathVariable UUID id) {
         organizationService.approveVendor(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(ApiResponse.success("Vendor approved successfully.", null));
     }
 
     @PostMapping("/{id}/reject")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> rejectVendor(@PathVariable UUID id) {
         organizationService.rejectVendor(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(ApiResponse.success("Vendor rejected successfully.", null));
     }
 
     @PatchMapping("/{id}/status")
@@ -71,7 +71,7 @@ public class OrganizationController {
     public ResponseEntity<ApiResponse<Organization>> updateOrganizationStatus(
             @PathVariable UUID id,
             @RequestBody UpdateStatusRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(
+        return ResponseEntity.ok(ApiResponse.success("Status updated successfully.",
                 organizationService.updateOrganizationStatus(id, request.getStatus())));
     }
 
@@ -92,7 +92,7 @@ public class OrganizationController {
                 throw new org.springframework.security.access.AccessDeniedException("You can only update your own organization.");
             }
         }
-        return ResponseEntity.ok(ApiResponse.success(organizationService.updateOrganization(id, request)));
+        return ResponseEntity.ok(ApiResponse.success("Organization updated successfully.", organizationService.updateOrganization(id, request)));
     }
 
     @PostMapping(value = "/{id}/logo", consumes = "multipart/form-data")
@@ -100,7 +100,7 @@ public class OrganizationController {
     public ResponseEntity<ApiResponse<String>> uploadLogo(
             @PathVariable UUID id,
             @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
-        return ResponseEntity.ok(ApiResponse.success(organizationService.uploadLogo(id, file)));
+        return ResponseEntity.ok(ApiResponse.success("Logo uploaded successfully.", organizationService.uploadLogo(id, file)));
     }
 
     @GetMapping("/{id}/logo")

@@ -1,5 +1,6 @@
 package com.solventek.silverwind.feature.leave.controller;
 
+import com.solventek.silverwind.common.ApiResponse;
 import com.solventek.silverwind.feature.leave.dto.LeaveTypeDTO;
 import com.solventek.silverwind.feature.leave.service.LeaveConfigurationService;
 import com.solventek.silverwind.security.UserPrincipal;
@@ -24,22 +25,22 @@ public class LeaveConfigController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public ResponseEntity<List<LeaveTypeDTO>> getAllLeaveTypes(
+    public ResponseEntity<ApiResponse<List<LeaveTypeDTO>>> getAllLeaveTypes(
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(leaveConfigurationService.getAllLeaveTypes(currentUser.getOrgId()));
+        return ResponseEntity.ok(ApiResponse.success(leaveConfigurationService.getAllLeaveTypes(currentUser.getOrgId())));
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public ResponseEntity<LeaveTypeDTO> createLeaveType(@RequestBody LeaveTypeDTO dto,
+    public ResponseEntity<ApiResponse<LeaveTypeDTO>> createLeaveType(@RequestBody LeaveTypeDTO dto,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(leaveConfigurationService.createLeaveType(dto, currentUser.getOrgId()));
+        return ResponseEntity.ok(ApiResponse.success("Leave type created successfully.", leaveConfigurationService.createLeaveType(dto, currentUser.getOrgId())));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public ResponseEntity<Void> deleteLeaveType(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> deleteLeaveType(@PathVariable UUID id) {
         leaveConfigurationService.deleteLeaveType(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success("Leave type deleted successfully.", null));
     }
 }

@@ -4,6 +4,7 @@ import com.solventek.silverwind.storage.LocalStorageService;
 import com.solventek.silverwind.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
@@ -14,6 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
+import java.util.UUID;
 
 /**
  * Service for ingesting resumes - storing files and extracting text content.
@@ -60,7 +63,7 @@ public class ResumeIngestionService {
                 if (originalFilename != null && originalFilename.contains(".")) {
                     extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
                 }
-                String baseName = "resume_" + java.util.UUID.randomUUID().toString();
+                String baseName = "resume_" + UUID.randomUUID().toString();
                 String key = "resumes/" + baseName + "." + extension;
                 storageKey = storageService.uploadWithKey(file, key);
             }
@@ -131,7 +134,7 @@ public class ResumeIngestionService {
      * @return URL for downloading the file
      */
     public String getDownloadUrl(String storageKey) {
-        return storageService.getPresignedUrl(storageKey, java.time.Duration.ofHours(1));
+        return storageService.getPresignedUrl(storageKey, Duration.ofHours(1));
     }
 
     /**
@@ -158,7 +161,7 @@ public class ResumeIngestionService {
         String lower = filename.toLowerCase();
 
         if (lower.endsWith(".pdf")) {
-            try (PDDocument document = org.apache.pdfbox.Loader.loadPDF(inputStream.readAllBytes())) {
+            try (PDDocument document = Loader.loadPDF(inputStream.readAllBytes())) {
                 PDFTextStripper stripper = new PDFTextStripper();
                 return stripper.getText(document);
             }

@@ -80,7 +80,7 @@ public class AuthController {
     @PostMapping("/register-vendor")
     public ResponseEntity<ApiResponse<Organization>> registerVendor(@RequestBody @Valid RegisterVendorRequest request) {
         Organization org = organizationService.registerVendor(request);
-        return ResponseEntity.ok(ApiResponse.success(org));
+        return ResponseEntity.ok(ApiResponse.success("Vendor registration successful. Please check your email/phone for credentials.", org));
     }
 
     @GetMapping("/me")

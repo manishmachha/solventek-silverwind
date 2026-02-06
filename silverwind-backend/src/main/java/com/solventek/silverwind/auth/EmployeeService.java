@@ -33,7 +33,6 @@ public class EmployeeService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final com.solventek.silverwind.storage.StorageService storageService;
-    private final jakarta.persistence.EntityManager entityManager;
 
     @Transactional
     public Employee createEmployee(UUID orgId, String firstName, String lastName, String email,
@@ -502,27 +501,31 @@ public class EmployeeService {
      * Helper to generate presigned URL for profile photo if applicable.
      * This ensures images are served directly from S3.
      */
+    /**
+     * Helper to generate presigned URL for profile photo if applicable.
+     * This ensures images are served directly from S3.
+     */
     private Employee enhanceEmployee(Employee employee) {
         if (employee == null) return null;
 
-        // Detach from persistence context so our changes to profilePhotoUrl aren't saved back to DB
-        if (entityManager.contains(employee)) {
-            entityManager.detach(employee);
-        }
+        // Create a copy to avoid modifying the managed entity and to avoid using entityManager.detach()
+        // which can cause "non-threadsafe access to session" errors in some contexts
+        Employee copy = new Employee();
+        org.springframework.beans.BeanUtils.copyProperties(employee, copy);
 
-        String photoUrl = employee.getProfilePhotoUrl();
+        String photoUrl = copy.getProfilePhotoUrl();
         if (photoUrl != null && photoUrl.startsWith("/api/files/")) {
             try {
                 // Extract key from standard path
                 String key = photoUrl.replace("/api/files/", "");
                 // Generate presigned URL (valid for 60 mins by default)
                 String presignedUrl = storageService.getPresignedUrl(key, java.time.Duration.ofMinutes(60));
-                employee.setProfilePhotoUrl(presignedUrl);
+                copy.setProfilePhotoUrl(presignedUrl);
             } catch (Exception e) {
                 // If presigning fails (e.g. key issue), log but return original
                 log.warn("Failed to generate presigned URL for employee {}: {}", employee.getId(), e.getMessage());
             }
         }
-        return employee;
+        return copy;
     }
 }

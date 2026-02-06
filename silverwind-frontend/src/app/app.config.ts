@@ -14,12 +14,19 @@ import { unauthorizedInterceptor } from './core/interceptors/unauthorized.interc
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { routes } from './app.routes';
 
+import { successInterceptor } from './core/interceptors/success.interceptor';
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(
-      withInterceptors([authInterceptor, unauthorizedInterceptor, errorInterceptor]),
+      withInterceptors([
+        authInterceptor,
+        unauthorizedInterceptor,
+        errorInterceptor,
+        successInterceptor,
+      ]),
     ),
     provideAnimationsAsync(),
     provideNativeDateAdapter(),

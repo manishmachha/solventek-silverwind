@@ -1,6 +1,8 @@
 package com.solventek.silverwind.ticket;
 
 import com.solventek.silverwind.auth.Employee;
+import com.solventek.silverwind.common.ApiResponse;
+import com.solventek.silverwind.org.Organization;
 import com.solventek.silverwind.security.UserPrincipal;
 import com.solventek.silverwind.ticket.dto.TicketCommentResponse;
 import com.solventek.silverwind.ticket.dto.TicketHistoryResponse;
@@ -27,27 +29,27 @@ public class TicketController {
 
     @GetMapping("/my")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public ResponseEntity<List<TicketResponse>> getMyTickets(@AuthenticationPrincipal UserPrincipal currentUser) {
+    public ResponseEntity<ApiResponse<List<TicketResponse>>> getMyTickets(@AuthenticationPrincipal UserPrincipal currentUser) {
         List<Ticket> tickets = ticketService.getMyTickets(currentUser.getId());
-        return ResponseEntity.ok(tickets.stream().map(this::mapToResponse).collect(Collectors.toList()));
+        return ResponseEntity.ok(ApiResponse.success(tickets.stream().map(this::mapToResponse).collect(Collectors.toList())));
     }
 
     @GetMapping("/all")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public ResponseEntity<List<TicketResponse>> getAllTickets(@AuthenticationPrincipal UserPrincipal currentUser) {
+    public ResponseEntity<ApiResponse<List<TicketResponse>>> getAllTickets(@AuthenticationPrincipal UserPrincipal currentUser) {
         List<Ticket> tickets = ticketService.getAllTickets(currentUser.getId());
-        return ResponseEntity.ok(tickets.stream().map(this::mapToResponse).collect(Collectors.toList()));
+        return ResponseEntity.ok(ApiResponse.success(tickets.stream().map(this::mapToResponse).collect(Collectors.toList())));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public ResponseEntity<TicketResponse> getTicketById(@PathVariable UUID id) {
-        return ResponseEntity.ok(mapToResponse(ticketService.getTicketById(id)));
+    public ResponseEntity<ApiResponse<TicketResponse>> getTicketById(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(mapToResponse(ticketService.getTicketById(id))));
     }
 
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public ResponseEntity<TicketResponse> createTicket(
+    public ResponseEntity<ApiResponse<TicketResponse>> createTicket(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @RequestBody CreateTicketRequest request) {
         Ticket ticket = ticketService.createTicket(
@@ -58,61 +60,61 @@ public class TicketController {
                 request.priority,
                 request.targetOrgId,
                 request.assignedToUserId);
-        return ResponseEntity.ok(mapToResponse(ticket));
+        return ResponseEntity.ok(ApiResponse.success("Ticket created successfully.", mapToResponse(ticket)));
     }
 
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public ResponseEntity<TicketResponse> updateStatus(
+    public ResponseEntity<ApiResponse<TicketResponse>> updateStatus(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @PathVariable UUID id,
             @RequestBody UpdateStatusRequest request) {
         Ticket ticket = ticketService.updateTicketStatus(id, request.status, currentUser.getId());
-        return ResponseEntity.ok(mapToResponse(ticket));
+        return ResponseEntity.ok(ApiResponse.success("Ticket status updated successfully.", mapToResponse(ticket)));
     }
 
     @PatchMapping("/{id}/escalate")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public ResponseEntity<TicketResponse> escalateTicket(
+    public ResponseEntity<ApiResponse<TicketResponse>> escalateTicket(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @PathVariable UUID id) {
         Ticket ticket = ticketService.escalateTicket(id, currentUser.getId());
-        return ResponseEntity.ok(mapToResponse(ticket));
+        return ResponseEntity.ok(ApiResponse.success("Ticket escalated successfully.", mapToResponse(ticket)));
     }
 
     @GetMapping("/{id}/history")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public ResponseEntity<List<TicketHistoryResponse>> getHistory(@PathVariable UUID id) {
-        return ResponseEntity.ok(ticketService.getTicketHistory(id).stream()
+    public ResponseEntity<ApiResponse<List<TicketHistoryResponse>>> getHistory(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(ticketService.getTicketHistory(id).stream()
                 .map(this::mapToHistoryResponse)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList())));
     }
 
     @GetMapping("/{id}/comments")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public ResponseEntity<List<TicketCommentResponse>> getComments(@PathVariable UUID id) {
-        return ResponseEntity.ok(ticketService.getTicketComments(id).stream()
+    public ResponseEntity<ApiResponse<List<TicketCommentResponse>>> getComments(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(ticketService.getTicketComments(id).stream()
                 .map(this::mapToCommentResponse)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList())));
     }
 
     @PostMapping("/{id}/comments")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public ResponseEntity<TicketCommentResponse> addComment(
+    public ResponseEntity<ApiResponse<TicketCommentResponse>> addComment(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @PathVariable UUID id,
             @RequestBody AddCommentRequest request) {
         TicketComment comment = ticketService.addComment(id, currentUser.getId(), request.message);
-        return ResponseEntity.ok(mapToCommentResponse(comment));
+        return ResponseEntity.ok(ApiResponse.success("Comment added successfully.", mapToCommentResponse(comment)));
     }
 
     @PostMapping("/{id}/mark-read")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE')")
-    public ResponseEntity<Void> markAsRead(
+    public ResponseEntity<ApiResponse<Void>> markAsRead(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @PathVariable UUID id) {
         ticketService.markAsRead(id, currentUser.getId());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success("Ticket marked as read.", null));
     }
 
     // DTO Mappers
@@ -168,7 +170,7 @@ public class TicketController {
                 .build();
     }
 
-    private TicketResponse.OrganizationSummary mapOrgSummary(com.solventek.silverwind.org.Organization org) {
+    private TicketResponse.OrganizationSummary mapOrgSummary(Organization org) {
         return TicketResponse.OrganizationSummary.builder()
                 .id(org.getId())
                 .name(org.getName())
