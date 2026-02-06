@@ -19,6 +19,7 @@ import { ApplicationService } from '../../../core/services/application.service';
 import { JobApplication } from '../../../core/models/application.model';
 import { NotificationService } from '../../../core/services/notification.service';
 import { HeaderService } from '../../../core/services/header.service';
+import { OrganizationLogoComponent } from '../../../shared/components/organization-logo/organization-logo.component';
 
 @Component({
   selector: 'app-application-list',
@@ -35,7 +36,9 @@ import { HeaderService } from '../../../core/services/header.service';
     MatIconModule,
     MatProgressBarModule,
     MatTooltipModule,
+    MatTooltipModule,
     FormsModule,
+    OrganizationLogoComponent,
   ],
   templateUrl: './application-list.component.html',
 })
@@ -50,6 +53,7 @@ export class ApplicationListComponent implements OnInit, AfterViewInit {
   unreadAppIds = new Set<string>();
   displayedColumns: string[] = [
     'candidate',
+    'job',
     'experience',
     'company',
     'status',
@@ -76,8 +80,17 @@ export class ApplicationListComponent implements OnInit, AfterViewInit {
       .observe([Breakpoints.Handset, Breakpoints.TabletPortrait])
       .subscribe((result) => {
         this.displayedColumns = result.matches
-          ? ['candidate', 'status', 'actions']
-          : ['candidate', 'experience', 'company', 'status', 'risk', 'consistency', 'actions'];
+          ? ['candidate', 'job', 'status', 'actions']
+          : [
+              'candidate',
+              'job',
+              'experience',
+              'company',
+              'status',
+              'risk',
+              'consistency',
+              'actions',
+            ];
         this.isMobile.set(result.matches);
       });
   }

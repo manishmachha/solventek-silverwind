@@ -7,10 +7,12 @@ import { Candidate } from '../../models/candidate.model';
 import { HeaderService } from '../../../../core/services/header.service';
 import { AuthStore } from '../../../../core/stores/auth.store';
 
+import { OrganizationLogoComponent } from '../../../../shared/components/organization-logo/organization-logo.component';
+
 @Component({
   selector: 'app-candidate-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, OrganizationLogoComponent],
   templateUrl: './candidate-list.component.html',
 })
 export class CandidateListComponent implements OnInit {

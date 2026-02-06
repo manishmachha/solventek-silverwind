@@ -151,6 +151,16 @@
             <span class="truncate">{{ candidate.email }}</span>
           </div>
         </div>
+        <div class="shrink-0" *ngIf="candidate.organization">
+          <app-organization-logo
+            [orgId]="candidate.organization?.id"
+            [logoUrl]="candidate.organization?.logoUrl"
+            [name]="candidate.organization?.name"
+            size="sm"
+            [rounded]="true"
+            [title]="candidate.organization?.name"
+          ></app-organization-logo>
+        </div>
       </div>
 
       <!-- Skills -->

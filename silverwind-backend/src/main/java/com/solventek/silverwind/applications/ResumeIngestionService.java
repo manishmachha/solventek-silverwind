@@ -65,7 +65,7 @@ public class ResumeIngestionService {
 
             // Enforce structure: uploads/resumes/Name_resume.ext
             // Note: If using original filename, we append _resume to follow convention
-            String key = "uploads/resumes/" + baseName + "_resume." + extension;
+            String key = "resumes/" + baseName + "_resume." + extension;
 
             // 1. Store file using StorageService with custom key
             String storageKey = storageService.uploadWithKey(file, key);

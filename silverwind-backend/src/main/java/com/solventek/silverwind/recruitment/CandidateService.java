@@ -7,6 +7,8 @@ import com.solventek.silverwind.applications.JobApplicationRepository;
 import com.solventek.silverwind.applications.ResumeAnalysisOrchestratorService;
 import com.solventek.silverwind.applications.ResumeIngestionService;
 import com.solventek.silverwind.org.Organization;
+import com.solventek.silverwind.org.OrganizationRepository;
+import com.solventek.silverwind.org.OrganizationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,8 @@ public class CandidateService {
 
     private final CandidateRepository candidateRepository;
     private final JobApplicationRepository jobApplicationRepository;
+    private final OrganizationRepository organizationRepository;
+    private final OrganizationService organizationService;
     private final ResumeIngestionService resumeIngestionService;
     private final ResumeAnalysisOrchestratorService resumeAnalysisService;
     private final ObjectMapper objectMapper;
@@ -135,27 +139,37 @@ public class CandidateService {
         candidate.setResumeContentType(file.getContentType());
         
         // Organization
-        Organization org = new Organization();
-        org.setId(organizationId);
+        Organization org = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new EntityNotFoundException("Organization not found"));
         candidate.setOrganization(org);
 
-        return candidateRepository.save(candidate);
+        candidateRepository.save(candidate);
+        return enhanceCandidate(candidate);
     }
 
+    @Transactional(readOnly = true)
     public List<Candidate> getAllCandidates(UUID organizationId) {
         // Vendors see only their own. Solventek might want to see all or specific ones.
         // For now, simple by Org ID. If Solventek wants all, we'd need a different method or check types.
-        return candidateRepository.findByOrganizationId(organizationId);
+        // For now, simple by Org ID. If Solventek wants all, we'd need a different method or check types.
+        List<Candidate> candidates = candidateRepository.findByOrganizationId(organizationId);
+        candidates.forEach(this::enhanceCandidate);
+        return candidates;
     }
     
     // For Solventek to see all candidates (e.g., when viewing applications or searching pool)
+    @Transactional(readOnly = true)
     public List<Candidate> getAllCandidatesForAdmin() {
-        return candidateRepository.findAll(); 
+        List<Candidate> candidates = candidateRepository.findAll();
+        candidates.forEach(this::enhanceCandidate);
+        return candidates;
     }
 
+    @Transactional(readOnly = true)
     public Candidate getCandidate(UUID id) {
-        return candidateRepository.findById(id)
+        Candidate candidate = candidateRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Candidate not found"));
+        return enhanceCandidate(candidate);
     }
 
     @Transactional
@@ -171,7 +185,8 @@ public class CandidateService {
         c.setSkills(request.getSkills());
         c.setSummary(request.getSummary());
         c.setLinkedInUrl(request.getLinkedInUrl());
-        return candidateRepository.save(c);
+        candidateRepository.save(c);
+        return enhanceCandidate(c);
     }
 
     @Transactional
@@ -290,6 +305,14 @@ public class CandidateService {
         candidate.setResumeOriginalFileName(file.getOriginalFilename());
         candidate.setResumeContentType(file.getContentType());
 
-        return candidateRepository.save(candidate);
+        candidateRepository.save(candidate);
+        return enhanceCandidate(candidate);
+    }
+
+    private Candidate enhanceCandidate(Candidate candidate) {
+        if (candidate != null && candidate.getOrganization() != null) {
+            organizationService.enhanceOrganization(candidate.getOrganization());
+        }
+        return candidate;
     }
 }

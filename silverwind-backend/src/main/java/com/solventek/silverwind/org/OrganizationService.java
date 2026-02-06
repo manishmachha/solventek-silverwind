@@ -289,7 +289,7 @@ public class OrganizationService {
 
             // Sanitized Org Name + extension
             String sanitizedOrgName = org.getName().replaceAll("[^a-zA-Z0-9._-]", "_");
-            String storageKey = "uploads/logos/" + sanitizedOrgName + "." + extension;
+            String storageKey = "logos/" + sanitizedOrgName + "." + extension;
 
             // Upload using StorageService with custom key
             storageService.uploadWithKey(file, storageKey);
@@ -401,8 +401,19 @@ public class OrganizationService {
     /**
      * Helper to generate presigned URL for organization logo if applicable.
      */
-    private Organization enhanceOrganization(Organization org) {
+    public Organization enhanceOrganization(Organization org) {
         if (org == null) return null;
+
+        // Force initialization of proxy before detaching
+        // Accessing a property triggers initialization if it's a proxy attached to the session
+        // Only safe if we are inside a transaction (which calling services should ensure)
+        try {
+            org.getLogoUrl();
+            org.getName(); // Ensure main fields are loaded
+        } catch (Exception e) {
+            // If we can't initialize, we can't enhance safely
+            return org;
+        }
 
         // Detach from persistence context so our changes to logoUrl aren't saved back to DB
         if (entityManager.contains(org)) {
@@ -411,7 +422,8 @@ public class OrganizationService {
 
         String logoUrl = org.getLogoUrl();
         // If logoUrl is a storage key (i.e., not a presigned URL yet) and valid
-        if (logoUrl != null && !logoUrl.isEmpty() && !logoUrl.startsWith("http")) {
+        // Check for http (S3) and /api/files/ (Local) to prevent double-prefixing
+        if (logoUrl != null && !logoUrl.isEmpty() && !logoUrl.startsWith("http") && !logoUrl.startsWith("/api/files/")) {
             try {
                 // Generate presigned URL (valid for 60 mins by default)
                 String presignedUrl = storageService.getPresignedUrl(logoUrl, java.time.Duration.ofMinutes(60));

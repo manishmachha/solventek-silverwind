@@ -459,7 +459,7 @@ public class EmployeeService {
 
             // Upload using email as filename
             String email = employee.getEmail();
-            String key = "uploads/employees/" + email + "/photos/" + email + "." + extension;
+            String key = "employees/" + email + "/photos/" + email + "." + extension;
             
             storageService.uploadWithKey(file, key);
             String photoUrl = "/api/files/" + key;

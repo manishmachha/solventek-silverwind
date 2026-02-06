@@ -1,278 +1,454 @@
 <div class="md:p-8 p-4 max-w-7xl mx-auto space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Applications</h1>
-            <p class="text-gray-500 mt-1">Manage and track candidate applications</p>
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Applications</h1>
+      <p class="text-gray-500 mt-1">Manage and track candidate applications</p>
+    </div>
+  </div>
+
+  <!-- Main Content Card -->
+  <div class="card-modern overflow-hidden">
+    <!-- Search & Filter Toolbar -->
+    <div class="p-5 border-b border-gray-100 bg-gray-50/50">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+        <!-- Search Input -->
+        <div class="md:col-span-5 relative group">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+            <mat-icon class="text-gray-400 group-focus-within:text-indigo-500 transition-colors"
+              >search</mat-icon
+            >
+          </div>
+          <input
+            type="text"
+            [(ngModel)]="filterValues.searchTerm"
+            (ngModelChange)="applyFilter()"
+            placeholder="Search candidates, companies..."
+            class="input-modern pl-11! py-2.5! bg-white shadow-sm"
+          />
         </div>
+
+        <!-- Risk Filter -->
+        <div class="md:col-span-3 flex items-center gap-2">
+          <input
+            type="number"
+            [(ngModel)]="filterValues.minRisk"
+            (ngModelChange)="applyFilter()"
+            placeholder="Min Risk"
+            class="input-modern py-2.5! px-3! text-center bg-white shadow-sm"
+          />
+          <span class="text-black font-medium">-</span>
+          <input
+            type="number"
+            [(ngModel)]="filterValues.maxRisk"
+            (ngModelChange)="applyFilter()"
+            placeholder="Max Risk"
+            class="input-modern py-2.5! px-3! text-center bg-white shadow-sm"
+          />
+        </div>
+
+        <!-- Consistency Filter -->
+        <div class="md:col-span-3 flex items-center gap-2">
+          <input
+            type="number"
+            [(ngModel)]="filterValues.minConsistency"
+            (ngModelChange)="applyFilter()"
+            placeholder="Min Cons."
+            class="input-modern py-2.5! px-3! text-center bg-white shadow-sm"
+          />
+          <span class="text-black font-medium">-</span>
+          <input
+            type="number"
+            [(ngModel)]="filterValues.maxConsistency"
+            (ngModelChange)="applyFilter()"
+            placeholder="Max Cons."
+            class="input-modern py-2.5! px-3! text-center bg-white shadow-sm"
+          />
+        </div>
+
+        <!-- Reset -->
+        <div class="md:col-span-1 flex justify-end">
+          <button
+            mat-icon-button
+            color="warn"
+            matTooltip="Reset Filters"
+            (click)="
+              filterValues = {
+                searchTerm: '',
+                minRisk: null,
+                maxRisk: null,
+                minConsistency: null,
+                maxConsistency: null,
+              };
+              applyFilter()
+            "
+            class="bg-red-50 hover:bg-red-100 text-red-600 rounded-full! transition-colors"
+          >
+            <mat-icon>filter_list_off</mat-icon>
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Main Content Card -->
-    <div class="card-modern overflow-hidden">
-        <!-- Search & Filter Toolbar -->
-        <div class="p-5 border-b border-gray-100 bg-gray-50/50">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                <!-- Search Input -->
-                <div class="md:col-span-5 relative group">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <mat-icon
-                            class="text-gray-400 group-focus-within:text-indigo-500 transition-colors">search</mat-icon>
-                    </div>
-                    <input type="text" [(ngModel)]="filterValues.searchTerm" (ngModelChange)="applyFilter()"
-                        placeholder="Search candidates, companies..."
-                        class="input-modern pl-11! py-2.5! bg-white shadow-sm" />
-                </div>
-
-                <!-- Risk Filter -->
-                <div class="md:col-span-3 flex items-center gap-2">
-                    <input type="number" [(ngModel)]="filterValues.minRisk" (ngModelChange)="applyFilter()"
-                        placeholder="Min Risk" class="input-modern py-2.5! px-3! text-center bg-white shadow-sm" />
-                    <span class="text-black font-medium">-</span>
-                    <input type="number" [(ngModel)]="filterValues.maxRisk" (ngModelChange)="applyFilter()"
-                        placeholder="Max Risk" class="input-modern py-2.5! px-3! text-center bg-white shadow-sm" />
-                </div>
-
-                <!-- Consistency Filter -->
-                <div class="md:col-span-3 flex items-center gap-2">
-                    <input type="number" [(ngModel)]="filterValues.minConsistency" (ngModelChange)="applyFilter()"
-                        placeholder="Min Cons." class="input-modern py-2.5! px-3! text-center bg-white shadow-sm" />
-                    <span class="text-black font-medium">-</span>
-                    <input type="number" [(ngModel)]="filterValues.maxConsistency" (ngModelChange)="applyFilter()"
-                        placeholder="Max Cons." class="input-modern py-2.5! px-3! text-center bg-white shadow-sm" />
-                </div>
-
-                <!-- Reset -->
-                <div class="md:col-span-1 flex justify-end">
-                    <button mat-icon-button color="warn" matTooltip="Reset Filters" (click)="
-                        filterValues = {
-                            searchTerm: '',
-                            minRisk: null,
-                            maxRisk: null,
-                            minConsistency: null,
-                            maxConsistency: null
-                        };
-                        applyFilter()
-                    " class="bg-red-50 hover:bg-red-100 text-red-600 rounded-full! transition-colors">
-                        <mat-icon>filter_list_off</mat-icon>
-                    </button>
-                </div>
+    <!-- TABLE VIEW (DESKTOP) -->
+    <div class="hidden md:block overflow-x-auto">
+      <table mat-table [dataSource]="dataSource" matSort class="w-full">
+        <!-- Candidate Name -->
+        <ng-container matColumnDef="candidate">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="pl-6! text-gray-600 font-semibold bg-gray-50/50"
+          >
+            Candidate
+          </th>
+          <td mat-cell *matCellDef="let app" class="pl-6!">
+            <div class="flex items-center gap-3 py-3">
+              <app-organization-logo
+                [org]="app.vendor"
+                [orgId]="app.vendor?.id"
+                size="sm"
+                [rounded]="true"
+              ></app-organization-logo>
+              <div class="flex flex-col">
+                <span class="font-semibold text-gray-900 leading-tight"
+                  >{{ app.firstName }} {{ app.lastName }}</span
+                >
+                <span class="text-xs text-gray-500">{{ app.email }}</span>
+              </div>
             </div>
-        </div>
+          </td>
+        </ng-container>
 
-        <!-- TABLE VIEW (DESKTOP) -->
-        <div class="hidden md:block overflow-x-auto">
-            <table mat-table [dataSource]="dataSource" matSort class="w-full">
-                <!-- Candidate Name -->
-                <ng-container matColumnDef="candidate">
-                    <th mat-header-cell *matHeaderCellDef mat-sort-header
-                        class="pl-6! text-gray-600 font-semibold bg-gray-50/50">Candidate</th>
-                    <td mat-cell *matCellDef="let app" class="pl-6!">
-                        <div class="flex items-center gap-3 py-3">
-                            <div
-                                class="h-10 w-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm shrink-0">
-                                {{ app.firstName.charAt(0) }}{{ app.lastName.charAt(0) }}
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="font-semibold text-gray-900 leading-tight">{{ app.firstName }} {{
-                                    app.lastName }}</span>
-                                <span class="text-xs text-gray-500">{{ app.email }}</span>
-                            </div>
-                        </div>
-                    </td>
-                </ng-container>
-
-                <!-- Experience -->
-                <ng-container matColumnDef="experience">
-                    <th mat-header-cell *matHeaderCellDef mat-sort-header
-                        class="text-gray-600 font-semibold bg-gray-50/50">Experience</th>
-                    <td mat-cell *matCellDef="let app" class="text-gray-600 font-medium">{{ app.experienceYears || 0 }}
-                        Yrs</td>
-                </ng-container>
-
-                <!-- Current Company -->
-                <ng-container matColumnDef="company">
-                    <th mat-header-cell *matHeaderCellDef mat-sort-header
-                        class="text-gray-600 font-semibold bg-gray-50/50">Company</th>
-                    <td mat-cell *matCellDef="let app" class="text-gray-600">
-                        <div class="truncate max-w-[150px]" [matTooltip]="app.currentCompany">
-                            {{ app.currentCompany || 'N/A' }}
-                        </div>
-                    </td>
-                </ng-container>
-
-                <!-- Status -->
-                <ng-container matColumnDef="status">
-                    <th mat-header-cell *matHeaderCellDef mat-sort-header
-                        class="text-gray-600 font-semibold bg-gray-50/50">Status</th>
-                    <td mat-cell *matCellDef="let app">
-                        <span [class]="getStatusClasses(app.status)">
-                            {{ app.status.replace('_', ' ') }}
-                        </span>
-                    </td>
-                </ng-container>
-
-                <!-- Risk Score -->
-                <ng-container matColumnDef="risk">
-                    <th mat-header-cell *matHeaderCellDef mat-sort-header
-                        class="text-gray-600 font-semibold bg-gray-50/50">Risk</th>
-                    <td mat-cell *matCellDef="let app">
-                        <div *ngIf="app['latestAnalysis']; else noAnalysis" class="w-24">
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="text-xs font-bold"
-                                    [ngClass]="getRiskColorClass(app['latestAnalysis'].overallRiskScore)">
-                                    {{ app['latestAnalysis'].overallRiskScore }}%
-                                </span>
-                            </div>
-                            <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                                <div class="h-full rounded-full transition-all duration-500"
-                                    [style.width.%]="app['latestAnalysis'].overallRiskScore"
-                                    [ngClass]="getRiskColorClass(app['latestAnalysis'].overallRiskScore, true)"></div>
-                            </div>
-                        </div>
-                    </td>
-                </ng-container>
-
-                <!-- Consistency Score -->
-                <ng-container matColumnDef="consistency">
-                    <th mat-header-cell *matHeaderCellDef mat-sort-header
-                        class="text-gray-600 font-semibold bg-gray-50/50">Consistency</th>
-                    <td mat-cell *matCellDef="let app">
-                        <div *ngIf="app['latestAnalysis']; else noAnalysis" class="w-24">
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="text-xs font-bold text-indigo-600">
-                                    {{ app['latestAnalysis'].overallConsistencyScore }}%
-                                </span>
-                            </div>
-                            <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                                <div class="h-full rounded-full bg-indigo-500 transition-all duration-500"
-                                    [style.width.%]="app['latestAnalysis'].overallConsistencyScore"></div>
-                            </div>
-                        </div>
-                    </td>
-                </ng-container>
-
-                <!-- Actions -->
-                <ng-container matColumnDef="actions">
-                    <th mat-header-cell *matHeaderCellDef class="pr-6! bg-gray-50/50 text-right"></th>
-                    <td mat-cell *matCellDef="let app" class="pr-6! text-right">
-                        <button mat-icon-button class="text-gray-400 hover:text-indigo-600 transition-colors"
-                            (click)="viewDetails(app)">
-                            <mat-icon>chevron_right</mat-icon>
-                        </button>
-                    </td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="displayedColumns" class="h-12 border-b border-gray-100"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns"
-                    class="transition-colors cursor-pointer border-b border-gray-50 h-20"
-                    [ngClass]="hasNotification(row.id) ? 'bg-red-50/50 ring-1 ring-red-200 hover:bg-red-100/50' : 'hover:bg-indigo-50/30'"
-                    (click)="viewDetails(row)"></tr>
-
-                <tr class="mat-row" *matNoDataRow>
-                    <td class="mat-cell p-12 text-center" colspan="7">
-                        <div class="flex flex-col items-center justify-center text-gray-400">
-                            <mat-icon class="text-4xl mb-2 opacity-20">search_off</mat-icon>
-                            <p>No applications found matching "{{ filterValues.searchTerm }}"</p>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <div class="md:hidden bg-gray-50/50 p-4 space-y-4">
-            <div *ngFor="let app of dataSource.filteredData" class="card-modern p-4 flex flex-col gap-4 relative"
-                [ngClass]="hasNotification(app.id) ? 'ring-2 ring-red-200 border-red-300' : ''"
-                (click)="viewDetails(app)">
-                <!-- Notification Indicator -->
-                <div *ngIf="hasNotification(app.id)" class="absolute top-3 right-3 z-10">
-                    <span class="flex h-3 w-3">
-                        <span
-                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                    </span>
-                </div>
-
-                <div class="flex justify-between items-start">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="h-10 w-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm shrink-0">
-                            {{ app.firstName.charAt(0) }}{{ app.lastName.charAt(0) }}
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-gray-900 leading-tight">{{ app.firstName }} {{ app.lastName }}
-                            </h3>
-                            <p class="text-xs text-gray-500 line-clamp-1">
-                                {{ app.currentTitle }} at {{ app.currentCompany || 'N/A' }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <span [class]="getStatusClasses(app.status)">
-                        {{ app.status.replace('_', ' ') }}
-                    </span>
-                    <span class="text-xs font-semibold text-gray-500">{{ app.experienceYears || 0 }} Yrs Exp</span>
-                </div>
-
-                <!-- Mobile Scores -->
-                <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">
-                    <div *ngIf="app['latestAnalysis']; else noAnalysisMobile">
-                        <span class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Risk</span>
-                        <div class="flex items-center gap-2 mt-1">
-                            <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden flex-1">
-                                <div class="h-full rounded-full transition-all duration-500"
-                                    [style.width.%]="app['latestAnalysis'].overallRiskScore"
-                                    [ngClass]="getRiskColorClass(app['latestAnalysis'].overallRiskScore, true)"></div>
-                            </div>
-                            <span class="text-xs font-bold text-gray-700">{{ app['latestAnalysis'].overallRiskScore
-                                }}%</span>
-                        </div>
-                    </div>
-                    <div *ngIf="app['latestAnalysis']">
-                        <span class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Consistency</span>
-                        <div class="flex items-center gap-2 mt-1">
-                            <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden flex-1">
-                                <div class="h-full rounded-full bg-indigo-500 transition-all duration-500"
-                                    [style.width.%]="app['latestAnalysis'].overallConsistencyScore"></div>
-                            </div>
-                            <span class="text-xs font-bold text-gray-700">{{
-                                app['latestAnalysis'].overallConsistencyScore }}%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <ng-template #noAnalysisMobile>
-                    <div
-                        class="col-span-2 flex items-center justify-center gap-2 p-3 bg-gray-50 rounded-lg text-gray-400">
-                        <svg class="animate-spin h-4 w-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                            </circle>
-                            <path class="opacity-75" fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                            </path>
-                        </svg>
-                        <span class="text-xs font-medium">Analyzing Resume...</span>
-                    </div>
-                </ng-template>
+        <!-- Job -->
+        <ng-container matColumnDef="job">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="text-gray-600 font-semibold bg-gray-50/50"
+          >
+            Job
+          </th>
+          <td mat-cell *matCellDef="let app">
+            <div class="flex items-center gap-3">
+              <app-organization-logo
+                [org]="app.job.organization"
+                [orgId]="app.job.organization?.id"
+                size="sm"
+                [rounded]="true"
+              ></app-organization-logo>
+              <div class="flex flex-col">
+                <span class="font-medium text-gray-900 leading-tight">{{ app.job.title }}</span>
+                <span class="text-xs text-gray-500">{{ app.job.organization?.name }}</span>
+              </div>
             </div>
-        </div>
+          </td>
+        </ng-container>
 
-        <mat-paginator [pageSizeOptions]="[10, 15, 25, 100]" aria-label="Select page of users"
-            class="border-t border-gray-100"></mat-paginator>
+        <!-- Experience -->
+        <ng-container matColumnDef="experience">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="text-gray-600 font-semibold bg-gray-50/50"
+          >
+            Experience
+          </th>
+          <td mat-cell *matCellDef="let app" class="text-gray-600 font-medium">
+            {{ app.experienceYears || 0 }} Yrs
+          </td>
+        </ng-container>
+
+        <!-- Current Company -->
+        <ng-container matColumnDef="company">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="text-gray-600 font-semibold bg-gray-50/50"
+          >
+            Company
+          </th>
+          <td mat-cell *matCellDef="let app" class="text-gray-600">
+            <div class="truncate max-w-[150px]" [matTooltip]="app.currentCompany">
+              {{ app.currentCompany || 'N/A' }}
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Status -->
+        <ng-container matColumnDef="status">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="text-gray-600 font-semibold bg-gray-50/50"
+          >
+            Status
+          </th>
+          <td mat-cell *matCellDef="let app">
+            <span [class]="getStatusClasses(app.status)">
+              {{ app.status.replace('_', ' ') }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Risk Score -->
+        <ng-container matColumnDef="risk">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="text-gray-600 font-semibold bg-gray-50/50"
+          >
+            Risk
+          </th>
+          <td mat-cell *matCellDef="let app">
+            <div *ngIf="app['latestAnalysis']; else noAnalysis" class="w-24">
+              <div class="flex items-center gap-2 mb-1">
+                <span
+                  class="text-xs font-bold"
+                  [ngClass]="getRiskColorClass(app['latestAnalysis'].overallRiskScore)"
+                >
+                  {{ app['latestAnalysis'].overallRiskScore }}%
+                </span>
+              </div>
+              <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  class="h-full rounded-full transition-all duration-500"
+                  [style.width.%]="app['latestAnalysis'].overallRiskScore"
+                  [ngClass]="getRiskColorClass(app['latestAnalysis'].overallRiskScore, true)"
+                ></div>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Consistency Score -->
+        <ng-container matColumnDef="consistency">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="text-gray-600 font-semibold bg-gray-50/50"
+          >
+            Consistency
+          </th>
+          <td mat-cell *matCellDef="let app">
+            <div *ngIf="app['latestAnalysis']; else noAnalysis" class="w-24">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-xs font-bold text-indigo-600">
+                  {{ app['latestAnalysis'].overallConsistencyScore }}%
+                </span>
+              </div>
+              <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  class="h-full rounded-full bg-indigo-500 transition-all duration-500"
+                  [style.width.%]="app['latestAnalysis'].overallConsistencyScore"
+                ></div>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Actions -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="pr-6! bg-gray-50/50 text-right"></th>
+          <td mat-cell *matCellDef="let app" class="pr-6! text-right">
+            <button
+              mat-icon-button
+              class="text-gray-400 hover:text-indigo-600 transition-colors"
+              (click)="viewDetails(app)"
+            >
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr
+          mat-header-row
+          *matHeaderRowDef="displayedColumns"
+          class="h-12 border-b border-gray-100"
+        ></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          class="transition-colors cursor-pointer border-b border-gray-50 h-20"
+          [ngClass]="
+            hasNotification(row.id)
+              ? 'bg-red-50/50 ring-1 ring-red-200 hover:bg-red-100/50'
+              : 'hover:bg-indigo-50/30'
+          "
+          (click)="viewDetails(row)"
+        ></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell p-12 text-center" colspan="7">
+            <div class="flex flex-col items-center justify-center text-gray-400">
+              <mat-icon class="text-4xl mb-2 opacity-20">search_off</mat-icon>
+              <p>No applications found matching "{{ filterValues.searchTerm }}"</p>
+            </div>
+          </td>
+        </tr>
+      </table>
     </div>
 
-    <ng-template #noAnalysis>
-        <div class="flex items-center gap-2 text-gray-400">
-            <svg class="animate-spin h-4 w-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-                viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                </path>
+    <div class="md:hidden bg-gray-50/50 p-4 space-y-4">
+      <div
+        *ngFor="let app of dataSource.filteredData"
+        class="card-modern p-4 flex flex-col gap-4 relative"
+        [ngClass]="hasNotification(app.id) ? 'ring-2 ring-red-200 border-red-300' : ''"
+        (click)="viewDetails(app)"
+      >
+        <!-- Notification Indicator -->
+        <div *ngIf="hasNotification(app.id)" class="absolute top-3 right-3 z-10">
+          <span class="flex h-3 w-3">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
+            ></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+          </span>
+        </div>
+
+        <div class="flex justify-between items-start">
+          <div class="flex items-center gap-3">
+            <div
+              class="h-10 w-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm shrink-0"
+            >
+              {{ app.firstName.charAt(0) }}{{ app.lastName.charAt(0) }}
+            </div>
+            <div>
+              <h3 class="font-bold text-gray-900 leading-tight">
+                {{ app.firstName }} {{ app.lastName }}
+              </h3>
+              <p class="text-xs text-gray-500 line-clamp-1">
+                {{ app.currentTitle }} at {{ app.currentCompany || 'N/A' }}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 pt-3 mt-2 border-t border-gray-100">
+          <app-organization-logo
+            [org]="app.job.organization"
+            [orgId]="app.job.organization?.id"
+            size="xs"
+            [rounded]="true"
+          ></app-organization-logo>
+          <div class="flex flex-col">
+            <span class="text-sm font-semibold text-gray-900 leading-tight">{{
+              app.job.title
+            }}</span>
+            <span class="text-xs text-gray-500">{{ app.job.organization?.name }}</span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span [class]="getStatusClasses(app.status)">
+            {{ app.status.replace('_', ' ') }}
+          </span>
+          <span class="text-xs font-semibold text-gray-500"
+            >{{ app.experienceYears || 0 }} Yrs Exp</span
+          >
+        </div>
+
+        <!-- Mobile Scores -->
+        <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">
+          <div *ngIf="app['latestAnalysis']; else noAnalysisMobile">
+            <span class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Risk</span>
+            <div class="flex items-center gap-2 mt-1">
+              <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden flex-1">
+                <div
+                  class="h-full rounded-full transition-all duration-500"
+                  [style.width.%]="app['latestAnalysis'].overallRiskScore"
+                  [ngClass]="getRiskColorClass(app['latestAnalysis'].overallRiskScore, true)"
+                ></div>
+              </div>
+              <span class="text-xs font-bold text-gray-700"
+                >{{ app['latestAnalysis'].overallRiskScore }}%</span
+              >
+            </div>
+          </div>
+          <div *ngIf="app['latestAnalysis']">
+            <span class="text-[10px] uppercase text-gray-400 font-bold tracking-wider"
+              >Consistency</span
+            >
+            <div class="flex items-center gap-2 mt-1">
+              <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden flex-1">
+                <div
+                  class="h-full rounded-full bg-indigo-500 transition-all duration-500"
+                  [style.width.%]="app['latestAnalysis'].overallConsistencyScore"
+                ></div>
+              </div>
+              <span class="text-xs font-bold text-gray-700"
+                >{{ app['latestAnalysis'].overallConsistencyScore }}%</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noAnalysisMobile>
+          <div
+            class="col-span-2 flex items-center justify-center gap-2 p-3 bg-gray-50 rounded-lg text-gray-400"
+          >
+            <svg
+              class="animate-spin h-4 w-4 text-indigo-500"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
             </svg>
-            <span class="text-xs font-medium">Pending</span>
-        </div>
-    </ng-template>
+            <span class="text-xs font-medium">Analyzing Resume...</span>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <mat-paginator
+      [pageSizeOptions]="[10, 15, 25, 100]"
+      aria-label="Select page of users"
+      class="border-t border-gray-100"
+    ></mat-paginator>
+  </div>
+
+  <ng-template #noAnalysis>
+    <div class="flex items-center gap-2 text-gray-400">
+      <svg
+        class="animate-spin h-4 w-4 text-indigo-500"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          class="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="4"
+        ></circle>
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        ></path>
+      </svg>
+      <span class="text-xs font-medium">Pending</span>
+    </div>
+  </ng-template>
 </div>

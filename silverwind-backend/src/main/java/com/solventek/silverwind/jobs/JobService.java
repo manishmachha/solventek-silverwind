@@ -22,6 +22,7 @@ public class JobService {
 
     private final JobRepository jobRepository;
     private final OrganizationRepository organizationRepository;
+    private final com.solventek.silverwind.org.OrganizationService organizationService;
     private final com.solventek.silverwind.auth.EmployeeRepository employeeRepository;
     private final TimelineService timelineService;
     private final com.solventek.silverwind.notifications.NotificationService notificationService;
@@ -99,31 +100,42 @@ public class JobService {
                 });
             }
 
-            return job;
+            return enhanceJob(job);
         } catch (Exception e) {
             log.error("Error creating job: {}", e.getMessage(), e);
             throw e;
         }
     }
 
+    @Transactional(readOnly = true)
     public Page<Job> getJobs(UUID orgId, Pageable pageable) {
         log.info("Fetching jobs for Org ID: {}", orgId);
-        return jobRepository.findByOrganizationId(orgId, pageable);
+        Page<Job> jobs = jobRepository.findByOrganizationId(orgId, pageable);
+        jobs.forEach(this::enhanceJob);
+        return jobs;
     }
 
+    @Transactional(readOnly = true)
     public Page<Job> getAllJobs(Pageable pageable) {
         log.info("Fetching all jobs");
-        return jobRepository.findAll(pageable);
+        Page<Job> jobs = jobRepository.findAll(pageable);
+        jobs.forEach(this::enhanceJob);
+        return jobs;
     }
 
+    @Transactional(readOnly = true)
     public Page<Job> getPublishedJobs(Pageable pageable) {
         log.info("Fetching published jobs");
-        return jobRepository.findByStatusIn(List.of(JobStatus.PUBLISHED), pageable);
+        Page<Job> jobs = jobRepository.findByStatusIn(List.of(JobStatus.PUBLISHED), pageable);
+        jobs.forEach(this::enhanceJob);
+        return jobs;
     }
 
+    @Transactional(readOnly = true)
     public Job getJob(UUID id) {
         log.debug("Fetching Job ID: {}", id);
-        return jobRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Job not found"));
+        Job job = jobRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Job not found"));
+        return enhanceJob(job);
     }
 
     @Transactional
@@ -152,7 +164,7 @@ public class JobService {
                 notificationService.sendNotification(admin.getId(), statusTitle, statusBody, "JOB", jobId);
             });
 
-            return job;
+            return enhanceJob(job);
         } catch (Exception e) {
             log.error("Error updating job status for {}: {}", jobId, e.getMessage(), e);
             throw e;
@@ -179,7 +191,7 @@ public class JobService {
             timelineService.createEvent(job.getOrganization().getId(), "JOB", jobId, "UPDATE", "Job Updated", actorId,
                     "Job details updated", null);
             log.info("Job details updated successfully for {}", jobId);
-            return job;
+            return enhanceJob(job);
         } catch (Exception e) {
             log.error("Error updating job details for {}: {}", jobId, e.getMessage(), e);
             throw e;
@@ -205,7 +217,7 @@ public class JobService {
                     "Job '" + job.getTitle() + "' has been verified.", "JOB", jobId);
             });
 
-            return job;
+            return enhanceJob(job);
         } catch (Exception e) {
             log.error("Error verifying job {}: {}", jobId, e.getMessage(), e);
             throw e;
@@ -229,7 +241,7 @@ public class JobService {
             timelineService.createEvent(job.getOrganization().getId(), "JOB", jobId, "ENRICH", "Job Enriched", actorId,
                     "Job enriched by TA", null);
             log.info("Job enriched successfully: {}", jobId);
-            return job;
+            return enhanceJob(job);
         } catch (Exception e) {
             log.error("Error enriching job {}: {}", jobId, e.getMessage(), e);
             throw e;
@@ -261,7 +273,7 @@ public class JobService {
                     "Job '" + job.getTitle() + "' has been finally approved and is ready to publish.", "JOB", jobId);
             });
 
-            return job;
+            return enhanceJob(job);
         } catch (Exception e) {
             log.error("Error approving job {}: {}", jobId, e.getMessage(), e);
             throw e;
@@ -302,7 +314,7 @@ public class JobService {
                     });
 
             log.info("Job published successfully: {}", jobId);
-            return job;
+            return enhanceJob(job);
         } catch (Exception e) {
             log.error("Error publishing job {}: {}", jobId, e.getMessage(), e);
             throw e;
@@ -341,5 +353,12 @@ public class JobService {
             log.error("Error deleting job {}: {}", jobId, e.getMessage(), e);
             throw e;
         }
+    }
+
+    private Job enhanceJob(Job job) {
+        if (job != null && job.getOrganization() != null) {
+            organizationService.enhanceOrganization(job.getOrganization());
+        }
+        return job;
     }
 }

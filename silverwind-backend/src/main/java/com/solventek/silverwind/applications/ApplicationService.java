@@ -26,6 +26,7 @@ public class ApplicationService {
         private final JobApplicationRepository applicationRepository;
         private final JobRepository jobRepository;
         private final OrganizationRepository organizationRepository;
+        private final com.solventek.silverwind.org.OrganizationService organizationService;
         private final TimelineService timelineService;
         private final com.solventek.silverwind.auth.EmployeeRepository employeeRepository;
         private final com.solventek.silverwind.notifications.NotificationService notificationService;
@@ -186,7 +187,7 @@ public class ApplicationService {
                                 analysisOrchestrator.analyzeApplicationAsync(applicationId);
                         }
 
-                        return app;
+                        return enhanceApplication(app);
                 } catch (Exception e) {
                         log.error("Error processing application for Job ID: {}: {}", jobId, e.getMessage(), e);
                         throw e;
@@ -260,7 +261,7 @@ public class ApplicationService {
                                 );
                         }
                         log.info("Status updated successfully for Application ID: {}", applicationId);
-                        return app;
+                        return enhanceApplication(app);
                 } catch (Exception e) {
                         log.error("Error updating status for Application ID: {}: {}", applicationId, e.getMessage(), e);
                         throw e;
@@ -300,21 +301,27 @@ public class ApplicationService {
         @Transactional(readOnly = true)
         public Page<JobApplication> getApplicationsForJob(UUID jobId, Pageable pageable) {
                 log.debug("Fetching applications for Job ID: {}", jobId);
-                return applicationRepository.findByJobId(jobId, pageable);
+                Page<JobApplication> page = applicationRepository.findByJobId(jobId, pageable);
+                page.forEach(this::enhanceApplication);
+                return page;
         }
 
         @Transactional(readOnly = true)
         public Page<JobApplication> getOutboundApplications(UUID vendorId, Pageable pageable) {
                 log.debug("Fetching outbound applications for Vendor ID: {}", vendorId);
                 // Applications SENT by this organization
-                return applicationRepository.findByVendorId(vendorId, pageable);
+                Page<JobApplication> page = applicationRepository.findByVendorId(vendorId, pageable);
+                page.forEach(this::enhanceApplication);
+                return page;
         }
 
         @Transactional(readOnly = true)
         public Page<JobApplication> getInboundApplications(UUID orgId, Pageable pageable) {
                 log.debug("Fetching inbound applications for Org ID: {}", orgId);
                 // Applications RECEIVED by this organization (for my jobs)
-                return applicationRepository.findByJobOrganizationId(orgId, pageable);
+                Page<JobApplication> page = applicationRepository.findByJobOrganizationId(orgId, pageable);
+                page.forEach(this::enhanceApplication);
+                return page;
         }
 
         // Deprecated or removed: getApplicationsForVendor
@@ -323,7 +330,9 @@ public class ApplicationService {
 
         public Page<JobApplication> getApplicationsForClient(UUID clientId, Pageable pageable) {
                 log.debug("Fetching applications for Client ID: {}", clientId);
-                return applicationRepository.findByJobOrganizationId(clientId, pageable);
+                Page<JobApplication> page = applicationRepository.findByJobOrganizationId(clientId, pageable);
+                page.forEach(this::enhanceApplication);
+                return page;
         }
 
         @Transactional
@@ -379,7 +388,7 @@ public class ApplicationService {
                         }
 
                         log.info("Client decision processed for Application ID: {}", applicationId);
-                        return app;
+                        return enhanceApplication(app);
                 } catch (Exception e) {
                         log.error("Error processing client decision for Application ID: {}: {}", applicationId,
                                         e.getMessage(), e);
@@ -510,8 +519,9 @@ public class ApplicationService {
 
         public JobApplication getApplication(UUID id) {
                 log.debug("Fetching Application ID: {}", id);
-                return applicationRepository.findById(id)
+                JobApplication app = applicationRepository.findById(id)
                                 .orElseThrow(() -> new EntityNotFoundException("Application not found"));
+                return enhanceApplication(app);
         }
     public org.springframework.core.io.Resource downloadResume(UUID applicationId) {
         JobApplication app = getApplication(applicationId);
@@ -524,5 +534,16 @@ public class ApplicationService {
     public org.springframework.core.io.Resource downloadDocumentResource(UUID docId) {
         ApplicationDocuments doc = getDocument(docId);
         return ingestionService.downloadResume(doc.getFilePath());
+    }
+    private JobApplication enhanceApplication(JobApplication app) {
+        if (app != null) {
+            if (app.getJob() != null && app.getJob().getOrganization() != null) {
+                organizationService.enhanceOrganization(app.getJob().getOrganization());
+            }
+            if (app.getVendor() != null) {
+                organizationService.enhanceOrganization(app.getVendor());
+            }
+        }
+        return app;
     }
 }
