@@ -33,7 +33,12 @@ set +a
 export IMAGE_TAG="${IMAGE_TAG:-latest}"
 
 echo "Step 1: Logging into Docker registry..."
-if [ -n "$DOCKER_CREDENTIALS" ]; then
+if [[ "$DOCKER_REGISTRY" == *"amazonaws.com"* ]]; then
+    # Extract region from registry URL (e.g., 123456789012.dkr.ecr.eu-north-1.amazonaws.com)
+    ECR_REGION=$(echo "$DOCKER_REGISTRY" | cut -d'.' -f4)
+    echo "Logging into AWS ECR in region $ECR_REGION..."
+    aws ecr get-login-password --region "$ECR_REGION" | docker login --username AWS --password-stdin "$DOCKER_REGISTRY"
+elif [ -n "$DOCKER_CREDENTIALS" ]; then
     echo "$DOCKER_PASSWORD" | docker login "$DOCKER_REGISTRY" -u "$DOCKER_USERNAME" --password-stdin
 fi
 
