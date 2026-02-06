@@ -2,6 +2,8 @@ package com.solventek.silverwind.recruitment;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.solventek.silverwind.applications.JobApplication;
+import com.solventek.silverwind.applications.JobApplicationRepository;
 import com.solventek.silverwind.applications.ResumeAnalysisOrchestratorService;
 import com.solventek.silverwind.applications.ResumeIngestionService;
 import com.solventek.silverwind.org.Organization;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 public class CandidateService {
 
     private final CandidateRepository candidateRepository;
+    private final JobApplicationRepository jobApplicationRepository;
     private final ResumeIngestionService resumeIngestionService;
     private final ResumeAnalysisOrchestratorService resumeAnalysisService;
     private final ObjectMapper objectMapper;
@@ -173,6 +176,13 @@ public class CandidateService {
 
     @Transactional
     public void deleteCandidate(UUID id) {
+        // Unlink applications first
+        List<JobApplication> applications = jobApplicationRepository.findByCandidateId(id);
+        for (JobApplication app : applications) {
+            app.setCandidate(null);
+        }
+        jobApplicationRepository.saveAll(applications);
+
         candidateRepository.deleteById(id);
     }
     

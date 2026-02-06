@@ -35,4 +35,6 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
 
     @Query("SELECT a.status, COUNT(a) FROM JobApplication a JOIN a.job j JOIN j.organization o WHERE o.id = :organizationId GROUP BY a.status")
     java.util.List<Object[]> countByJob_Organization_IdGroupedByStatus(UUID organizationId);
+
+    java.util.List<JobApplication> findByCandidateId(UUID candidateId);
 }
