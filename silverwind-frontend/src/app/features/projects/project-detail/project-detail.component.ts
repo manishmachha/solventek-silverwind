@@ -118,8 +118,44 @@ import { UserAvatarComponent } from '../../../shared/components/user-avatar/user
       <!-- Main Content Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Team Allocation Chart -->
-        <div class="lg:col-span-1 bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Allocation Breakdown</h3>
+        <div
+          class="lg:col-span-1 bg-white rounded-xl p-6 border border-gray-100 shadow-sm overflow-visible"
+        >
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Allocation Breakdown</h3>
+            <div class="relative group">
+              <i
+                class="bi bi-info-circle text-gray-400 hover:text-indigo-600 cursor-help transition-colors"
+                title="What is Allocation?"
+              ></i>
+              <!-- Tooltip -->
+              <div
+                class="absolute right-0 top-6 w-64 p-4 bg-white rounded-xl shadow-xl border border-gray-100 z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 text-left"
+              >
+                <h4 class="text-sm font-bold text-gray-900 mb-2">What is Allocation?</h4>
+                <p class="text-xs text-gray-600 mb-3 leading-relaxed">
+                  The portion of working time dedicated to this project.
+                </p>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="font-medium text-gray-900">100%</span>
+                    <span class="text-gray-500">Full Time (40h/wk)</span>
+                  </div>
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="font-medium text-gray-900">50%</span>
+                    <span class="text-gray-500">Half Time (20h/wk)</span>
+                  </div>
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="font-medium text-gray-900">20%</span>
+                    <span class="text-gray-500">~1 Day/Week</span>
+                  </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-gray-100">
+                  <p class="text-[10px] text-gray-400">Used for capacity planning and billing.</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div *ngIf="allocations().length > 0" class="flex flex-col items-center">
             <!-- Donut Chart -->

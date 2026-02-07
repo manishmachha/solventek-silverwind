@@ -70,7 +70,24 @@ import { ModalComponent } from '../../../../shared/components/modal/modal.compon
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Allocation %</label>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-sm font-medium text-gray-700">Allocation %</label>
+              <div class="relative group">
+                <i
+                  class="bi bi-info-circle text-xs text-gray-400 hover:text-indigo-600 cursor-help transition-colors"
+                ></i>
+                <!-- Tooltip (Bottom aligned for modal) -->
+                <div
+                  class="absolute right-0 bottom-6 w-56 p-3 bg-white rounded-lg shadow-xl border border-gray-100 z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none text-left"
+                >
+                  <div class="text-xs text-gray-600 space-y-1">
+                    <p><strong class="text-gray-900">100%</strong> = Full Time (40h/wk)</p>
+                    <p><strong class="text-gray-900">50%</strong> = Half Time (20h/wk)</p>
+                    <p><strong class="text-gray-900">20%</strong> = ~1 Day/Week</p>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="relative rounded-md shadow-sm">
               <input
                 type="number"
