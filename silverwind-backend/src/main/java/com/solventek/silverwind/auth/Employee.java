@@ -150,4 +150,26 @@ public class Employee extends BaseEntity {
     @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private java.util.List<com.solventek.silverwind.notifications.Notification> notifications;
+
+    // --- Profile Section ---
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.feature.profile.entity.Document> documents;
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.feature.profile.entity.Education> education;
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.feature.profile.entity.Certification> certifications;
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.feature.profile.entity.WorkExperience> workExperience;
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private java.util.List<com.solventek.silverwind.feature.profile.entity.Skill> skills;
 }

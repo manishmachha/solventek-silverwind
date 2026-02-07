@@ -104,16 +104,7 @@ body {
   padding: 1.5rem;
   transition: all var(--transition-normal);
 }
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--gradient-primary);
-  opacity: 0.8;
-}
+
 .stat-card:hover {
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-3px);

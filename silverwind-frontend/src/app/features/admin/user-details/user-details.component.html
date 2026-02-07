@@ -42,10 +42,10 @@
   <!-- Main Content -->
   <div
     *ngIf="!isLoading() && user()"
-    class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in-up"
+    class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in-up items-start"
   >
-    <!-- LEFT COLUMN: Profile Card -->
-    <div class="space-y-6">
+    <!-- LEFT COLUMN: Profile, Contact, Address, Emergency -->
+    <div class="space-y-6 lg:sticky lg:top-6">
       <!-- Profile Card -->
       <div
         class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden text-center relative"
@@ -140,6 +140,69 @@
                 {{ user()?.workLocation || 'Not Assigned' }}
               </p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Address (Moved to Left) -->
+      <div
+        class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
+        *ngIf="user()?.address as addr"
+      >
+        <h3 class="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
+          <mat-icon class="text-slate-400">home</mat-icon> Address
+        </h3>
+        <div class="flex items-start gap-4">
+          <div
+            class="h-10 w-10 rounded-full bg-slate-100 shrink-0 grid place-items-center text-slate-500"
+          >
+            <span class="material-icons">place</span>
+          </div>
+          <div>
+            <p class="text-slate-900 font-medium">{{ addr.street }}</p>
+            <p class="text-slate-600 text-sm mt-1">
+              {{ addr.city }}, {{ addr.state }}, {{ addr.country }} -
+              <span class="font-semibold">{{ addr.zipCode }}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Emergency Contact (Moved to Left) -->
+      <div
+        class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 relative overflow-hidden"
+        *ngIf="user()?.emergencyContact as emer"
+      >
+        <div class="absolute -bottom-6 -left-6 h-24 w-24 bg-rose-50 rounded-full blur-2xl"></div>
+
+        <h3 class="font-bold text-slate-900 text-lg mb-4 relative flex items-center gap-2">
+          <mat-icon class="text-slate-400">emergency</mat-icon> Emergency Contact
+        </h3>
+
+        <div class="space-y-4 relative">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full bg-rose-50 text-rose-600 grid place-items-center">
+              <span class="material-icons">person_alert</span>
+            </div>
+            <div>
+              <p class="text-slate-900 font-bold">{{ emer.contactName }}</p>
+              <p
+                class="text-slate-500 text-xs font-semibold uppercase tracking-wide bg-slate-100 inline-block px-1.5 rounded mt-0.5"
+              >
+                {{ emer.relationship }}
+              </p>
+            </div>
+          </div>
+
+          <div class="pl-12">
+            <p class="text-slate-500 text-xs mb-1">Phone Number</p>
+            <a
+              [href]="'tel:' + emer.contactPhone"
+              class="text-slate-900 font-medium flex items-center gap-2 hover:text-indigo-600 transition"
+            >
+              <span class="material-icons text-[16px]">call</span>
+              {{ emer.contactPhone }}
+            </a>
           </div>
         </div>
       </div>
@@ -260,7 +323,7 @@
         </div>
       </div>
 
-      <!-- Two Columns: Security & Address -->
+      <!-- Security & Bank Details -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Access & Security -->
         <div
@@ -379,40 +442,15 @@
           </div>
         </div>
 
-        <!-- Address -->
-        <div
-          class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
-          *ngIf="user()?.address as addr"
-        >
-          <h3 class="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
-            <mat-icon class="text-slate-400">home</mat-icon> Address
-          </h3>
-          <div class="flex items-start gap-4">
-            <div
-              class="h-10 w-10 rounded-full bg-slate-100 shrink-0 grid place-items-center text-slate-500"
-            >
-              <span class="material-icons">place</span>
-            </div>
-            <div>
-              <p class="text-slate-900 font-medium">{{ addr.street }}</p>
-              <p class="text-slate-600 text-sm mt-1">
-                {{ addr.city }}, {{ addr.state }}, {{ addr.country }} -
-                <span class="font-semibold">{{ addr.zipCode }}</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Two Columns: Bank & Emergency -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Bank Details -->
         <div
           class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 h-full relative overflow-hidden"
           *ngIf="user()?.bankDetails as bank"
         >
           <div class="absolute -top-6 -right-6 h-24 w-24 bg-emerald-50 rounded-full blur-2xl"></div>
-          <h3 class="font-bold text-slate-900 text-lg mb-4 relative">Bank Details</h3>
+          <h3 class="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2 relative">
+            <mat-icon class="text-slate-400">account_balance</mat-icon> Bank Details
+          </h3>
 
           <div class="space-y-4 relative">
             <div *ngIf="bank.bankName">
@@ -444,42 +482,42 @@
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Emergency Contact -->
-        <div
-          class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 h-full relative overflow-hidden"
-          *ngIf="user()?.emergencyContact as emer"
-        >
-          <div class="absolute -bottom-6 -left-6 h-24 w-24 bg-rose-50 rounded-full blur-2xl"></div>
-
-          <h3 class="font-bold text-slate-900 text-lg mb-4 relative">Emergency Contact</h3>
-
-          <div class="space-y-4 relative">
-            <div class="flex items-center gap-3">
-              <div class="h-10 w-10 rounded-full bg-rose-50 text-rose-600 grid place-items-center">
-                <span class="material-icons">emergency</span>
-              </div>
-              <div>
-                <p class="text-slate-900 font-bold">{{ emer.contactName }}</p>
-                <p
-                  class="text-slate-500 text-xs font-semibold uppercase tracking-wide bg-slate-100 inline-block px-1.5 rounded mt-0.5"
-                >
-                  {{ emer.relationship }}
-                </p>
-              </div>
-            </div>
-
-            <div class="pl-12">
-              <p class="text-slate-500 text-xs mb-1">Phone Number</p>
-              <a
-                [href]="'tel:' + emer.contactPhone"
-                class="text-slate-900 font-medium flex items-center gap-2 hover:text-indigo-600 transition"
-              >
-                <span class="material-icons text-[16px]">call</span>
-                {{ emer.contactPhone }}
-              </a>
-            </div>
+      <!-- Professional Profile Section -->
+      <div class="flex flex-col gap-6" *ngIf="user()?.id as uid">
+        <!-- Career & Skills Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Career -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <app-user-career [userId]="uid" [canEdit]="canManage() || isMe()"></app-user-career>
           </div>
+
+          <!-- Skills -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 h-fit">
+            <app-user-skills [userId]="uid" [canEdit]="canManage() || isMe()"></app-user-skills>
+          </div>
+        </div>
+
+        <!-- Education & Certifications Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <app-user-education
+              [userId]="uid"
+              [canEdit]="canManage() || isMe()"
+            ></app-user-education>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <app-user-certifications
+              [userId]="uid"
+              [canEdit]="canManage() || isMe()"
+            ></app-user-certifications>
+          </div>
+        </div>
+
+        <!-- Documents Section -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <app-user-documents [userId]="uid" [canEdit]="canManage() || isMe()"></app-user-documents>
         </div>
       </div>
     </div>

@@ -15,6 +15,7 @@ interface QuickLink {
   icon: string;
   link: string;
   bgStyle: string; // Changed from gradient class to inline style
+  cardBg: string;
   description: string;
 }
 
@@ -128,6 +129,7 @@ interface QuickLink {
             *ngFor="let action of quickActions"
             [routerLink]="action.link"
             class="p-4 rounded-xl border border-gray-100 hover:border-indigo-200 hover:shadow-md transition-all group cursor-pointer"
+            [style.background]="action.cardBg"
           >
             <div
               class="p-3 rounded-xl mb-3 w-fit group-hover:scale-110 transition-transform"
@@ -223,6 +225,7 @@ export class EmployeeDashboardComponent implements OnInit {
       icon: 'bi bi-calendar-check',
       link: '/my-attendance',
       bgStyle: 'linear-gradient(to bottom right, #10b981, #059669)',
+      cardBg: 'linear-gradient(to bottom right, #ecfdf5, #d1fae5)',
       description: 'View attendance records',
     },
     {
@@ -230,6 +233,7 @@ export class EmployeeDashboardComponent implements OnInit {
       icon: 'bi bi-calendar-plus',
       link: '/my-leaves',
       bgStyle: 'linear-gradient(to bottom right, #3b82f6, #2563eb)',
+      cardBg: 'linear-gradient(to bottom right, #eff6ff, #dbeafe)',
       description: 'Request time off',
     },
     {
@@ -237,6 +241,7 @@ export class EmployeeDashboardComponent implements OnInit {
       icon: 'bi bi-receipt',
       link: '/my-payslips',
       bgStyle: 'linear-gradient(to bottom right, #a855f7, #9333ea)',
+      cardBg: 'linear-gradient(to bottom right, #faf5ff, #f3e8ff)',
       description: 'View salary slips',
     },
     {
@@ -244,6 +249,7 @@ export class EmployeeDashboardComponent implements OnInit {
       icon: 'bi bi-laptop',
       link: '/my-assets',
       bgStyle: 'linear-gradient(to bottom right, #6366f1, #4f46e5)',
+      cardBg: 'linear-gradient(to bottom right, #eef2ff, #e0e7ff)',
       description: 'Assigned equipment',
     },
     {
@@ -251,6 +257,7 @@ export class EmployeeDashboardComponent implements OnInit {
       icon: 'bi bi-ticket-detailed',
       link: '/portal/tickets',
       bgStyle: 'linear-gradient(to bottom right, #f97316, #ea580c)',
+      cardBg: 'linear-gradient(to bottom right, #fff7ed, #ffedd5)',
       description: 'Submit a request',
     },
     {
@@ -258,13 +265,15 @@ export class EmployeeDashboardComponent implements OnInit {
       icon: 'bi bi-person',
       link: '/profile',
       bgStyle: 'linear-gradient(to bottom right, #ec4899, #db2777)',
+      cardBg: 'linear-gradient(to bottom right, #fdf2f8, #fce7f3)',
       description: 'View & edit profile',
     },
     {
       label: 'Organization',
       icon: 'bi bi-building',
-      link: '/organization',
+      link: '/organization/my-organization',
       bgStyle: 'linear-gradient(to bottom right, #14b8a6, #0d9488)',
+      cardBg: 'linear-gradient(to bottom right, #f0fdfa, #ccfbf1)',
       description: 'Company directory',
     },
     {
@@ -272,6 +281,7 @@ export class EmployeeDashboardComponent implements OnInit {
       icon: 'bi bi-calendar-event',
       link: '/holidays',
       bgStyle: 'linear-gradient(to bottom right, #f59e0b, #d97706)',
+      cardBg: 'linear-gradient(to bottom right, #fffbeb, #fef3c7)',
       description: 'View holiday list',
     },
   ];

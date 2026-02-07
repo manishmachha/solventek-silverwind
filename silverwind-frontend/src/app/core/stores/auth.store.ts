@@ -26,15 +26,29 @@ export class AuthStore {
   // State signal
   private state = signal<AuthState>(initialState);
 
+  // View Role Signal (for simulation)
+  private _viewRole = signal<string | null>(null);
+
   // Selectors (Computed)
   readonly user = computed(() => this.state().user);
   readonly isAuthenticated = computed(() => this.state().isAuthenticated);
   readonly isLoading = computed(() => this.state().isLoading);
   readonly error = computed(() => this.state().error);
   readonly accessToken = computed(() => this.state().accessToken);
-  readonly userRole = computed(() => {
+
+  // The actual role of the logged-in user (immutable by view toggle)
+  readonly actualRole = computed(() => {
     return this.state().user?.role?.name || null;
   });
+
+  // The effective role (affected by view toggle)
+  readonly userRole = computed(() => {
+    return this._viewRole() || this.actualRole();
+  });
+
+  // Expose view role for UI binding
+  readonly viewRole = computed(() => this._viewRole());
+
   readonly organizationId = computed(() => this.state().user?.orgId);
   readonly orgType = computed(() => this.state().user?.orgType);
   readonly organizationName = computed(() => this.state().user?.organization?.name);
@@ -44,11 +58,13 @@ export class AuthStore {
   });
 
   hasPermission(code: string): boolean {
-    if (this.userRole() === 'SUPER_ADMIN') return true;
+    if (this.actualRole() === 'SUPER_ADMIN') return true;
     return false;
   }
 
-  // Role Helper Methods
+  // Role Helper Methods - operate on effective role (userRole)
+  // except for permission checks which should ideally use actualRole if they are for critical ops,
+  // but here they drive UI, so userRole is appropriate.
   isSuperAdmin(): boolean {
     return this.userRole() === 'SUPER_ADMIN';
   }
@@ -70,7 +86,7 @@ export class AuthStore {
   }
 
   isAdmin(): boolean {
-    return this.isSuperAdmin() || this.isHRAdmin();
+    return ['SUPER_ADMIN', 'HR_ADMIN'].includes(this.userRole() || '');
   }
 
   constructor() {
@@ -102,8 +118,18 @@ export class AuthStore {
     }
   }
 
+  setViewRole(role: string | null) {
+    // If the requested view role is the same as actual role, clear the view role
+    if (role === this.actualRole()) {
+      this._viewRole.set(null);
+    } else {
+      this._viewRole.set(role);
+    }
+  }
+
   logout() {
     this.state.set(initialState);
+    this._viewRole.set(null);
     this.clearStorage();
   }
 

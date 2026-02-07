@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { Observable, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -31,5 +32,11 @@ export class DialogService {
       this.onCloseCallback();
       this.onCloseCallback = undefined;
     }
+  }
+
+  // Simple confirmation using window.confirm for now to match component usage
+  confirm(title: string, message: string): Observable<boolean> {
+    const result = window.confirm(`${title}\n\n${message}`);
+    return of(result);
   }
 }

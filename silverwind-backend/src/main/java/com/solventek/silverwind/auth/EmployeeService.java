@@ -152,8 +152,7 @@ public class EmployeeService {
             org.springframework.data.domain.Pageable pageable) {
         log.debug("Fetching employees for Org ID: {}", orgId);
         org.springframework.data.domain.Page<Employee> page = employeeRepository.findByOrganizationId(orgId, pageable);
-        page.getContent().forEach(this::enhanceEmployee);
-        return page;
+        return page.map(this::enhanceEmployee);
     }
 
     private void validateAccess(Employee targetEmployee, UUID actorId) {

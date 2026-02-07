@@ -12,10 +12,27 @@ import { UserCreateDialogComponent } from '../user-create-dialog/user-create-dia
 import { AuthStore } from '../../../core/stores/auth.store';
 import { DialogService } from '../../../core/services/dialog.service';
 
+import { UserDocumentsComponent } from './components/user-documents/user-documents.component';
+import { UserEducationComponent } from './components/user-education/user-education.component';
+import { UserCertificationsComponent } from './components/user-certifications/user-certifications.component';
+import { UserCareerComponent } from './components/user-career/user-career.component';
+import { UserSkillsComponent } from './components/user-skills/user-skills.component';
+
 @Component({
   selector: 'app-user-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatMenuModule, MatIconModule, MatButtonModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatMenuModule,
+    MatIconModule,
+    MatButtonModule,
+    UserDocumentsComponent,
+    UserEducationComponent,
+    UserCertificationsComponent,
+    UserCareerComponent,
+    UserSkillsComponent,
+  ],
   templateUrl: './user-details.component.html',
   styleUrls: ['./user-details.component.css'],
 })

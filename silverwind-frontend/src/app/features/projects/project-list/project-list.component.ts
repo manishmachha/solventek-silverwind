@@ -38,46 +38,46 @@ import { AddProjectModalComponent } from '../components/add-project-modal/add-pr
 
       <!-- Stats Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="stat-card">
+        <div class="stat-card" [style.background]="getProjectGradient('ACTIVE')">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-500">Active</p>
-              <p class="text-2xl font-bold text-gray-900">{{ getStatusCount('ACTIVE') }}</p>
+              <p class="text-sm font-medium text-white/90">Active</p>
+              <p class="text-2xl font-bold text-white">{{ getStatusCount('ACTIVE') }}</p>
             </div>
-            <div class="p-3 rounded-xl bg-emerald-100 text-emerald-600">
+            <div class="p-3 rounded-xl bg-white/20 backdrop-blur-sm text-white">
               <i class="bi bi-play-circle-fill text-xl"></i>
             </div>
           </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" [style.background]="getProjectGradient('PLANNED')">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-500">Planned</p>
-              <p class="text-2xl font-bold text-gray-900">{{ getStatusCount('PLANNED') }}</p>
+              <p class="text-sm font-medium text-white/90">Planned</p>
+              <p class="text-2xl font-bold text-white">{{ getStatusCount('PLANNED') }}</p>
             </div>
-            <div class="p-3 rounded-xl bg-blue-100 text-blue-600">
+            <div class="p-3 rounded-xl bg-white/20 backdrop-blur-sm text-white">
               <i class="bi bi-calendar-check-fill text-xl"></i>
             </div>
           </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" [style.background]="getProjectGradient('ON_HOLD')">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-500">On Hold</p>
-              <p class="text-2xl font-bold text-gray-900">{{ getStatusCount('ON_HOLD') }}</p>
+              <p class="text-sm font-medium text-white/90">On Hold</p>
+              <p class="text-2xl font-bold text-white">{{ getStatusCount('ON_HOLD') }}</p>
             </div>
-            <div class="p-3 rounded-xl bg-amber-100 text-amber-600">
+            <div class="p-3 rounded-xl bg-white/20 backdrop-blur-sm text-white">
               <i class="bi bi-pause-circle-fill text-xl"></i>
             </div>
           </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" [style.background]="getProjectGradient('COMPLETED')">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-500">Completed</p>
-              <p class="text-2xl font-bold text-gray-900">{{ getStatusCount('COMPLETED') }}</p>
+              <p class="text-sm font-medium text-white/90">Completed</p>
+              <p class="text-2xl font-bold text-white">{{ getStatusCount('COMPLETED') }}</p>
             </div>
-            <div class="p-3 rounded-xl bg-gray-100 text-gray-600">
+            <div class="p-3 rounded-xl bg-white/20 backdrop-blur-sm text-white">
               <i class="bi bi-check-circle-fill text-xl"></i>
             </div>
           </div>
@@ -331,15 +331,15 @@ export class ProjectListComponent implements OnInit {
   getProjectGradient(status: string): string {
     switch (status) {
       case 'ACTIVE':
-        return 'bg-linear-to-br from-emerald-400 to-emerald-600';
+        return 'linear-gradient(to bottom right, #10b981, #059669)'; // Emerald
       case 'PLANNED':
-        return 'bg-linear-to-br from-blue-400 to-blue-600';
+        return 'linear-gradient(to bottom right, #3b82f6, #2563eb)'; // Blue
       case 'ON_HOLD':
-        return 'bg-linear-to-br from-amber-400 to-amber-600';
+        return 'linear-gradient(to bottom right, #f59e0b, #d97706)'; // Amber
       case 'COMPLETED':
-        return 'bg-linear-to-br from-gray-400 to-gray-600';
+        return 'linear-gradient(to bottom right, #6366f1, #4f46e5)'; // Indigo (Primary)
       default:
-        return 'bg-linear-to-br from-indigo-400 to-purple-600';
+        return 'linear-gradient(to bottom right, #64748b, #475569)'; // Slate
     }
   }
 }

@@ -45,7 +45,7 @@ export interface Organization {
 }
 
 // Standardized Roles
-export type UserRole = 'SUPER_ADMIN' | 'HR_ADMIN' | 'TA' | 'EMPLOYEE' | 'VENDOR';
+export type UserRole = 'SUPER_ADMIN' | 'HR_ADMIN' | 'ADMIN' | 'TA' | 'EMPLOYEE' | 'VENDOR';
 
 export interface Permission {
   code: string;
@@ -134,5 +134,12 @@ export interface ApiError {
   status: number;
   message: string;
   errors?: string[];
+  timestamp: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
   timestamp: string;
 }

@@ -28,6 +28,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final EmployeeRepository employeeRepository;
     private final ObjectMapper objectMapper;
+    private final EmailService emailService;
 
     // ========== RICH NOTIFICATION BUILDER ==========
 
@@ -53,7 +54,17 @@ public class NotificationService {
                     .metadata(serializeMetadata(builder.metadata))
                     .build();
 
-            return notificationRepository.save(note);
+            Notification savedNote = notificationRepository.save(note);
+
+            // Send Email
+            if (recipient.getEmail() != null && !recipient.getEmail().isEmpty()) {
+                emailService.sendSimpleMessage(
+                        recipient.getEmail(),
+                        "Silverwind Notification: " + builder.title,
+                        builder.body);
+            }
+
+            return savedNote;
         } catch (Exception e) {
             log.error("Failed to send notification to {}: {}", builder.recipientId, e.getMessage(), e);
             throw e;
