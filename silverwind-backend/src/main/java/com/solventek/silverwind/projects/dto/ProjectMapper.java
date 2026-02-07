@@ -4,13 +4,18 @@ import com.solventek.silverwind.auth.Employee;
 import com.solventek.silverwind.org.Organization;
 import com.solventek.silverwind.projects.Project;
 import com.solventek.silverwind.projects.ProjectAllocation;
+import com.solventek.silverwind.storage.StorageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
  * Mapper utility for converting Project entities to DTOs
  */
 @Component
+@RequiredArgsConstructor
 public class ProjectMapper {
+
+    private final StorageService storageService;
 
     public ProjectResponse toProjectResponse(Project project) {
         if (project == null) return null;
@@ -55,13 +60,26 @@ public class ProjectMapper {
 
     public UserSummary toUserSummary(Employee employee) {
         if (employee == null) return null;
+        
+        String photoUrl = employee.getProfilePhotoUrl();
+        if (photoUrl != null && photoUrl.startsWith("/api/files/")) {
+            try {
+                // Extract key from standard path
+                String key = photoUrl.replace("/api/files/", "");
+                // Generate presigned URL (valid for 60 mins by default)
+                String presignedUrl = storageService.getPresignedUrl(key, java.time.Duration.ofMinutes(60));
+                photoUrl = presignedUrl;
+            } catch (Exception e) {
+                // If presigning fails, keep original
+            }
+        }
 
         return UserSummary.builder()
                 .id(employee.getId())
                 .firstName(employee.getFirstName())
                 .lastName(employee.getLastName())
                 .email(employee.getEmail())
-                .profilePhotoUrl(employee.getProfilePhotoUrl())
+                .profilePhotoUrl(photoUrl)
                 .build();
     }
 }
