@@ -33,6 +33,7 @@ import { UserAvatarComponent } from '../../../shared/components/user-avatar/user
           </a>
           <div class="flex items-center gap-3 mt-2">
             <app-organization-logo
+              [org]="project()?.client || project()?.internalOrg"
               [orgId]="project()?.client?.id || project()?.internalOrg?.id"
               size="lg"
               [rounded]="true"
