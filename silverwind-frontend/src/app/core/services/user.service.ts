@@ -1,6 +1,18 @@
 import { Injectable, inject } from '@angular/core';
 import { ApiService } from './api.service';
-import { User } from '../models/auth.model';
+import {
+  User,
+  CreateEmployeeRequest,
+  PersonalDetailsRequest,
+  EmploymentDetailsRequest,
+  ContactInfoRequest,
+  BankDetailsRequest,
+  UpdateManagerRequest,
+  ChangePasswordRequest,
+  EmploymentStatusRequest,
+  ConvertToFteRequest,
+  UpdateStatusRequest,
+} from '../models/auth.model';
 import { Page } from '../models/page.model';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -27,62 +39,90 @@ export class UserService {
   }
 
   /**
-   * Create a new user
+   * Create a new employee
    */
-  createUser(data: any) {
+  createUser(data: CreateEmployeeRequest) {
     return this.api.post<User>('/employees', data);
   }
 
   /**
-   * Update an existing user
+   * Update an existing employee
    */
-  updateUser(id: string, data: any) {
+  updateUser(id: string, data: CreateEmployeeRequest) {
     return this.api.put<User>(`/employees/${id}`, data);
+  }
+
+  /**
+   * Update personal details
+   */
+  updatePersonal(userId: string, data: PersonalDetailsRequest) {
+    return this.api.post<User>(`/employees/${userId}/personal`, data);
+  }
+
+  /**
+   * Update employment details
+   */
+  updateEmployment(userId: string, data: EmploymentDetailsRequest) {
+    return this.api.post<User>(`/employees/${userId}/employment`, data);
+  }
+
+  /**
+   * Update contact info
+   */
+  updateContact(userId: string, data: ContactInfoRequest) {
+    return this.api.post<User>(`/employees/${userId}/contact`, data);
+  }
+
+  /**
+   * Update bank details
+   */
+  updateBankDetails(userId: string, data: BankDetailsRequest) {
+    return this.api.post<User>(`/employees/${userId}/bank`, data);
   }
 
   /**
    * Update account status (enabled/locked)
    */
-  updateStatus(userId: string, enabled?: boolean, locked?: boolean) {
-    return this.api.post<User>(`/employees/${userId}/status`, { enabled, accountLocked: locked });
+  updateStatus(userId: string, data: UpdateStatusRequest) {
+    return this.api.post<User>(`/employees/${userId}/status`, data);
   }
 
   /**
    * Update user manager
    */
-  updateManager(userId: string, data: { managerId: string }) {
+  updateManager(userId: string, data: UpdateManagerRequest) {
     return this.api.post<User>(`/employees/${userId}/manager`, data);
   }
 
   /**
    * Change user password (admin action)
    */
-  changePassword(userId: string, data: { newPassword: string }) {
+  changePassword(userId: string, data: ChangePasswordRequest) {
     return this.api.post<User>(`/employees/${userId}/password`, data);
   }
 
   /**
    * Update employment status (ACTIVE, INACTIVE, ON_LEAVE, etc.)
    */
-  updateEmploymentStatus(userId: string, employmentStatus: string) {
-    return this.api.post<User>(`/employees/${userId}/employment-status`, { employmentStatus });
+  updateEmploymentStatus(userId: string, data: EmploymentStatusRequest) {
+    return this.api.post<User>(`/employees/${userId}/employment-status`, data);
   }
 
   /**
    * Convert a C2H employee to Full-Time Employee (FTE)
    */
-  convertToFullTime(userId: string, conversionDate?: string) {
-    return this.api.post<User>(`/employees/${userId}/convert-to-fte`, { conversionDate });
+  convertToFullTime(userId: string, data?: ConvertToFteRequest) {
+    return this.api.post<User>(`/employees/${userId}/convert-to-fte`, data || {});
   }
 
   /**
    * Upload profile photo
    */
-  uploadProfilePhoto(userId: string, file: File): Observable<any> {
+  uploadProfilePhoto(userId: string, file: File): Observable<User> {
     const formData = new FormData();
     formData.append('file', file);
     return this.http
-      .post<ApiResponse<any>>(`${this.baseUrl}/${userId}/photo`, formData)
+      .post<ApiResponse<User>>(`${this.baseUrl}/${userId}/photo`, formData)
       .pipe(map((res) => res.data));
   }
 
@@ -90,9 +130,6 @@ export class UserService {
    * Get profile photo as blob
    */
   getProfilePhoto(userId: string): Observable<Blob> {
-    // Blob responses are not wrapped in ApiResponse usually, confirming via controller logic
-    // Controller logic: ResponseEntity<Resource> with contentType
-    // So this remains as is.
     return this.http.get(`${this.baseUrl}/${userId}/photo`, { responseType: 'blob' });
   }
 }

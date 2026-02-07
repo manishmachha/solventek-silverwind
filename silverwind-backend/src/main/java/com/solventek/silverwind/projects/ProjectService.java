@@ -116,6 +116,112 @@ public class ProjectService {
         return allocationRepository.findByEmployeeId(userId);
     }
 
+    public Project getById(UUID projectId) {
+        log.debug("Fetching project by ID: {}", projectId);
+        return projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Project not found: " + projectId));
+    }
+
+    @Transactional
+    public Project updateProject(UUID projectId, String name, String description, UUID clientOrgId,
+            LocalDate startDate, LocalDate endDate) {
+        log.info("Updating project: {}", projectId);
+        Project project = getById(projectId);
+        
+        if (name != null) project.setName(name);
+        if (description != null) project.setDescription(description);
+        if (startDate != null) project.setStartDate(startDate);
+        if (endDate != null) project.setEndDate(endDate);
+        
+        if (clientOrgId != null) {
+            Organization clientOrg = organizationRepository.findById(clientOrgId)
+                    .orElseThrow(() -> new EntityNotFoundException("Client Org not found: " + clientOrgId));
+            project.setClient(clientOrg);
+        }
+        
+        Project saved = projectRepository.save(project);
+        log.info("Project updated successfully: {}", projectId);
+        
+        timelineService.createEvent(project.getInternalOrg().getId(), "PROJECT", projectId, "UPDATE", 
+                "Project Updated", getCurrentUserId(), "Project details updated", null);
+        
+        return saved;
+    }
+
+    @Transactional
+    public Project updateStatus(UUID projectId, Project.ProjectStatus status) {
+        log.info("Updating project status: {} to {}", projectId, status);
+        Project project = getById(projectId);
+        project.setStatus(status);
+        Project saved = projectRepository.save(project);
+        
+        timelineService.createEvent(project.getInternalOrg().getId(), "PROJECT", projectId, "STATUS_CHANGE",
+                "Status Changed", getCurrentUserId(), "Project status changed to: " + status, null);
+        
+        return saved;
+    }
+
+    @Transactional
+    public void deleteProject(UUID projectId) {
+        log.info("Deleting project: {}", projectId);
+        Project project = getById(projectId);
+        UUID orgId = project.getInternalOrg().getId();
+        String projectName = project.getName();
+        
+        projectRepository.delete(project);
+        log.info("Project deleted successfully: {}", projectId);
+        
+        timelineService.createEvent(orgId, "PROJECT", projectId, "DELETE",
+                "Project Deleted", getCurrentUserId(), "Project deleted: " + projectName, null);
+    }
+
+    @Transactional
+    public void deallocateUser(UUID projectId, UUID allocationId) {
+        log.info("Deallocating user from project: {}, allocation: {}", projectId, allocationId);
+        ProjectAllocation allocation = allocationRepository.findById(allocationId)
+                .orElseThrow(() -> new EntityNotFoundException("Allocation not found: " + allocationId));
+        
+        if (!allocation.getProject().getId().equals(projectId)) {
+            throw new IllegalArgumentException("Allocation does not belong to project");
+        }
+        
+        UUID userId = allocation.getEmployee().getId();
+        String projectName = allocation.getProject().getName();
+        UUID orgId = allocation.getProject().getInternalOrg().getId();
+        
+        allocationRepository.delete(allocation);
+        log.info("User deallocated successfully from project: {}", projectId);
+        
+        notificationService.sendNotification(userId, "Project Deallocation",
+                "You have been removed from project: " + projectName, "PROJECT", projectId);
+        
+        timelineService.createEvent(orgId, "PROJECT", projectId, "DEALLOCATE",
+                "User Deallocated", getCurrentUserId(), userId, "User removed from project: " + projectName, null);
+    }
+
+    @Transactional
+    public ProjectAllocation updateAllocation(UUID projectId, UUID allocationId, LocalDate startDate,
+            LocalDate endDate, Integer percentage, String billingRole, ProjectAllocation.AllocationStatus status) {
+        log.info("Updating allocation: {} for project: {}", allocationId, projectId);
+        ProjectAllocation allocation = allocationRepository.findById(allocationId)
+                .orElseThrow(() -> new EntityNotFoundException("Allocation not found: " + allocationId));
+        
+        if (!allocation.getProject().getId().equals(projectId)) {
+            throw new IllegalArgumentException("Allocation does not belong to project");
+        }
+        
+        if (startDate != null) allocation.setStartDate(startDate);
+        if (endDate != null) allocation.setEndDate(endDate);
+        if (percentage != null) allocation.setAllocationPercentage(percentage);
+        if (billingRole != null) allocation.setBillingRole(billingRole);
+        if (status != null) allocation.setStatus(status);
+        
+        ProjectAllocation saved = allocationRepository.save(allocation);
+        log.info("Allocation updated successfully: {}", allocationId);
+        
+        return saved;
+    }
+
     private UUID getCurrentUserId() {
         if (SecurityContextHolder.getContext().getAuthentication() != null &&
                 SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof UserPrincipal) {
@@ -124,3 +230,4 @@ public class ProjectService {
         return null;
     }
 }
+

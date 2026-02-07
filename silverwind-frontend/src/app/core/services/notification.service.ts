@@ -129,11 +129,11 @@ export class NotificationService {
       case 'USER':
         return 'bi-person-fill';
       case 'ORGANIZATION':
-        return 'bi-building';
+        return 'bi-building-fill';
       case 'PROJECT':
         return 'bi-kanban-fill';
       case 'INTERVIEW':
-        return 'bi-calendar-event';
+        return 'bi-calendar-event-fill';
       case 'ONBOARDING':
         return 'bi-person-check-fill';
       case 'ANALYSIS':
@@ -144,6 +144,12 @@ export class NotificationService {
         return 'bi-laptop';
       case 'HOLIDAY':
         return 'bi-calendar-event-fill';
+      case 'LEAVE':
+        return 'bi-calendar-x-fill';
+      case 'ATTENDANCE':
+        return 'bi-calendar-check-fill';
+      case 'PAYROLL':
+        return 'bi-cash-stack';
       default:
         return 'bi-bell-fill';
     }
@@ -175,6 +181,12 @@ export class NotificationService {
       case 'ASSET':
         return { bg: 'bg-emerald-100', text: 'text-emerald-600' };
       case 'HOLIDAY':
+        return { bg: 'bg-rose-100', text: 'text-rose-600' };
+      case 'LEAVE':
+        return { bg: 'bg-rose-100', text: 'text-rose-600' };
+      case 'ATTENDANCE':
+        return { bg: 'bg-rose-100', text: 'text-rose-600' };
+      case 'PAYROLL':
         return { bg: 'bg-rose-100', text: 'text-rose-600' };
       default:
         return { bg: 'bg-gray-100', text: 'text-gray-600' };

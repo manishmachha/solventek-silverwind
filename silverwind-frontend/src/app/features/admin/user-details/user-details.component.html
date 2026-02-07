@@ -459,11 +459,11 @@
               </p>
               <p class="text-slate-900 font-semibold">{{ bank.bankName }}</p>
             </div>
-            <div *ngIf="bank.accountNumber">
+            <div *ngIf="bank.accountNumberMasked">
               <p class="text-xs text-slate-500 font-medium uppercase tracking-wider mb-0.5">
                 Account Number
               </p>
-              <p class="text-slate-900 font-mono">{{ bank.accountNumber }}</p>
+              <p class="text-slate-900 font-mono">{{ bank.accountNumberMasked }}</p>
             </div>
             <div *ngIf="bank.ifscCode">
               <p class="text-xs text-slate-500 font-medium uppercase tracking-wider mb-0.5">
@@ -477,7 +477,7 @@
               </p>
               <p class="text-slate-900 font-mono">{{ user()?.taxIdPan }}</p>
             </div>
-            <div *ngIf="!bank.bankName && !bank.accountNumber">
+            <div *ngIf="!bank.bankName && !bank.accountNumberMasked">
               <p class="text-sm text-slate-400 italic">No bank details added.</p>
             </div>
           </div>

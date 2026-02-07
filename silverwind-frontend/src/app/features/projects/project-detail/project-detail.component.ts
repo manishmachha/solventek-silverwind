@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProjectService } from '../../../core/services/project.service';
@@ -8,15 +8,22 @@ import { UserService } from '../../../core/services/user.service';
 import { User } from '../../../core/models/auth.model';
 import { OrganizationLogoComponent } from '../../../shared/components/organization-logo/organization-logo.component';
 import { AllocateResourceModalComponent } from '../components/allocate-resource-modal/allocate-resource-modal.component';
+import { UserAvatarComponent } from '../../../shared/components/user-avatar/user-avatar.component';
 
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, OrganizationLogoComponent, AllocateResourceModalComponent],
+  imports: [
+    CommonModule,
+    RouterLink,
+    OrganizationLogoComponent,
+    AllocateResourceModalComponent,
+    UserAvatarComponent,
+  ],
   template: `
     <div class="space-y-6">
       <!-- Header Section -->
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div>
           <a
             routerLink="/projects"
@@ -24,27 +31,33 @@ import { AllocateResourceModalComponent } from '../components/allocate-resource-
           >
             <i class="bi bi-arrow-left mr-1"></i> Back to Projects
           </a>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 mt-2">
             <app-organization-logo
-              [org]="project()?.client || project()?.internalOrg"
               [orgId]="project()?.client?.id || project()?.internalOrg?.id"
-              size="md"
+              size="lg"
               [rounded]="true"
             ></app-organization-logo>
-            <h2 class="text-3xl font-bold text-gray-900">{{ project()?.name }}</h2>
-            <span
-              class="px-3 py-1 text-sm font-medium rounded-full"
-              [ngClass]="{
-                'bg-green-100 text-green-800': project()?.status === 'ACTIVE',
-                'bg-gray-100 text-gray-800': project()?.status === 'COMPLETED',
-                'bg-yellow-100 text-yellow-800': project()?.status === 'ON_HOLD',
-                'bg-blue-100 text-blue-800': project()?.status === 'PLANNED',
-              }"
-            >
-              {{ project()?.status }}
-            </span>
+            <div>
+              <h2 class="text-3xl font-bold text-gray-900">{{ project()?.name }}</h2>
+              <div class="flex items-center gap-2 mt-1">
+                <span
+                  class="px-3 py-1 text-sm font-medium rounded-full"
+                  [ngClass]="{
+                    'bg-green-100 text-green-800': project()?.status === 'ACTIVE',
+                    'bg-gray-100 text-gray-800': project()?.status === 'COMPLETED',
+                    'bg-yellow-100 text-yellow-800': project()?.status === 'ON_HOLD',
+                    'bg-blue-100 text-blue-800': project()?.status === 'PLANNED',
+                  }"
+                >
+                  {{ project()?.status }}
+                </span>
+                <span class="text-sm text-gray-500">
+                  {{ project()?.client?.name || 'Internal Project' }}
+                </span>
+              </div>
+            </div>
           </div>
-          <p class="text-gray-500 mt-1 max-w-2xl">{{ project()?.description }}</p>
+          <p class="text-gray-500 mt-3 max-w-2xl">{{ project()?.description }}</p>
         </div>
         <button
           (click)="showAllocateModal = true"
@@ -54,141 +67,118 @@ import { AllocateResourceModalComponent } from '../components/allocate-resource-
         </button>
       </div>
 
-      <!-- Tabs Navigation -->
-      <div class="border-b border-gray-200">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-          <button
-            *ngFor="let tab of tabs"
-            (click)="activeTab.set(tab.id)"
-            [class.border-indigo-500]="activeTab() === tab.id"
-            [class.text-indigo-600]="activeTab() === tab.id"
-            [class.border-transparent]="activeTab() !== tab.id"
-            [class.text-gray-500]="activeTab() !== tab.id"
-            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700 hover:border-gray-300 transition-colors"
-          >
-            {{ tab.label }}
-          </button>
-        </nav>
-      </div>
-
-      <!-- Tab Content Area -->
-      <div class="min-h-[400px]">
-        <!-- Tab: Overview -->
-        <div *ngIf="activeTab() === 'overview'" class="space-y-6 animate-fade-in">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Key Dates Card -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <i class="bi bi-calendar-event mr-2 text-indigo-500"></i> Timeline
-              </h3>
-              <div class="space-y-4">
-                <div>
-                  <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider"
-                    >Start Date</label
-                  >
-                  <p class="text-gray-900 font-medium">
-                    {{ project()?.startDate | date: 'mediumDate' }}
-                  </p>
-                </div>
-                <div>
-                  <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider"
-                    >End Date</label
-                  >
-                  <p class="text-gray-900 font-medium">
-                    {{ (project()?.endDate | date: 'mediumDate') || 'Ongoing' }}
-                  </p>
-                </div>
-              </div>
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+              <i class="bi bi-people text-indigo-600"></i>
             </div>
-
-            <!-- Client Summary Card -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <i class="bi bi-building mr-2 text-indigo-500"></i> Client
-              </h3>
-              <div *ngIf="project()?.client as client">
-                <div class="flex items-center gap-3 mb-2">
-                  <app-organization-logo
-                    [org]="client"
-                    [orgId]="client.id"
-                    size="sm"
-                    [rounded]="true"
-                  ></app-organization-logo>
-                  <p class="text-xl font-bold text-gray-800 mb-0">{{ client.name }}</p>
-                </div>
-                <p class="text-sm text-gray-500 mb-3">{{ client.industry }}</p>
-                <div class="text-sm">
-                  <div class="flex items-center text-gray-600 mb-2">
-                    <i class="bi bi-geo-alt mr-2 text-gray-400"></i> {{ client.city }},
-                    {{ client.country }}
-                  </div>
-                  <div class="flex items-center text-gray-600">
-                    <i class="bi bi-globe mr-2 text-gray-400"></i>
-                    <a
-                      [href]="'https://' + client.website"
-                      target="_blank"
-                      class="text-indigo-600 hover:underline"
-                      >{{ client.website }}</a
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Internal Org Summary Card -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <i class="bi bi-diagram-3 mr-2 text-indigo-500"></i> Managed By
-              </h3>
-              <div *ngIf="project()?.internalOrg as org">
-                <div class="flex items-center gap-3 mb-2">
-                  <app-organization-logo
-                    [org]="org"
-                    [orgId]="org.id"
-                    size="sm"
-                    [rounded]="true"
-                  ></app-organization-logo>
-                  <p class="text-xl font-bold text-gray-800 mb-0">{{ org.name }}</p>
-                </div>
-                <p class="text-sm text-gray-500 mb-3">{{ org.type }}</p>
-                <div class="text-sm">
-                  <div class="flex items-center text-gray-600 mb-2">
-                    <i class="bi bi-people mr-2 text-gray-400"></i>
-                    {{ org.employeeCount }} Employees
-                  </div>
-                  <div class="flex items-center text-gray-600">
-                    <i class="bi bi-envelope mr-2 text-gray-400"></i> {{ org.email }}
-                  </div>
-                </div>
-              </div>
+            <div>
+              <p class="text-2xl font-bold text-gray-900">{{ allocations().length }}</p>
+              <p class="text-xs text-gray-500">Team Members</p>
             </div>
           </div>
         </div>
-
-        <!-- Tab: Client Details -->
-        <div *ngIf="activeTab() === 'client'" class="animate-fade-in">
-          <ng-container
-            *ngTemplateOutlet="orgDetailTemplate; context: { $implicit: project()?.client }"
-          ></ng-container>
-        </div>
-
-        <!-- Tab: Internal Org Details -->
-        <div *ngIf="activeTab() === 'internal'" class="animate-fade-in">
-          <ng-container
-            *ngTemplateOutlet="orgDetailTemplate; context: { $implicit: project()?.internalOrg }"
-          ></ng-container>
-        </div>
-
-        <!-- Tab: Allocations -->
-        <div *ngIf="activeTab() === 'allocations'" class="animate-fade-in">
-          <div class="bg-white shadow overflow-hidden sm:rounded-lg border border-gray-200">
-            <div
-              class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center"
-            >
-              <h3 class="text-lg font-medium text-gray-900">Resource Team</h3>
-              <span class="text-sm text-gray-500">{{ allocations().length }} Members</span>
+        <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+              <i class="bi bi-graph-up text-green-600"></i>
             </div>
-            <table class="min-w-full divide-y divide-gray-200">
+            <div>
+              <p class="text-2xl font-bold text-gray-900">{{ totalAllocation() }}%</p>
+              <p class="text-xs text-gray-500">Total Capacity</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+              <i class="bi bi-calendar-range text-amber-600"></i>
+            </div>
+            <div>
+              <p class="text-2xl font-bold text-gray-900">{{ projectDuration() }}</p>
+              <p class="text-xs text-gray-500">Duration</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+              <i class="bi bi-pie-chart text-purple-600"></i>
+            </div>
+            <div>
+              <p class="text-2xl font-bold text-gray-900">{{ avgAllocation() }}%</p>
+              <p class="text-xs text-gray-500">Avg Allocation</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Team Allocation Chart -->
+        <div class="lg:col-span-1 bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Allocation Breakdown</h3>
+
+          <div *ngIf="allocations().length > 0" class="flex flex-col items-center">
+            <!-- Donut Chart -->
+            <div class="relative w-48 h-48 mb-4">
+              <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
+                <ng-container *ngFor="let segment of chartSegments(); let i = index">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    fill="none"
+                    [attr.stroke]="segment.color"
+                    stroke-width="15"
+                    [attr.stroke-dasharray]="segment.dashArray"
+                    [attr.stroke-dashoffset]="segment.offset"
+                    class="transition-all duration-500"
+                  />
+                </ng-container>
+                <circle cx="50" cy="50" r="32" fill="white" />
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-3xl font-bold text-gray-900">{{ allocations().length }}</span>
+                <span class="text-xs text-gray-500">Resources</span>
+              </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="w-full space-y-2">
+              <div *ngFor="let alloc of allocations()" class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 rounded-full" [style.background]="getColor(alloc)"></div>
+                  <span class="text-sm text-gray-700"
+                    >{{ alloc.user.firstName }} {{ alloc.user.lastName.charAt(0) }}.</span
+                  >
+                </div>
+                <span class="text-sm font-medium text-gray-900"
+                  >{{ alloc.allocationPercentage }}%</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="allocations().length === 0" class="text-center py-8 text-gray-400">
+            <i class="bi bi-pie-chart text-4xl mb-2"></i>
+            <p>No allocations yet</p>
+          </div>
+        </div>
+
+        <!-- Team Table -->
+        <div
+          class="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"
+        >
+          <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-900">Resource Team</h3>
+            <span class="text-sm text-gray-500">{{ allocations().length }} members</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-100">
               <thead class="bg-gray-50">
                 <tr>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -206,68 +196,80 @@ import { AllocateResourceModalComponent } from '../components/allocate-resource-
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     Status
                   </th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
+              <tbody class="divide-y divide-gray-100">
                 <tr *ngFor="let alloc of allocations()" class="hover:bg-gray-50 transition-colors">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div
-                        class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold mr-3"
-                      >
-                        {{ alloc.user.firstName.charAt(0) }}{{ alloc.user.lastName.charAt(0) }}
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9">
+                        <app-user-avatar [user]="alloc.user"></app-user-avatar>
                       </div>
                       <div>
-                        <div class="text-sm font-medium text-gray-900">
+                        <div class="font-medium text-gray-900">
                           {{ alloc.user.firstName }} {{ alloc.user.lastName }}
                         </div>
                         <div class="text-sm text-gray-500">{{ alloc.user.email }}</div>
                       </div>
                     </div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                    {{ alloc.billingRole || 'N/A' }}
+                  <td class="px-6 py-4">
+                    <span class="text-sm text-gray-700 font-medium">{{
+                      alloc.billingRole || 'N/A'
+                    }}</span>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div class="flex items-center">
-                      <div class="w-16 bg-gray-200 rounded-full h-1.5 mr-2">
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-2">
+                      <div class="flex-1 bg-gray-200 rounded-full h-2 w-20">
                         <div
-                          class="bg-indigo-600 h-1.5 rounded-full"
+                          class="bg-indigo-600 h-2 rounded-full"
                           [style.width.%]="alloc.allocationPercentage"
                         ></div>
                       </div>
-                      <span>{{ alloc.allocationPercentage }}%</span>
+                      <span class="text-sm font-medium text-gray-700"
+                        >{{ alloc.allocationPercentage }}%</span
+                      >
                     </div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td class="px-6 py-4 text-sm text-gray-500">
                     {{ alloc.startDate | date: 'MMM d, y' }} -
-                    {{ (alloc.endDate | date: 'MMM d, y') || 'Ongoing' }}
+                    {{ alloc.endDate ? (alloc.endDate | date: 'MMM d, y') : 'Ongoing' }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
+                  <td class="px-6 py-4">
                     <span
                       class="px-2 py-1 text-xs font-medium rounded-full"
                       [ngClass]="{
                         'bg-green-100 text-green-800': alloc.status === 'ACTIVE',
-                        'bg-gray-100 text-gray-800': alloc.status === 'ENDED',
+                        'bg-gray-100 text-gray-600': alloc.status === 'ENDED',
                         'bg-blue-100 text-blue-800': alloc.status === 'PLANNED',
                       }"
                     >
                       {{ alloc.status }}
                     </span>
                   </td>
+                  <td class="px-6 py-4 text-right">
+                    <button
+                      (click)="confirmDeallocate(alloc)"
+                      class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
+                      title="Remove from project"
+                    >
+                      <i class="bi bi-person-dash"></i>
+                    </button>
+                  </td>
                 </tr>
                 <tr *ngIf="allocations().length === 0">
-                  <td colspan="5" class="px-6 py-12 text-center text-gray-500">
-                    <div class="flex flex-col items-center">
-                      <i class="bi bi-people text-4xl mb-3 text-gray-300"></i>
-                      <p>No resources allocated yet.</p>
-                      <button
-                        (click)="showAllocateModal = true"
-                        class="mt-2 text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-                      >
-                        Allocate someone now
-                      </button>
-                    </div>
+                  <td colspan="6" class="px-6 py-12 text-center text-gray-400">
+                    <i class="bi bi-people text-4xl mb-2"></i>
+                    <p>No resources allocated yet</p>
+                    <button
+                      (click)="showAllocateModal = true"
+                      class="mt-3 text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                    >
+                      Allocate someone now
+                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -275,182 +277,153 @@ import { AllocateResourceModalComponent } from '../components/allocate-resource-
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Reusable Template for Organization Details -->
-    <ng-template #orgDetailTemplate let-org>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" *ngIf="org">
-        <!-- Main Info Card -->
-        <div class="lg:col-span-2 space-y-6">
-          <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <div class="flex items-start justify-between mb-6">
-              <div class="flex gap-4">
-                <app-organization-logo
-                  [org]="org"
-                  [orgId]="org.id"
-                  size="xl"
-                  [rounded]="true"
-                ></app-organization-logo>
-                <div>
-                  <h3 class="text-2xl font-bold text-gray-900">{{ org.legalName || org.name }}</h3>
-                  <p class="text-gray-500">{{ org.industry }} • {{ org.type }}</p>
-                </div>
-              </div>
-              <span
-                *ngIf="org.status"
-                class="px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-semibold border border-green-200"
+      <!-- Timeline Section -->
+      <div
+        *ngIf="allocations().length > 0"
+        class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Allocation Timeline</h3>
+        <div class="space-y-3">
+          <div *ngFor="let alloc of allocations()" class="flex items-center gap-4">
+            <div class="w-32 text-sm text-gray-600 truncate">
+              {{ alloc.user.firstName }} {{ alloc.user.lastName.charAt(0) }}.
+            </div>
+            <div class="flex-1 h-8 bg-gray-100 rounded-lg relative overflow-hidden">
+              <div
+                class="absolute h-full rounded-lg flex items-center justify-center text-xs text-white font-medium"
+                [style.left.%]="getTimelineOffset(alloc)"
+                [style.width.%]="getTimelineWidth(alloc)"
+                [style.background]="getColor(alloc)"
               >
-                {{ org.status }}
-              </span>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-              <div>
-                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1"
-                  >Company Website</label
-                >
-                <a
-                  [href]="'https://' + org.website"
-                  target="_blank"
-                  class="text-indigo-600 hover:underline flex items-center"
-                >
-                  {{ org.website || 'N/A' }} <i class="bi bi-box-arrow-up-right ml-2 text-xs"></i>
-                </a>
-              </div>
-              <div>
-                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1"
-                  >Email</label
-                >
-                <span class="text-gray-700">{{ org.email || 'N/A' }}</span>
-              </div>
-              <div>
-                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1"
-                  >Phone</label
-                >
-                <span class="text-gray-700">{{ org.phone || 'N/A' }}</span>
-              </div>
-              <div>
-                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1"
-                  >Tax ID</label
-                >
-                <span class="text-gray-700 font-mono bg-gray-50 px-2 py-1 rounded">{{
-                  org.taxId || 'N/A'
-                }}</span>
-              </div>
-              <div class="col-span-full">
-                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1"
-                  >Service Offerings</label
-                >
-                <div class="flex flex-wrap gap-2">
-                  <span
-                    *ngFor="let service of org.serviceOfferings?.split(',') || []"
-                    class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-md border border-gray-200"
-                  >
-                    {{ service.trim() }}
-                  </span>
-                  <span *ngIf="!org.serviceOfferings" class="text-gray-400 italic"
-                    >No services listed</span
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Address Card -->
-          <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h4 class="text-lg font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">
-              Location
-            </h4>
-            <div class="flex items-start">
-              <i class="bi bi-geo-alt text-2xl text-indigo-500 mr-4 mt-1"></i>
-              <div class="text-gray-700">
-                <p class="font-medium">{{ org.addressLine1 }}</p>
-                <p *ngIf="org.addressLine2">{{ org.addressLine2 }}</p>
-                <p>{{ org.city }}, {{ org.state }} {{ org.postalCode }}</p>
-                <p class="font-bold mt-1 text-gray-900">{{ org.country }}</p>
+                {{ alloc.allocationPercentage }}%
               </div>
             </div>
           </div>
         </div>
+        <div class="flex justify-between mt-2 text-xs text-gray-400">
+          <span>{{ project()?.startDate | date: 'MMM d' }}</span>
+          <span>{{ project()?.endDate ? (project()?.endDate | date: 'MMM d') : 'Ongoing' }}</span>
+        </div>
+      </div>
 
-        <!-- Sidebar Info -->
-        <div class="space-y-6">
-          <!-- Stats Card -->
-          <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">
-              At a Glance
-            </h4>
-            <div class="space-y-4">
-              <div class="flex justify-between items-center py-2 border-b border-gray-50">
-                <span class="text-gray-600">Employees</span>
-                <span class="font-bold text-gray-900">{{ org.employeeCount | number }}</span>
-              </div>
-              <div class="flex justify-between items-center py-2 border-b border-gray-50">
-                <span class="text-gray-600">Years Active</span>
-                <span class="font-bold text-gray-900">{{ org.yearsInBusiness }}</span>
-              </div>
-              <div class="flex justify-between items-center py-2">
-                <span class="text-gray-600">Key Clients</span>
-              </div>
-              <div class="text-sm text-gray-500">
-                {{ org.keyClients || 'None listed' }}
-              </div>
+      <!-- Allocate Resource Modal -->
+      <app-allocate-resource-modal
+        [isOpen]="showAllocateModal"
+        [projectId]="project()?.id || null"
+        [users]="users()"
+        (close)="showAllocateModal = false"
+        (saved)="loadAllocations(project()!.id)"
+      ></app-allocate-resource-modal>
+
+      <!-- Deallocate Confirmation -->
+      <div
+        *ngIf="showDeallocateConfirm"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      >
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+              <i class="bi bi-person-dash text-2xl text-red-600"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-gray-900">Remove Team Member?</h3>
+              <p class="text-sm text-gray-500">This will remove the allocation.</p>
             </div>
           </div>
-
-          <!-- Contact Person Card -->
-          <div
-            class="bg-indigo-50 p-6 rounded-xl border border-indigo-100"
-            *ngIf="org.contactPersonName"
-          >
-            <h4 class="text-indigo-900 font-bold mb-3 flex items-center">
-              <i class="bi bi-person-badge mr-2"></i> Point of Contact
-            </h4>
-            <div class="space-y-2">
-              <p class="font-bold text-gray-900 text-lg">{{ org.contactPersonName }}</p>
-              <p class="text-indigo-600 text-sm font-medium">{{ org.contactPersonDesignation }}</p>
-              <hr class="border-indigo-200 my-2" />
-              <p *ngIf="org.contactPersonEmail" class="text-sm text-gray-700 flex items-center">
-                <i class="bi bi-envelope mr-2"></i> {{ org.contactPersonEmail }}
-              </p>
-              <p *ngIf="org.contactPersonPhone" class="text-sm text-gray-700 flex items-center">
-                <i class="bi bi-telephone mr-2"></i> {{ org.contactPersonPhone }}
-              </p>
-            </div>
+          <p class="text-gray-600 mb-6">
+            Remove
+            <strong
+              >{{ allocationToRemove?.user?.firstName }}
+              {{ allocationToRemove?.user?.lastName }}</strong
+            >
+            from this project?
+          </p>
+          <div class="flex gap-3 justify-end">
+            <button
+              (click)="showDeallocateConfirm = false; allocationToRemove = null"
+              class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              (click)="deallocate()"
+              [disabled]="deallocating"
+              class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 font-medium disabled:opacity-50"
+            >
+              {{ deallocating ? 'Removing...' : 'Remove' }}
+            </button>
           </div>
         </div>
       </div>
-    </ng-template>
-
-    <!-- Allocate Resource Modal -->
-    <app-allocate-resource-modal
-      [isOpen]="showAllocateModal"
-      [projectId]="project()?.id || null"
-      [users]="users()"
-      (close)="showAllocateModal = false"
-      (saved)="loadAllocations(project()!.id)"
-    ></app-allocate-resource-modal>
+    </div>
   `,
 })
 export class ProjectDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
-  projectService = inject(ProjectService);
-  userService = inject(UserService);
-  headerService = inject(HeaderService);
+  private projectService = inject(ProjectService);
+  private userService = inject(UserService);
+  private headerService = inject(HeaderService);
 
   project = signal<Project | null>(null);
   allocations = signal<ProjectAllocation[]>([]);
   users = signal<User[]>([]);
-  showAllocateModal = false;
 
-  // New Property for Tabs
-  activeTab = signal<string>('overview');
-  tabs = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'client', label: 'Client Details' },
-    { id: 'internal', label: 'Internal Organization' },
-    { id: 'allocations', label: 'Allocations' },
+  showAllocateModal = false;
+  showDeallocateConfirm = false;
+  allocationToRemove: ProjectAllocation | null = null;
+  deallocating = false;
+
+  private colors = [
+    '#6366f1',
+    '#22c55e',
+    '#f59e0b',
+    '#ef4444',
+    '#8b5cf6',
+    '#14b8a6',
+    '#f97316',
+    '#ec4899',
   ];
+
+  // Computed values
+  totalAllocation = computed(() =>
+    this.allocations().reduce((sum, a) => sum + a.allocationPercentage, 0),
+  );
+  avgAllocation = computed(() => {
+    const allocs = this.allocations();
+    return allocs.length ? Math.round(this.totalAllocation() / allocs.length) : 0;
+  });
+
+  projectDuration = computed(() => {
+    const p = this.project();
+    if (!p?.startDate) return 'N/A';
+    const start = new Date(p.startDate);
+    const end = p.endDate ? new Date(p.endDate) : new Date();
+    const months = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
+    return months <= 1 ? '1 mo' : `${months} mo`;
+  });
+
+  chartSegments = computed(() => {
+    const allocs = this.allocations();
+    if (!allocs.length) return [];
+
+    const total = this.totalAllocation();
+    const circumference = 2 * Math.PI * 40;
+    let offset = 0;
+
+    return allocs.map((alloc, i) => {
+      const percentage = alloc.allocationPercentage / total;
+      const dashLength = circumference * percentage;
+      const dashArray = `${dashLength} ${circumference - dashLength}`;
+      const segment = {
+        color: this.colors[i % this.colors.length],
+        dashArray,
+        offset: -offset,
+      };
+      offset += dashLength;
+      return segment;
+    });
+  });
 
   ngOnInit() {
     this.headerService.setTitle(
@@ -467,9 +440,8 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   loadProject(id: string) {
-    this.projectService.getProjects().subscribe((projects) => {
-      const p = projects.find((p) => p.id === id);
-      if (p) this.project.set(p);
+    this.projectService.getProject(id).subscribe((p) => {
+      this.project.set(p);
     });
   }
 
@@ -482,6 +454,53 @@ export class ProjectDetailComponent implements OnInit {
   loadUsers() {
     this.userService.getUsers(0, 100).subscribe((page) => {
       this.users.set(page.content);
+    });
+  }
+
+  getColor(alloc: ProjectAllocation): string {
+    const index = this.allocations().indexOf(alloc);
+    return this.colors[index % this.colors.length];
+  }
+
+  getTimelineOffset(alloc: ProjectAllocation): number {
+    const p = this.project();
+    if (!p?.startDate || !alloc.startDate) return 0;
+    const projectStart = new Date(p.startDate).getTime();
+    const projectEnd = p.endDate ? new Date(p.endDate).getTime() : Date.now();
+    const allocStart = new Date(alloc.startDate).getTime();
+    return ((allocStart - projectStart) / (projectEnd - projectStart)) * 100;
+  }
+
+  getTimelineWidth(alloc: ProjectAllocation): number {
+    const p = this.project();
+    if (!p?.startDate || !alloc.startDate) return 0;
+    const projectStart = new Date(p.startDate).getTime();
+    const projectEnd = p.endDate ? new Date(p.endDate).getTime() : Date.now();
+    const allocStart = new Date(alloc.startDate).getTime();
+    const allocEnd = alloc.endDate ? new Date(alloc.endDate).getTime() : projectEnd;
+    return Math.min(100, ((allocEnd - allocStart) / (projectEnd - projectStart)) * 100);
+  }
+
+  confirmDeallocate(alloc: ProjectAllocation) {
+    this.allocationToRemove = alloc;
+    this.showDeallocateConfirm = true;
+  }
+
+  deallocate() {
+    if (!this.allocationToRemove || !this.project()) return;
+    this.deallocating = true;
+
+    this.projectService.deallocateUser(this.project()!.id, this.allocationToRemove.id).subscribe({
+      next: () => {
+        this.loadAllocations(this.project()!.id);
+        this.showDeallocateConfirm = false;
+        this.allocationToRemove = null;
+        this.deallocating = false;
+      },
+      error: (err) => {
+        console.error('Failed to deallocate', err);
+        this.deallocating = false;
+      },
     });
   }
 }

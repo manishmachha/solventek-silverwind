@@ -1,14 +1,17 @@
 package com.solventek.silverwind.auth;
 
+import com.solventek.silverwind.auth.dto.EmployeeMapper;
+import com.solventek.silverwind.auth.dto.EmployeeResponse;
 import com.solventek.silverwind.auth.embeddable.Address;
 import com.solventek.silverwind.auth.embeddable.BankDetails;
 import com.solventek.silverwind.auth.embeddable.EmergencyContact;
 import com.solventek.silverwind.common.ApiResponse;
 import com.solventek.silverwind.enums.*;
-import com.solventek.silverwind.rbac.Role;
 import com.solventek.silverwind.security.UserPrincipal;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,125 +30,128 @@ import java.util.UUID;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
+    private final EmployeeMapper employeeMapper;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public ResponseEntity<ApiResponse<Employee>> createEmployee(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> createEmployee(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @RequestBody @jakarta.validation.Valid CreateEmployeeRequest request) {
 
-        return ResponseEntity.ok(ApiResponse.success("Employee created successfully.",
-                employeeService.createEmployee(currentUser.getOrgId(), request.firstName, request.lastName, request.email,
-                        request.phone, request.dateOfBirth, request.gender, request.profilePhotoUrl,
-                        request.employeeCode, request.dateOfJoining, request.employmentStatus, request.department,
-                        request.designation, request.employmentType, request.workLocation, request.gradeLevel,
-                        request.address, request.emergencyContact, request.bankDetails,
-                        request.roleId)));
+        Employee created = employeeService.createEmployee(currentUser.getOrgId(), request.firstName, request.lastName, request.email,
+                request.phone, request.dateOfBirth, request.gender, request.profilePhotoUrl,
+                request.employeeCode, request.dateOfJoining, request.employmentStatus, request.department,
+                request.designation, request.employmentType, request.workLocation, request.gradeLevel,
+                request.address, request.emergencyContact, request.bankDetails,
+                request.roleId);
+        return ResponseEntity.ok(ApiResponse.success("Employee created successfully.", employeeMapper.toEmployeeResponse(created)));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN') or #id.equals(authentication.principal.id)")
-    public ResponseEntity<ApiResponse<Employee>> updateEmployee(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> updateEmployee(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserPrincipal currentUser,
             @RequestBody @jakarta.validation.Valid CreateEmployeeRequest request) {
 
-        return ResponseEntity.ok(ApiResponse.success("Employee updated successfully.",
-                employeeService.updateEmployee(id, currentUser.getOrgId(), request.firstName, request.lastName,
-                        request.phone, request.dateOfBirth, request.gender, request.profilePhotoUrl,
-                        request.employeeCode, request.dateOfJoining, request.employmentStatus, request.department,
-                        request.designation, request.employmentType, request.workLocation, request.gradeLevel,
-                        request.address, request.emergencyContact, request.bankDetails,
-                        request.roleId)));
+        Employee updated = employeeService.updateEmployee(id, currentUser.getOrgId(), request.firstName, request.lastName,
+                request.phone, request.dateOfBirth, request.gender, request.profilePhotoUrl,
+                request.employeeCode, request.dateOfJoining, request.employmentStatus, request.department,
+                request.designation, request.employmentType, request.workLocation, request.gradeLevel,
+                request.address, request.emergencyContact, request.bankDetails,
+                request.roleId);
+        return ResponseEntity.ok(ApiResponse.success("Employee updated successfully.", employeeMapper.toEmployeeResponse(updated)));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE') or #id.equals(authentication.principal.id)")
-    public ResponseEntity<ApiResponse<Employee>> getEmployee(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.success(employeeService.getEmployee(id)));
+    public ResponseEntity<ApiResponse<EmployeeResponse>> getEmployee(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(employeeMapper.toEmployeeResponse(employeeService.getEmployee(id))));
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public ResponseEntity<ApiResponse<org.springframework.data.domain.Page<Employee>>> getEmployees(
+    public ResponseEntity<ApiResponse<Page<EmployeeResponse>>> getEmployees(
             @AuthenticationPrincipal UserPrincipal currentUser,
-            org.springframework.data.domain.Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(employeeService.getEmployees(currentUser.getOrgId(), pageable)));
+            Pageable pageable) {
+        Page<EmployeeResponse> page = employeeService.getEmployees(currentUser.getOrgId(), pageable)
+                .map(employeeMapper::toEmployeeResponse);
+        return ResponseEntity.ok(ApiResponse.success(page));
     }
 
     @PostMapping("/{id}/personal")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN') or #id.equals(authentication.principal.id)")
-    public ResponseEntity<ApiResponse<Employee>> updatePersonal(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> updatePersonal(
             @PathVariable UUID id,
             @RequestBody PersonalDetailsRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success("Personal details updated successfully.",
-                employeeService.updatePersonalDetails(id, currentUser.getId(), request.firstName, request.lastName,
-                        request.dateOfBirth, request.gender, request.profilePhotoUrl)));
+        Employee updated = employeeService.updatePersonalDetails(id, currentUser.getId(), request.firstName, request.lastName,
+                request.dateOfBirth, request.gender, request.profilePhotoUrl);
+        return ResponseEntity.ok(ApiResponse.success("Personal details updated successfully.", employeeMapper.toEmployeeResponse(updated)));
     }
 
     @PostMapping("/{id}/employment")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public ResponseEntity<ApiResponse<Employee>> updateEmployment(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> updateEmployment(
             @PathVariable UUID id,
             @RequestBody EmploymentDetailsRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success("Employment details updated successfully.",
-                employeeService.updateEmploymentDetails(id, currentUser.getId(), request.employeeCode,
-                        request.dateOfJoining,
-                        request.employmentStatus, request.department, request.designation,
-                        request.employmentType, request.workLocation, request.gradeLevel)));
+        Employee updated = employeeService.updateEmploymentDetails(id, currentUser.getId(), request.employeeCode,
+                request.dateOfJoining,
+                request.employmentStatus, request.department, request.designation,
+                request.employmentType, request.workLocation, request.gradeLevel);
+        return ResponseEntity.ok(ApiResponse.success("Employment details updated successfully.", employeeMapper.toEmployeeResponse(updated)));
     }
 
     @PostMapping("/{id}/contact")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN') or #id.equals(authentication.principal.id)")
-    public ResponseEntity<ApiResponse<Employee>> updateContact(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> updateContact(
             @PathVariable UUID id,
             @RequestBody ContactInfoRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success("Contact info updated successfully.",
-                employeeService.updateContactInfo(id, currentUser.getId(), request.phone, request.address,
-                        request.emergencyContact)));
+        Employee updated = employeeService.updateContactInfo(id, currentUser.getId(), request.phone, request.address,
+                request.emergencyContact);
+        return ResponseEntity.ok(ApiResponse.success("Contact info updated successfully.", employeeMapper.toEmployeeResponse(updated)));
     }
 
     @PostMapping("/{id}/bank")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN') or #id.equals(authentication.principal.id)")
-    public ResponseEntity<ApiResponse<Employee>> updateBank(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> updateBank(
             @PathVariable UUID id,
             @RequestBody BankDetailsRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success("Bank details updated successfully.",
-                employeeService.updateBankDetails(id, currentUser.getId(), request.bankDetails, request.taxIdPan)));
+        Employee updated = employeeService.updateBankDetails(id, currentUser.getId(), request.bankDetails, request.taxIdPan);
+        return ResponseEntity.ok(ApiResponse.success("Bank details updated successfully.", employeeMapper.toEmployeeResponse(updated)));
     }
 
     @PostMapping("/{id}/manager")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public ResponseEntity<ApiResponse<Employee>> updateManager(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> updateManager(
             @PathVariable UUID id,
             @RequestBody UpdateManagerRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success("Manager updated successfully.",
-                employeeService.updateManager(id, request.managerId, currentUser.getId())));
+        Employee updated = employeeService.updateManager(id, request.managerId, currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success("Manager updated successfully.", employeeMapper.toEmployeeResponse(updated)));
     }
 
     @PostMapping("/{id}/status")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public ResponseEntity<ApiResponse<Employee>> updateStatus(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> updateStatus(
             @PathVariable UUID id,
             @RequestBody UpdateStatusRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success("Account status updated successfully.",
-                employeeService.updateAccountStatus(id, currentUser.getId(), request.enabled, request.accountLocked)));
+        Employee updated = employeeService.updateAccountStatus(id, currentUser.getId(), request.enabled, request.accountLocked);
+        return ResponseEntity.ok(ApiResponse.success("Account status updated successfully.", employeeMapper.toEmployeeResponse(updated)));
     }
 
     @PostMapping("/{id}/employment-status")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public ResponseEntity<ApiResponse<Employee>> updateEmploymentStatus(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> updateEmploymentStatus(
             @PathVariable UUID id,
             @RequestBody EmploymentStatusRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success("Employment status updated successfully.",
-                employeeService.updateEmploymentStatus(id, currentUser.getId(), request.employmentStatus)));
+        Employee updated = employeeService.updateEmploymentStatus(id, currentUser.getId(), request.employmentStatus);
+        return ResponseEntity.ok(ApiResponse.success("Employment status updated successfully.", employeeMapper.toEmployeeResponse(updated)));
     }
 
     @Data
@@ -200,7 +206,6 @@ public class EmployeeController {
         EmploymentType employmentType;
         String workLocation;
         String gradeLevel;
-        Role role;
     }
 
     @Data
@@ -235,13 +240,13 @@ public class EmployeeController {
 
     @PostMapping("/{id}/convert-to-fte")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN')")
-    public ResponseEntity<ApiResponse<Employee>> convertToFullTime(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> convertToFullTime(
             @PathVariable UUID id,
             @RequestBody(required = false) ConvertToFteRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
         LocalDate conversionDate = request != null ? request.conversionDate : null;
-        return ResponseEntity.ok(ApiResponse.success("Converted to FTE successfully.",
-                employeeService.convertToFullTime(id, currentUser.getId(), conversionDate)));
+        Employee updated = employeeService.convertToFullTime(id, currentUser.getId(), conversionDate);
+        return ResponseEntity.ok(ApiResponse.success("Converted to FTE successfully.", employeeMapper.toEmployeeResponse(updated)));
     }
 
     @Data
@@ -251,12 +256,12 @@ public class EmployeeController {
 
     @PostMapping("/{id}/password")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
-    public ResponseEntity<ApiResponse<Employee>> changePassword(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> changePassword(
             @PathVariable UUID id,
             @RequestBody ChangePasswordRequest request,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success("Password changed successfully.",
-                employeeService.changePassword(id, currentUser.getId(), request.newPassword)));
+        Employee updated = employeeService.changePassword(id, currentUser.getId(), request.newPassword);
+        return ResponseEntity.ok(ApiResponse.success("Password changed successfully.", employeeMapper.toEmployeeResponse(updated)));
     }
 
     @Data
@@ -265,22 +270,24 @@ public class EmployeeController {
         @jakarta.validation.constraints.Size(min = 8, max = 100)
         String newPassword;
     }
+
     @PostMapping("/{id}/photo")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE') or #id.equals(authentication.principal.id)")
-    public ResponseEntity<ApiResponse<Employee>> uploadPhoto(
+    public ResponseEntity<ApiResponse<EmployeeResponse>> uploadPhoto(
             @PathVariable UUID id,
             @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success("Photo uploaded successfully.",
-                employeeService.uploadProfilePhoto(id, currentUser.getId(), file)));
+        Employee updated = employeeService.uploadProfilePhoto(id, currentUser.getId(), file);
+        return ResponseEntity.ok(ApiResponse.success("Photo uploaded successfully.", employeeMapper.toEmployeeResponse(updated)));
     }
+
     @GetMapping("/{id}/photo")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'EMPLOYEE') or #id.equals(authentication.principal.id)")
     public ResponseEntity<org.springframework.core.io.Resource> getPhoto(@PathVariable UUID id) {
         org.springframework.core.io.Resource resource = employeeService.getProfilePhoto(id);
         String contentType = "image/jpeg";
         try {
-             if (resource.getFile().exists()) {
+            if (resource.getFile().exists()) {
                 contentType = java.nio.file.Files.probeContentType(resource.getFile().toPath());
             }
         } catch (Exception e) {

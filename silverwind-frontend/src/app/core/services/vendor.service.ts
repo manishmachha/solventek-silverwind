@@ -35,5 +35,4 @@ export class VendorService {
   updateVendorStatus(id: string, status: string) {
     return this.api.patch<Organization>(`/organizations/${id}/status`, { status });
   }
-
 }

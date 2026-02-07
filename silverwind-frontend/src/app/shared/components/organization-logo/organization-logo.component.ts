@@ -1,6 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Organization } from '../../../core/models/auth.model';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -29,7 +28,8 @@ import { environment } from '../../../../environments/environment';
   styles: [],
 })
 export class OrganizationLogoComponent implements OnChanges {
-  @Input() org?: Organization | null;
+  // Accept any object with name and optional logoUrl
+  @Input() org?: { name?: string; logoUrl?: string } | null;
   @Input() orgId?: string;
   @Input() name?: string;
   @Input() logoUrl?: string;

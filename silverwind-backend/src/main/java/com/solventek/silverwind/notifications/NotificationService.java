@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,14 +31,28 @@ public class NotificationService {
     private final ObjectMapper objectMapper;
     private final EmailService emailService;
 
-    // ========== RICH NOTIFICATION BUILDER ==========
+    // ========== ASYNC NOTIFICATION METHODS ==========
 
     /**
-     * Send a rich notification with all metadata
+     * Send a rich notification asynchronously with all metadata.
+     * This is the async entry point - runs in separate thread so main transaction is not blocked.
+     * NOTE: Returns Notification for backward compatibility, but the actual work is done async.
      */
-    @Transactional
     public Notification sendNotification(NotificationBuilder builder) {
-        log.debug("Sending notification of type: {} to user: {}", builder.category, builder.recipientId);
+        log.debug("Queueing async notification of type: {} to user: {}", builder.category, builder.recipientId);
+        // Fire and forget - async processing
+        processNotificationAsync(builder);
+        return null; // Caller doesn't need to wait for result
+    }
+
+    /**
+     * Internal async method that actually processes the notification.
+     * Runs in a separate thread to not block the main transaction.
+     */
+    @Async
+    @Transactional
+    public void processNotificationAsync(NotificationBuilder builder) {
+        log.debug("Processing async notification of type: {} to user: {}", builder.category, builder.recipientId);
         try {
             Employee recipient = employeeRepository.getReferenceById(builder.recipientId);
 
@@ -54,9 +69,9 @@ public class NotificationService {
                     .metadata(serializeMetadata(builder.metadata))
                     .build();
 
-            Notification savedNote = notificationRepository.save(note);
+            notificationRepository.save(note);
 
-            // Send Email
+            // Send Email (also async via EmailService)
             if (recipient.getEmail() != null && !recipient.getEmail().isEmpty()) {
                 emailService.sendSimpleMessage(
                         recipient.getEmail(),
@@ -64,19 +79,18 @@ public class NotificationService {
                         builder.body);
             }
 
-            return savedNote;
+            log.debug("Async notification sent successfully to {}", builder.recipientId);
         } catch (Exception e) {
-            log.error("Failed to send notification to {}: {}", builder.recipientId, e.getMessage(), e);
-            throw e;
+            log.error("Failed to send async notification to {}: {}", builder.recipientId, e.getMessage(), e);
+            // Don't rethrow - notification failure shouldn't affect main flow
         }
     }
 
     /**
-     * Simple notification (backward compatible)
+     * Simple notification (backward compatible) - delegates to async processing
      */
-    @Transactional
     public void sendNotification(UUID recipientId, String title, String body, String refType, UUID refId) {
-        log.trace("Sending simple notification to {}: {}", recipientId, title);
+        log.trace("Queueing simple notification to {}: {}", recipientId, title);
         sendNotification(NotificationBuilder.create()
                 .recipient(recipientId)
                 .title(title)
@@ -86,9 +100,8 @@ public class NotificationService {
     }
 
     /**
-     * Send notification to all users of an organization
+     * Send notification to all users of an organization (async for each)
      */
-    @Transactional
     public void sendNotificationToOrgAdmins(UUID orgId, String title, String body, String refType, UUID refId) {
         log.debug("Sending notifications to Org Admins of Org ID: {}", orgId);
         List<Employee> admins = employeeRepository.findByOrganizationId(orgId);
@@ -98,9 +111,8 @@ public class NotificationService {
     }
 
     /**
-     * Send rich notification to all users of an organization
+     * Send rich notification to all users of an organization (async for each)
      */
-    @Transactional
     public void sendNotificationToOrg(UUID orgId, NotificationBuilder builder) {
         log.debug("Sending bulk notification to all users in Org ID: {}", orgId);
         List<Employee> users = employeeRepository.findByOrganizationId(orgId);

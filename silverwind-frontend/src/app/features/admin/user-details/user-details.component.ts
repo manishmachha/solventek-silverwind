@@ -158,7 +158,7 @@ export class UserDetailsComponent implements OnInit {
     const id = this.user()?.id;
     if (!id) return;
 
-    this.userService.updateEmploymentStatus(id, status).subscribe({
+    this.userService.updateEmploymentStatus(id, { employmentStatus: status as any }).subscribe({
       next: () => this.loadUser(id),
       error: (err) => console.error('Failed to update status', err),
     });
@@ -192,7 +192,7 @@ export class UserDetailsComponent implements OnInit {
     const enabled = type === 'ENABLED' ? value : undefined;
     const locked = type === 'LOCKED' ? value : undefined;
 
-    this.userService.updateStatus(id, enabled, locked).subscribe({
+    this.userService.updateStatus(id, { enabled, accountLocked: locked }).subscribe({
       next: () => this.loadUser(id),
       error: (err) => {
         console.error('Failed to update access settings', err);
