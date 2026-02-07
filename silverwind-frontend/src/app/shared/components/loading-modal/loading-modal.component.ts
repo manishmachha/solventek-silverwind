@@ -9,7 +9,7 @@ import { LoadingService } from '../../../core/services/loading.service';
   template: `
     <div
       *ngIf="isOpen || loadingService.isLoading()"
-      class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center transition-opacity duration-300"
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm z-9999 flex items-center justify-center transition-opacity duration-300"
     >
       <div class="bg-white rounded-2xl p-8 flex flex-col items-center shadow-xl animate-fade-in-up">
         <div

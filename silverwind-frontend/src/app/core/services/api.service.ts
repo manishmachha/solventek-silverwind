@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -16,8 +16,12 @@ export class ApiService {
     return throwError(() => error);
   }
 
-  get<T>(path: string, params: HttpParams = new HttpParams()): Observable<T> {
-    return this.http.get<ApiResponse<T>>(`${this.apiUrl}${path}`, { params }).pipe(
+  get<T>(
+    path: string,
+    params: HttpParams = new HttpParams(),
+    headers?: HttpHeaders,
+  ): Observable<T> {
+    return this.http.get<ApiResponse<T>>(`${this.apiUrl}${path}`, { params, headers }).pipe(
       map((response: ApiResponse<T>) => response.data),
       catchError(this.formatErrors),
     );

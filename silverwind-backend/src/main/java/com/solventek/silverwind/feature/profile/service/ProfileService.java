@@ -6,7 +6,6 @@ import com.solventek.silverwind.feature.profile.entity.*;
 import com.solventek.silverwind.feature.profile.repository.*;
 import com.solventek.silverwind.storage.StorageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

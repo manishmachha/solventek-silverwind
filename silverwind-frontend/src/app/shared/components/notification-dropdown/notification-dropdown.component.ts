@@ -155,7 +155,7 @@ export class NotificationDropdownComponent implements OnInit {
     this.loadUnreadCount();
 
     // Poll every 10 seconds
-    interval(10000)
+    interval(5000)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.loadUnreadCount();
@@ -166,7 +166,7 @@ export class NotificationDropdownComponent implements OnInit {
   }
 
   loadUnreadCount() {
-    this.notificationService.getUnreadCount().subscribe({
+    this.notificationService.getUnreadCount(true).subscribe({
       next: (count) => this.unreadCount.set(count),
       error: () => this.unreadCount.set(0),
     });

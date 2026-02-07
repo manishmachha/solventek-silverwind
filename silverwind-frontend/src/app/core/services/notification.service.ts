@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { ApiService } from './api.service';
 import { Page } from '../models/page.model';
-import { HttpParams } from '@angular/common/http';
+import { HttpParams, HttpHeaders } from '@angular/common/http';
 import { interval } from 'rxjs';
 
 export interface Notification {
@@ -63,7 +63,7 @@ export class NotificationService {
   }
 
   refreshCounts() {
-    this.getCountByCategory().subscribe({
+    this.getCountByCategory(true).subscribe({
       next: (counts) => this.notificationCounts.set(counts),
       error: () => this.notificationCounts.set(null),
     });
@@ -79,12 +79,20 @@ export class NotificationService {
     return this.api.get<Page<Notification>>(`/notifications/category/${category}`, params);
   }
 
-  getUnreadCount() {
-    return this.api.get<number>('/notifications/unread-count');
+  getUnreadCount(skipLoading: boolean = false) {
+    let headers;
+    if (skipLoading) {
+      headers = new HttpHeaders().set('X-Skip-Loading', 'true');
+    }
+    return this.api.get<number>('/notifications/unread-count', undefined, headers);
   }
 
-  getCountByCategory() {
-    return this.api.get<NotificationCounts>('/notifications/count-by-category');
+  getCountByCategory(skipLoading: boolean = false) {
+    let headers;
+    if (skipLoading) {
+      headers = new HttpHeaders().set('X-Skip-Loading', 'true');
+    }
+    return this.api.get<NotificationCounts>('/notifications/count-by-category', undefined, headers);
   }
 
   getUnreadEntityIds(category: string) {
