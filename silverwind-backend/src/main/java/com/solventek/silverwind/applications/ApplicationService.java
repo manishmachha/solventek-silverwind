@@ -42,6 +42,7 @@ public class ApplicationService {
         private final TimelineService timelineService;
         private final EmployeeRepository employeeRepository;
         private final NotificationService notificationService;
+        private final com.solventek.silverwind.notifications.EmailService emailService;
 
         // AI & Documents Dependencies
         private final ResumeIngestionService ingestionService;
@@ -85,9 +86,9 @@ public class ApplicationService {
                         // Determine folder structure names for potential use
                         String vendorName = "Direct_Applicants";
                         if (vendor != null) {
-                            vendorName = vendor.getName().replaceAll("[^a-zA-Z0-9._-]", "_");
+                            vendorName = vendor.getName().replaceAll("[^a-zA-Z0-9_-]", "_");
                         }
-                        String applicantName = (request.getFirstName() + "_" + request.getLastName()).replaceAll("[^a-zA-Z0-9._-]", "_");
+                        String applicantName = (request.getFirstName() + "_" + request.getLastName()).replaceAll("[^a-zA-Z0-9_-]", "_");
                         
                         // Construct target resume path: job-applications/<vendor>/<applicant>/resume/<applicant>.ext
                         // Note: Extension might be unknown if we don't have the file yet, but we will determine it.
@@ -153,6 +154,7 @@ public class ApplicationService {
                                         .email(request.getEmail())
                                         .email(request.getEmail())
                                         .phone(request.getPhone())
+                                        .dob(request.getDob())
                                         .candidate(existingCandidate)
                                         .resumeUrl(request.getResumeUrl()) // Optional external URL
                                         .resumeFilePath(resumePath) // Internal Path
@@ -222,6 +224,42 @@ public class ApplicationService {
                                                 .actionUrl("/applications/" + app.getId())
                                                 .icon("bi-check-circle")
                                 );
+                        }
+
+                        // Send Rich Email to Candidate (Application ID + DOB reminder)
+                        try {
+                            String trackingLink = "http://localhost:4200/track"; // TO-DO: Use env config
+                            String htmlBody = String.format("""
+                                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                                    <div style="text-align: center; margin-bottom: 20px;">
+                                        <h2 style="color: #2c3e50;">Application Received!</h2>
+                                    </div>
+                                    <p>Dear %s,</p>
+                                    <p>Thank you for applying for the position of <strong>%s</strong> at <strong>%s</strong>.</p>
+                                    
+                                    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #0d6efd;">
+                                        <p style="margin: 0; font-size: 14px; color: #6c757d;">Your Application ID:</p>
+                                        <p style="margin: 5px 0 0; font-size: 24px; font-weight: bold; color: #0d6efd;">#%s</p>
+                                        <p style="margin: 10px 0 0; font-size: 12px; color: #6c757d;">Keep this ID safe. You will need it along with your Date of Birth to track your application.</p>
+                                    </div>
+
+                                    <div style="text-align: center; margin-top: 30px;">
+                                        <a href="%s" style="background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Track Application Status</a>
+                                    </div>
+                                    
+                                    <p style="margin-top: 30px; font-size: 12px; color: #999;">If you did not submit this application, please ignore this email.</p>
+                                </div>
+                                """, 
+                                request.getFirstName(), 
+                                job.getTitle(), 
+                                job.getOrganization().getName(),
+                                app.getId(), 
+                                trackingLink
+                            );
+
+                            emailService.sendRichMessage(request.getEmail(), "Application Received - " + job.getTitle(), htmlBody);
+                        } catch (Exception e) {
+                            log.error("Failed to construct/send candidate email", e);
                         }
 
                         // Trigger AI Analysis AFTER the transaction commits
@@ -472,9 +510,9 @@ public class ApplicationService {
                 // Determine folder structure names
                 String vendorName = "Direct_Applicants";
                 if (app.getVendor() != null) {
-                    vendorName = app.getVendor().getName().replaceAll("[^a-zA-Z0-9._-]", "_");
+                    vendorName = app.getVendor().getName().replaceAll("[^a-zA-Z0-9_-]", "_");
                 }
-                String applicantName = (app.getFirstName() + "_" + app.getLastName()).replaceAll("[^a-zA-Z0-9._-]", "_");
+                String applicantName = (app.getFirstName() + "_" + app.getLastName()).replaceAll("[^a-zA-Z0-9_-]", "_");
                 
                 String originalFilename = file.getOriginalFilename();
                 String extension = "";
@@ -490,8 +528,8 @@ public class ApplicationService {
                     }
                 }
                 
-                String sanitizedCategory = category.replaceAll("[^a-zA-Z0-9._-]", "_");
-                String sanitizedFilename = baseFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
+                String sanitizedCategory = category.replaceAll("[^a-zA-Z0-9_-]", "_");
+                String sanitizedFilename = baseFilename.replaceAll("[^a-zA-Z0-9_-]", "_");
                 
                 // Construct path: job-applications/<vendor>/<applicant>/documents/<category>-<filename>.ext
                 String customPath = String.format("job-applications/%s/%s/documents/%s-%s%s", 

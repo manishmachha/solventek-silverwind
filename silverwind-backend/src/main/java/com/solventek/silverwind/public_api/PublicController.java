@@ -2,6 +2,7 @@ package com.solventek.silverwind.public_api;
 
 import com.solventek.silverwind.applications.ApplicationController;
 import com.solventek.silverwind.applications.ApplicationService;
+import com.solventek.silverwind.applications.JobApplication;
 import com.solventek.silverwind.common.ApiResponse;
 import com.solventek.silverwind.jobs.Job;
 import com.solventek.silverwind.jobs.JobService;
@@ -29,13 +30,13 @@ public class PublicController {
     }
 
     @PostMapping(value = "/applications/jobs/{jobId}/apply", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<Void>> apply(
+    public ResponseEntity<ApiResponse<JobApplication>> apply(
             @PathVariable UUID jobId,
             @RequestPart("data") ApplicationController.ApplyRequest request,
             @RequestPart(value = "resume", required = false) MultipartFile resume) {
         
         // Pass null for vendorOrgId as this is a public application
-        applicationService.apply(jobId, request, resume, null);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        JobApplication app = applicationService.apply(jobId, request, resume, null);
+        return ResponseEntity.ok(ApiResponse.success(app));
     }
 }

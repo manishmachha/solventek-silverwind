@@ -64,6 +64,7 @@ public class ApplicationController {
         @NotBlank
         private String email;
         private String phone;
+        private java.time.LocalDate dob;
         private String resumeUrl;
         private String currentTitle;
         private String currentCompany;

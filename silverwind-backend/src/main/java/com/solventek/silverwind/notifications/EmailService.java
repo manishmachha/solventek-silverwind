@@ -37,4 +37,27 @@ public class EmailService {
             // Don't rethrow - email failure shouldn't affect main flow
         }
     }
+
+    /**
+     * Sends a rich HTML email asynchronously.
+     */
+    @Async
+    public void sendRichMessage(String to, String subject, String htmlBody) {
+        try {
+            jakarta.mail.internet.MimeMessage message = emailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = 
+                new org.springframework.mail.javamail.MimeMessageHelper(message, true, "UTF-8");
+            
+            log.info("Sending rich email to {} (async)", to);
+            helper.setFrom("hr.alerts@solventek.com");
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlBody, true); // true = html
+            
+            emailSender.send(message);
+            log.info("Rich email sent successfully to {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send rich email to {}: {}", to, e.getMessage());
+        }
+    }
 }

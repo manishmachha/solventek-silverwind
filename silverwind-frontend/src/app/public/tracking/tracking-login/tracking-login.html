@@ -1,88 +1,176 @@
-<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-  <div class="sm:mx-auto sm:w-full sm:max-w-md">
-    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Track Application</h2>
-    <p class="mt-2 text-center text-sm text-gray-600">
-      Enter your Application ID and Date of Birth
-    </p>
+<div class="min-h-screen relative flex items-center justify-center overflow-hidden bg-slate-900">
+  <!-- Animated Background Shapes -->
+  <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div
+      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-3xl opacity-30 animate-pulse"
+    ></div>
   </div>
 
-  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-    <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6">
-        <!-- App ID -->
-        <div>
-          <label for="appId" class="block text-sm font-medium text-gray-700">Application ID</label>
-          <div class="mt-1">
-            <input
-              formControlName="applicationId"
-              type="text"
-              class="appearance-none text-black block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-            <p
-              *ngIf="
-                form.get('applicationId')?.hasError('required') &&
-                form.get('applicationId')?.touched
-              "
-              class="mt-1 text-xs text-red-500"
-            >
-              Application ID is required
-            </p>
-            <p
-              *ngIf="
-                form.get('applicationId')?.hasError('pattern') && form.get('applicationId')?.touched
-              "
-              class="mt-1 text-xs text-red-500"
-            >
-              Must be numeric
-            </p>
-          </div>
-        </div>
+  <!-- Main Container -->
+  <div class="w-full max-w-[1000px] grid md:grid-cols-2 gap-8 p-4 relative z-10">
+    <!-- Left Side: Welcome -->
+    <div class="hidden md:flex flex-col justify-center p-8 text-white">
+      <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+        Track Your <br />
+        <span class="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-indigo-500"
+          >Application</span
+        >
+      </h1>
+      <p class="text-lg text-slate-400 mb-8 leading-relaxed">
+        Stay updated on your journey with Solventek. Enter your credentials to view real-time status
+        and upcoming steps.
+      </p>
 
-        <!-- DOB -->
+      <div class="flex items-center gap-4">
+        <div class="p-3 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm">
+          <i class="bi bi-shield-check text-2xl text-green-400"></i>
+        </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700">Date of Birth</label>
-          <div class="mt-1">
-            <div class="relative">
-              <input
-                [matDatepicker]="picker"
-                formControlName="dateOfBirth"
-                class="appearance-none text-black block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                (click)="picker.open()"
-                readonly
+          <p class="font-semibold text-white">Secure Access</p>
+          <p class="text-sm text-slate-400">Your data is protected at all times</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side: Login Form -->
+    <div class="glass-card rounded-2xl p-8 md:p-10 w-full max-w-md mx-auto">
+      <!-- Logo & Header -->
+      <div class="text-center mb-8">
+        <div
+          class="w-16 h-16 bg-white/10 rounded-2xl shadow-lg border border-white/10 mx-auto flex items-center justify-center mb-4 p-3 backdrop-blur-sm"
+        >
+          <i class="bi bi-person-badge text-3xl text-indigo-400"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-white">Application Status</h2>
+        <p class="text-slate-400 text-sm mt-1">Enter your App ID & DOB</p>
+      </div>
+
+      <!-- Error Alert -->
+      <div
+        *ngIf="error"
+        class="mb-6 bg-red-500/10 border-l-4 border-red-500 p-4 rounded-r animate-fade-in"
+      >
+        <div class="flex">
+          <div class="shrink-0">
+            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clip-rule="evenodd"
               />
-              <mat-datepicker-toggle
-                matSuffix
-                [for]="picker"
-                class="absolute right-0 top-0"
-              ></mat-datepicker-toggle>
-              <mat-datepicker #picker></mat-datepicker>
-            </div>
-            <p
-              *ngIf="
-                form.get('dateOfBirth')?.hasError('required') && form.get('dateOfBirth')?.touched
-              "
-              class="mt-1 text-xs text-red-500"
-            >
-              Date of Birth is required
-            </p>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm text-red-200">{{ error }}</p>
           </div>
         </div>
+      </div>
 
-        <div *ngIf="error" class="text-red-500 text-sm text-center">
-          {{ error }}
-        </div>
-
-        <div>
-          <button
-            type="submit"
-            [disabled]="isLoading"
-            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
+        <!-- Application ID -->
+        <div class="space-y-1.5">
+          <label class="block text-sm font-semibold text-slate-300 ml-1">Application ID</label>
+          <div class="relative group">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500"
+            >
+              <i class="bi bi-hash text-lg"></i>
+            </div>
+            <input
+              type="text"
+              formControlName="applicationId"
+              class="custom-input block w-full pl-10 pr-3 py-3 rounded-xl text-sm placeholder-slate-500 focus:outline-none"
+              placeholder="e.g. 12345"
+              [class.border-red-500]="
+                form.get('applicationId')?.invalid && form.get('applicationId')?.touched
+              "
+            />
+          </div>
+          <p
+            *ngIf="
+              form.get('applicationId')?.hasError('required') && form.get('applicationId')?.touched
+            "
+            class="text-red-400 text-xs ml-1"
           >
-            <span *ngIf="!isLoading">Track Status</span>
-            <span *ngIf="isLoading">Verifying...</span>
-          </button>
+            Application ID is required
+          </p>
         </div>
+
+        <!-- Date of Birth -->
+        <div class="space-y-1.5">
+          <label class="block text-sm font-semibold text-slate-300 ml-1">Date of Birth</label>
+          <div class="relative group">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500"
+            >
+              <i class="bi bi-calendar text-lg"></i>
+            </div>
+            <input
+              [matDatepicker]="picker"
+              formControlName="dateOfBirth"
+              class="custom-input block w-full pl-10 pr-10 py-3 rounded-xl text-sm placeholder-slate-500 focus:outline-none cursor-pointer"
+              placeholder="MM/DD/YYYY"
+              (click)="picker.open()"
+              readonly
+              [class.border-red-500]="
+                form.get('dateOfBirth')?.invalid && form.get('dateOfBirth')?.touched
+              "
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="picker"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-indigo-400"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </div>
+          <p
+            *ngIf="
+              form.get('dateOfBirth')?.hasError('required') && form.get('dateOfBirth')?.touched
+            "
+            class="text-red-400 text-xs ml-1"
+          >
+            Date of Birth is required
+          </p>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          [disabled]="form.invalid || isLoading"
+          class="btn-gradient w-full text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-4 hover:shadow-indigo-500/50"
+        >
+          <span *ngIf="!isLoading">Track Status</span>
+          <span *ngIf="isLoading" class="flex items-center">
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            Verifying...
+          </span>
+          <i *ngIf="!isLoading" class="bi bi-arrow-right"></i>
+        </button>
       </form>
+
+      <div class="mt-8 text-center">
+        <a
+          routerLink="/careers"
+          class="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
+          >Back to Careers</a
+        >
+      </div>
     </div>
   </div>
 </div>

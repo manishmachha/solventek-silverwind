@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -31,10 +31,11 @@ export class TrackingDashboardComponent implements OnInit {
   dashboardData: CandidateDashboardDTO | null = null;
   newComment: string = '';
   isSending = false;
-  
+
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private trackingService = inject(TrackingService);
+  private cdr = inject(ChangeDetectorRef);
 
   ngOnInit() {
     this.route.paramMap.subscribe((params) => {
@@ -51,6 +52,7 @@ export class TrackingDashboardComponent implements OnInit {
     this.trackingService.getDashboard(token).subscribe({
       next: (data) => {
         this.dashboardData = data;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.router.navigate(['/track']);

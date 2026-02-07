@@ -1,11 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface CandidateDashboardDTO {
-  applicationId: number;
+  applicationId: string;
   candidateName: string;
+  jobTitle: string;
   status: string;
   currentStage: string;
   appliedAt: string;
@@ -38,25 +40,33 @@ export class TrackingService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/tracking`;
 
-  login(applicationId: number, dateOfBirth: string): Observable<CandidateDashboardDTO> {
-    return this.http.post<CandidateDashboardDTO>(`${this.apiUrl}/login`, {
-      applicationId,
-      dateOfBirth,
-    });
+  login(applicationId: string, dateOfBirth: string): Observable<CandidateDashboardDTO> {
+    return this.http
+      .post<any>(`${this.apiUrl}/login`, {
+        applicationId,
+        dateOfBirth,
+      })
+      .pipe(map((response) => response.data));
   }
 
   getDashboard(token: string): Observable<CandidateDashboardDTO> {
-    return this.http.get<CandidateDashboardDTO>(`${this.apiUrl}/dashboard/${token}`);
+    return this.http
+      .get<any>(`${this.apiUrl}/dashboard/${token}`)
+      .pipe(map((response) => response.data));
   }
 
-  addComment(applicationId: number, comment: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${applicationId}/comment`, { comment });
+  addComment(applicationId: string, comment: string): Observable<void> {
+    return this.http
+      .post<any>(`${this.apiUrl}/${applicationId}/comment`, { comment })
+      .pipe(map((response) => response.data));
   }
 
-  uploadDocument(applicationId: number, category: string, file: File): Observable<void> {
+  uploadDocument(applicationId: string, category: string, file: File): Observable<void> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('category', category);
-    return this.http.post<void>(`${this.apiUrl}/${applicationId}/documents`, formData);
+    return this.http
+      .post<any>(`${this.apiUrl}/${applicationId}/documents`, formData)
+      .pipe(map((response) => response.data));
   }
 }

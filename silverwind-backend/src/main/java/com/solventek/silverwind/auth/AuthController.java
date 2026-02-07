@@ -1,9 +1,6 @@
 package com.solventek.silverwind.auth;
 
 import com.solventek.silverwind.common.ApiResponse;
-import com.solventek.silverwind.auth.Employee;
-import com.solventek.silverwind.auth.EmployeeDto;
-import com.solventek.silverwind.auth.EmployeeService;
 import com.solventek.silverwind.org.Organization;
 import com.solventek.silverwind.org.OrganizationService;
 import com.solventek.silverwind.org.OrganizationStatus;

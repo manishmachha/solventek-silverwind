@@ -35,7 +35,7 @@ export class TrackingLoginComponent {
   error = '';
 
   form: FormGroup = this.fb.group({
-    applicationId: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    applicationId: ['', [Validators.required]],
     dateOfBirth: [null, Validators.required],
   });
 
@@ -56,7 +56,7 @@ export class TrackingLoginComponent {
     const day = String(dobDate.getDate()).padStart(2, '0');
     const dob = `${year}-${month}-${day}`;
 
-    this.trackingService.login(Number(applicationId), dob).subscribe({
+    this.trackingService.login(applicationId, dob).subscribe({
       next: (dashboardData) => {
         // Store auth data for persistence
         sessionStorage.setItem('tracking_auth', JSON.stringify({ id: applicationId, dob }));

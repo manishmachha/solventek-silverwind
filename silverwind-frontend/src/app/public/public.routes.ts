@@ -53,7 +53,7 @@ export const PUBLIC_ROUTES: Routes = [
         data: { animation: 'TrackingLoginPage' },
       },
       {
-        path: 'dashboard',
+        path: 'dashboard/:token',
         loadComponent: () =>
           import('./tracking/tracking-dashboard/tracking-dashboard.component').then(
             (m) => m.TrackingDashboardComponent,

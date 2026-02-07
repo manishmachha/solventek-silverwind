@@ -1,13 +1,21 @@
 import { Component, Inject, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import {
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+  MatDialog,
+} from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApplicationService } from '../../../core/services/application.service';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { ApplicationSuccessDialogComponent } from '../application-success-dialog/application-success-dialog.component';
 
 @Component({
   selector: 'app-job-application-dialog',
@@ -21,7 +29,12 @@ import { ApplicationService } from '../../../core/services/application.service';
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
   ],
+  providers: [],
   templateUrl: './job-application-dialog.html',
   styleUrl: './job-application-dialog.css',
 })
@@ -30,6 +43,7 @@ export class JobApplicationDialogComponent {
   private applicationService = inject(ApplicationService);
   private snackBar = inject(MatSnackBar);
   public dialogRef = inject(MatDialogRef<JobApplicationDialogComponent>);
+  private dialog = inject(MatDialog);
 
   // Injected data (Job ID and Title)
   constructor(@Inject(MAT_DIALOG_DATA) public data: { jobId: number; jobTitle: string }) {}
@@ -43,6 +57,7 @@ export class JobApplicationDialogComponent {
     phone: ['', [Validators.required, Validators.pattern(/^[+]?\d{10,15}$/)]],
     experienceYears: [1, [Validators.required, Validators.min(0), Validators.max(50)]],
     currentCompany: ['', [Validators.maxLength(100)]],
+    dateOfBirth: [null, Validators.required],
     // resume is handled separately
   });
 
@@ -60,17 +75,25 @@ export class JobApplicationDialogComponent {
       const formData = new FormData();
       const nameParts = this.form.value.candidateName!.trim().split(' ');
       const firstName = nameParts[0];
-      const lastName = nameParts.slice(1).join(' ') || '.'; // Default to dot if no last name
+      const lastName = nameParts.slice(1).join(' ') || '.';
 
-      const applicationData = {
+      const applicationData: any = {
         firstName: firstName,
         lastName: lastName,
         email: this.form.value.email,
         phone: this.form.value.phone,
         experienceYears: this.form.value.experienceYears,
         currentCompany: this.form.value.currentCompany,
-        skills: [], // API expects list even if empty
+        skills: [],
       };
+
+      if (this.form.value.dateOfBirth) {
+        const d = new Date(this.form.value.dateOfBirth);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        applicationData.dob = `${year}-${month}-${day}`;
+      }
 
       formData.append(
         'data',
@@ -79,12 +102,28 @@ export class JobApplicationDialogComponent {
       formData.append('resume', this.resumeFile);
 
       this.applicationService.publicApply(this.data.jobId.toString(), formData).subscribe({
-        next: () => {
-          this.snackBar.open('Application submitted successfully!', 'Close', {
-            duration: 3000,
-            panelClass: ['success-snackbar'],
-          });
-          this.dialogRef.close(true);
+        next: (response: any) => {
+          this.isSubmitting.set(false);
+          this.dialogRef.close();
+
+          // The ApiService unwraps the response, so 'response' is the JobApplication object directly
+          const appId = response?.id || response?.applicationId;
+
+          if (appId) {
+            this.dialog.open(ApplicationSuccessDialogComponent, {
+              data: {
+                applicationId: appId,
+                jobTitle: this.data.jobTitle,
+                candidateName: firstName,
+              },
+              width: '500px',
+            });
+          } else {
+            this.snackBar.open('Application submitted successfully!', 'Close', {
+              duration: 3000,
+              panelClass: ['success-snackbar'],
+            });
+          }
         },
         error: (err) => {
           console.error(err);

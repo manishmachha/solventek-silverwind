@@ -9,6 +9,7 @@ import com.solventek.silverwind.notifications.Notification.NotificationPriority;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
@@ -30,6 +31,7 @@ public class NotificationService {
     private final EmployeeRepository employeeRepository;
     private final ObjectMapper objectMapper;
     private final EmailService emailService;
+    private final ApplicationContext applicationContext;
 
     // ========== ASYNC NOTIFICATION METHODS ==========
 
@@ -40,8 +42,8 @@ public class NotificationService {
      */
     public Notification sendNotification(NotificationBuilder builder) {
         log.debug("Queueing async notification of type: {} to user: {}", builder.category, builder.recipientId);
-        // Fire and forget - async processing
-        processNotificationAsync(builder);
+        // Fire and forget - async processing (via proxy to ensure @Transactional works)
+        applicationContext.getBean(NotificationService.class).processNotificationAsync(builder);
         return null; // Caller doesn't need to wait for result
     }
 

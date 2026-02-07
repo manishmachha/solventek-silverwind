@@ -73,6 +73,38 @@
       </div>
     </div>
 
+    <!-- DOB Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700"
+          >Date of Birth
+          <span class="text-xs text-gray-500 font-normal">(Required for tracking)</span></label
+        >
+        <div class="relative">
+          <input
+            [matDatepicker]="picker"
+            formControlName="dateOfBirth"
+            placeholder="MM/DD/YYYY"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400"
+            (click)="picker.open()"
+            readonly
+          />
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="picker"
+            class="absolute right-2 top-1 text-gray-400"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </div>
+        <span
+          *ngIf="form.get('dateOfBirth')?.hasError('required') && form.get('dateOfBirth')?.touched"
+          class="text-xs text-red-500"
+        >
+          Required
+        </span>
+      </div>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium text-gray-700">Experience (Years)</label>

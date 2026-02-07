@@ -35,7 +35,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/public/**", "/actuator/**", "/api/files/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/public/**", "/actuator/**", "/api/files/**", "/api/tracking/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/organizations/*/logo")
                         .permitAll()
                         .anyRequest().authenticated())

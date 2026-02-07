@@ -20,7 +20,7 @@ export class ApplicationService {
   }
 
   publicApply(jobId: string, formData: FormData) {
-    return this.api.post<void>(`/public/applications/jobs/${jobId}/apply`, formData);
+    return this.api.post<JobApplication>(`/public/applications/jobs/${jobId}/apply`, formData);
   }
 
   getApplications(

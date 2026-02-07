@@ -38,6 +38,8 @@ public class JobApplication extends BaseEntity {
     private String phone;
     private String resumeUrl;
 
+    private java.time.LocalDate dob;
+
     private String currentTitle;
     private String currentCompany;
     private Double experienceYears;
