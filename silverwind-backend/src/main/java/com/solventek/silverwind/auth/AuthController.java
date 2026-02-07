@@ -1,6 +1,9 @@
 package com.solventek.silverwind.auth;
 
 import com.solventek.silverwind.common.ApiResponse;
+import com.solventek.silverwind.auth.Employee;
+import com.solventek.silverwind.auth.EmployeeDto;
+import com.solventek.silverwind.auth.EmployeeService;
 import com.solventek.silverwind.org.Organization;
 import com.solventek.silverwind.org.OrganizationService;
 import com.solventek.silverwind.org.OrganizationStatus;
@@ -34,6 +37,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
     private final OrganizationService organizationService;
+    private final EmployeeService employeeService;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody @Valid LoginRequest request) {
@@ -63,6 +67,9 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = tokenProvider.generateToken(authentication, new HashMap<>());
 
+        // Fetch enhanced employee (with presigned URL)
+        Employee employee = employeeService.getEmployee(userPrincipal.getId());
+
         EmployeeDto userDto = EmployeeDto.builder()
                 .id(userPrincipal.getId())
                 .email(userPrincipal.getEmail())
@@ -72,6 +79,7 @@ public class AuthController {
                 .orgType(userPrincipal.getOrgType())
                 .role(userPrincipal.getRole())
                 .organization(org)
+                .profilePhotoUrl(employee.getProfilePhotoUrl())
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(new AuthResponse(token, "refresh-token-placeholder", userDto)));
@@ -96,6 +104,9 @@ public class AuthController {
             }
         }
 
+        // Fetch enhanced employee for profile photo
+        Employee employee = employeeService.getEmployee(userPrincipal.getId());
+
         EmployeeDto userDto = EmployeeDto.builder()
                 .id(userPrincipal.getId())
                 .email(userPrincipal.getEmail())
@@ -105,6 +116,7 @@ public class AuthController {
                 .orgType(userPrincipal.getOrgType())
                 .role(userPrincipal.getRole())
                 .organization(org)
+                .profilePhotoUrl(employee.getProfilePhotoUrl())
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(userDto));

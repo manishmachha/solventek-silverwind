@@ -1,6 +1,5 @@
-import { Component, Input, OnChanges, SimpleChanges, inject, signal } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-user-avatar',
@@ -11,14 +10,11 @@ import { UserService } from '../../../core/services/user.service';
       class="w-full h-full flex items-center justify-center overflow-hidden bg-gray-200 relative"
     >
       <img
-        *ngIf="photoUrl(); else initialsTemplate"
-        [src]="photoUrl()"
+        [src]="avatarUrl()"
         class="w-full h-full object-cover"
         alt="User"
+        (error)="onImageError()"
       />
-      <ng-template #initialsTemplate>
-        <span class="font-medium text-gray-600" [ngClass]="fontSizeClass">{{ initials() }}</span>
-      </ng-template>
     </div>
   `,
   styles: [
@@ -40,48 +36,43 @@ export class UserAvatarComponent implements OnChanges {
   } | null = null;
   @Input() fontSizeClass = 'text-xs';
 
-  userService = inject(UserService);
-  photoUrl = signal<string | null>(null);
-  initials = signal<string>('');
+  avatarUrl = signal<string>('');
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['user'] && this.user) {
-      this.updateInitials();
-      this.loadPhoto();
+    if (changes['user']) {
+      this.updateAvatarUrl();
     }
   }
 
-  private updateInitials() {
-    if (this.user) {
-      const first = this.user.firstName?.charAt(0) || '';
-      const last = this.user.lastName?.charAt(0) || '';
-      this.initials.set((first + last).toUpperCase());
-    }
-  }
-
-  private loadPhoto() {
+  private updateAvatarUrl() {
     if (this.user?.profilePhotoUrl) {
       if (
         this.user.profilePhotoUrl.startsWith('/api') ||
         !this.user.profilePhotoUrl.startsWith('http')
       ) {
-        // Assuming relative paths or /api paths need fetching as blob for auth
-        this.userService.getProfilePhoto(this.user.id).subscribe({
-          next: (blob) => {
-            const objectUrl = URL.createObjectURL(blob);
-            this.photoUrl.set(objectUrl);
-          },
-          error: (err) => {
-            console.error('Failed to load profile photo', err);
-            this.photoUrl.set(null);
-          },
-        });
+        // It's a relative path or API path, assume it handles itself (or we could prefix it if needed)
+        // But the previous issue was fetching it as a blob. Here we just set it as src.
+        // If the backend returns 500, we need to handle error.
+        this.avatarUrl.set(this.user.profilePhotoUrl);
       } else {
-        // Public/Absolute URL
-        this.photoUrl.set(this.user.profilePhotoUrl);
+        this.avatarUrl.set(this.user.profilePhotoUrl);
       }
     } else {
-      this.photoUrl.set(null);
+      this.setFallbackUrl();
+    }
+  }
+
+  onImageError() {
+    this.setFallbackUrl();
+  }
+
+  private setFallbackUrl() {
+    if (this.user) {
+      const name = `${this.user.firstName}+${this.user.lastName}`;
+      this.avatarUrl.set(`https://ui-avatars.com/api/?name=${name}&background=random`);
+    } else {
+      // Generic fallback
+      this.avatarUrl.set('https://ui-avatars.com/api/?name=User&background=random');
     }
   }
 }

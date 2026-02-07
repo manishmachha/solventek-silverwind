@@ -3,14 +3,21 @@ import { CommonModule } from '@angular/common';
 import { HeaderService } from '../../../core/services/header.service';
 import { AuthStore } from '../../../core/stores/auth.store';
 import { AuthService } from '../../../core/services/auth.service';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { NotificationDropdownComponent } from '../../../shared/components/notification-dropdown/notification-dropdown.component';
 import { OrganizationLogoComponent } from '../../../shared/components/organization-logo/organization-logo.component';
+import { UserAvatarComponent } from '../../../shared/components/user-avatar/user-avatar.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, NotificationDropdownComponent, OrganizationLogoComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    NotificationDropdownComponent,
+    OrganizationLogoComponent,
+    UserAvatarComponent,
+  ],
   template: `
     <header class="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 gap-4">
       <!-- Left: Menu Toggle + Title -->
@@ -126,9 +133,18 @@ import { OrganizationLogoComponent } from '../../../shared/components/organizati
         <!-- User Profile -->
         <div class="flex items-center gap-2 md:gap-3 pl-2 md:pl-4 border-l border-gray-200">
           <!-- User Avatar -->
-          <div class="avatar avatar-md text-sm">
-            {{ user()?.firstName?.charAt(0) || 'U' }}{{ user()?.lastName?.charAt(0) || '' }}
-          </div>
+          <a
+            routerLink="/profile"
+            class="h-8 w-8 rounded-full overflow-hidden block cursor-pointer hover:opacity-80 transition-opacity"
+            title="View Profile"
+          >
+            <app-user-avatar
+              [user]="authStore.user()"
+              class="h-full w-full"
+              fontSizeClass="text-sm"
+            >
+            </app-user-avatar>
+          </a>
 
           <!-- User Info (Hidden on mobile) -->
           <div class="hidden md:block text-right">

@@ -21,4 +21,5 @@ public class EmployeeDto {
     private String orgType;
     private Role role;
     private Organization organization;
+    private String profilePhotoUrl;
 }

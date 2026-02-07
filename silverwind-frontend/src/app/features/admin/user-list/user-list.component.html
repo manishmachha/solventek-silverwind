@@ -82,18 +82,8 @@
             <td mat-cell *matCellDef="let user">
               <div class="flex items-center py-2">
                 <div class="h-10 w-10 shrink-0">
-                  <img
-                    class="h-10 w-10 rounded-full bg-gray-100 object-cover"
-                    [src]="
-                      user.profilePhotoUrl ||
-                      'https://ui-avatars.com/api/?name=' +
-                        user.firstName +
-                        '+' +
-                        user.lastName +
-                        '&background=random'
-                    "
-                    alt=""
-                  />
+                  <app-user-avatar [user]="user" class="h-10 w-10" fontSizeClass="text-sm">
+                  </app-user-avatar>
                 </div>
                 <div class="ml-4">
                   <div class="font-medium text-gray-900">
@@ -187,18 +177,12 @@
         >
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-3">
-              <img
-                class="h-12 w-12 rounded-full bg-gray-100 object-cover border border-gray-100"
-                [src]="
-                  user.profilePhotoUrl ||
-                  'https://ui-avatars.com/api/?name=' +
-                    user.firstName +
-                    '+' +
-                    user.lastName +
-                    '&background=random'
-                "
-                alt=""
-              />
+              <app-user-avatar
+                [user]="user"
+                class="h-12 w-12 border border-gray-100"
+                fontSizeClass="text-base"
+              >
+              </app-user-avatar>
               <div>
                 <h3 class="font-bold text-gray-900">{{ user.firstName }} {{ user.lastName }}</h3>
                 <p class="text-sm text-gray-500">{{ user.designation }}</p>

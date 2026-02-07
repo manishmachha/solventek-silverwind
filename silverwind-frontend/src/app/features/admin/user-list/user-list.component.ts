@@ -14,6 +14,7 @@ import { UserService } from '../../../core/services/user.service';
 import { HeaderService } from '../../../core/services/header.service';
 import { User } from '../../../core/models/auth.model';
 import { UserCreateDialogComponent } from '../user-create-dialog/user-create-dialog.component';
+import { UserAvatarComponent } from '../../../shared/components/user-avatar/user-avatar.component';
 
 @Component({
   selector: 'app-user-list',
@@ -28,6 +29,7 @@ import { UserCreateDialogComponent } from '../user-create-dialog/user-create-dia
     MatSortModule,
     MatIconModule,
     MatButtonModule,
+    UserAvatarComponent,
   ],
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.css'],

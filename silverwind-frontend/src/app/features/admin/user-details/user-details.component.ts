@@ -13,6 +13,7 @@ import { AuthStore } from '../../../core/stores/auth.store';
 import { DialogService } from '../../../core/services/dialog.service';
 
 import { UserDocumentsComponent } from './components/user-documents/user-documents.component';
+import { UserAvatarComponent } from '../../../shared/components/user-avatar/user-avatar.component';
 import { UserEducationComponent } from './components/user-education/user-education.component';
 import { UserCertificationsComponent } from './components/user-certifications/user-certifications.component';
 import { UserCareerComponent } from './components/user-career/user-career.component';
@@ -31,7 +32,9 @@ import { UserSkillsComponent } from './components/user-skills/user-skills.compon
     UserEducationComponent,
     UserCertificationsComponent,
     UserCareerComponent,
+    UserCareerComponent,
     UserSkillsComponent,
+    UserAvatarComponent,
   ],
   templateUrl: './user-details.component.html',
   styleUrls: ['./user-details.component.css'],
@@ -95,9 +98,12 @@ export class UserDetailsComponent implements OnInit {
       next: (data) => {
         this.user.set(data);
         this.isLoading.set(false);
-
-        this.isLoading.set(false);
         this.profilePhotoUrl.set(data.profilePhotoUrl || null);
+
+        // Sync with AuthStore if it's the current user
+        if (this.currentUser()?.id === data.id) {
+          this.authStore.updateUser(data);
+        }
       },
       error: () => {
         this.isLoading.set(false);
