@@ -52,10 +52,18 @@ public class ProjectMapper {
         if (org == null) return null;
 
         String logoUrl = org.getLogoUrl();
-        if (logoUrl != null && logoUrl.startsWith("/api/files/")) {
+        if (logoUrl != null && !logoUrl.isBlank()) {
             try {
-                String key = logoUrl.replace("/api/files/", "");
-                logoUrl = storageService.getPresignedUrl(key, java.time.Duration.ofMinutes(60));
+                // If it looks like a raw S3 key (doesn't start with / or http), or follows /api/files convention
+                String key = logoUrl;
+                if (logoUrl.startsWith("/api/files/")) {
+                    key = logoUrl.replace("/api/files/", "");
+                }
+                
+                // Only sign if it's not already a full URL (http/https)
+                if (!logoUrl.startsWith("http")) {
+                    logoUrl = storageService.getPresignedUrl(key, java.time.Duration.ofMinutes(60));
+                }
             } catch (Exception e) {
                 // Keep original if signing fails
             }
