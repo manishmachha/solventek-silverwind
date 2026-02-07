@@ -51,10 +51,21 @@ public class ProjectMapper {
     public OrganizationSummary toOrganizationSummary(Organization org) {
         if (org == null) return null;
 
+        String logoUrl = org.getLogoUrl();
+        if (logoUrl != null && logoUrl.startsWith("/api/files/")) {
+            try {
+                String key = logoUrl.replace("/api/files/", "");
+                logoUrl = storageService.getPresignedUrl(key, java.time.Duration.ofMinutes(60));
+            } catch (Exception e) {
+                // Keep original if signing fails
+            }
+        }
+
         return OrganizationSummary.builder()
                 .id(org.getId())
                 .name(org.getName())
                 .type(org.getType() != null ? org.getType().name() : null)
+                .logoUrl(logoUrl)
                 .build();
     }
 
