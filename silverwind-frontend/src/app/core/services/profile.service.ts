@@ -90,6 +90,12 @@ export class ProfileService {
     return `${this.apiUrl}/${employeeId}/documents/${documentId}/download`;
   }
 
+  downloadDocument(employeeId: string, documentId: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${employeeId}/documents/${documentId}/download`, {
+      responseType: 'blob',
+    });
+  }
+
   // --- Education ---
   getEducation(employeeId: string): Observable<ApiResponse<Education[]>> {
     return this.http.get<ApiResponse<Education[]>>(`${this.apiUrl}/${employeeId}/education`);

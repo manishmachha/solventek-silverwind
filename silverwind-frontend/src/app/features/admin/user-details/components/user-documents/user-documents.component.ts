@@ -87,13 +87,12 @@ import { DialogService } from '../../../../../core/services/dialog.service';
             </p>
           </div>
           <div class="flex items-center gap-2">
-            <a
-              [href]="getDownloadUrl(doc.id)"
-              target="_blank"
+            <button
+              (click)="download(doc)"
               class="h-8 w-8 rounded-full hover:bg-slate-100 grid place-items-center text-slate-500 hover:text-indigo-600 transition"
             >
               <mat-icon class="text-[18px]">download</mat-icon>
-            </a>
+            </button>
             <button
               *ngIf="canEdit"
               (click)="delete(doc.id)"
@@ -174,9 +173,17 @@ export class UserDocumentsComponent implements OnInit {
       });
   }
 
-  getDownloadUrl(id: string) {
-    // In a real app we might need an auth token in the URL or use a blob download
-    // For now assuming existing auth cookie/header mechanism or presigned URL pattern
-    return this.profileService.downloadDocumentUrl(this.userId, id);
+  download(doc: Document) {
+    this.profileService.downloadDocument(this.userId, doc.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = doc.documentName || 'document';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => console.error('Download failed', err),
+    });
   }
 }
