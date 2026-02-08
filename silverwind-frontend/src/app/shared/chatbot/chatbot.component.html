@@ -1,0 +1,121 @@
+<!-- Glowing Border Overlay (Visible when processing voice) -->
+<div *ngIf="isListening" class="glowing-border-overlay"></div>
+
+<!-- Floating Chat Button -->
+<button class="chat-fab" [class.open]="isOpen()" (click)="toggleChat()" aria-label="Open chat">
+  <i class="bi" [class.bi-chat-dots-fill]="!isOpen()" [class.bi-x-lg]="isOpen()"></i>
+</button>
+
+<!-- Chat Window -->
+<div class="chat-window" [class.open]="isOpen()" [class.minimized]="isMinimized()">
+  <!-- Header -->
+  <div class="chat-header" (click)="isMinimized() ? restoreChat() : null">
+    <div class="header-left">
+      <div class="avatar">
+        <i class="bi bi-robot"></i>
+      </div>
+      <div class="header-info">
+        <span class="title">Nova</span>
+        <span class="subtitle">AI Assistant</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button
+        class="header-btn"
+        (click)="clearHistory(); $event.stopPropagation()"
+        title="Clear history"
+      >
+        <i class="bi bi-trash3"></i>
+      </button>
+      <button class="header-btn" (click)="closeChat(); $event.stopPropagation()" title="Close">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Intent Selector -->
+  <div class="intent-bar" *ngIf="!isMinimized()">
+    <button
+      class="intent-btn"
+      [class.active]="selectedIntent === 'AUTO'"
+      (click)="selectedIntent = 'AUTO'"
+    >
+      Auto
+    </button>
+    <button
+      class="intent-btn"
+      [class.active]="selectedIntent === 'POLICY'"
+      (click)="selectedIntent = 'POLICY'"
+    >
+      📋 Policy
+    </button>
+    <button
+      class="intent-btn"
+      [class.active]="selectedIntent === 'ACTION'"
+      (click)="selectedIntent = 'ACTION'"
+    >
+      ⚡ Action
+    </button>
+  </div>
+
+  <!-- Messages Container -->
+  <div class="messages-container" #messagesContainer *ngIf="!isMinimized()">
+    @for (msg of messages(); track $index) {
+      <div class="message" [class.user]="msg.sender === 'user'" [class.bot]="msg.sender === 'bot'">
+        @if (msg.sender === 'bot') {
+          <div class="bot-avatar">
+            <i class="bi bi-robot"></i>
+          </div>
+        }
+        <div class="message-bubble">
+          @if (msg.isLoading) {
+            <div class="typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          } @else if (msg.sender === 'bot') {
+            <markdown [data]="msg.content"></markdown>
+          } @else {
+            <p>{{ msg.content }}</p>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-area" *ngIf="!isMinimized()">
+    <div class="input-wrapper">
+      @if (isSpeechSupported) {
+        <button
+          class="voice-btn"
+          [class.mic-active]="isListening"
+          (click)="toggleVoiceInput()"
+          [disabled]="isLoading()"
+          title="Voice input"
+        >
+          <i class="bi" [class.bi-mic-fill]="isListening" [class.bi-mic]="!isListening"></i>
+        </button>
+      }
+      <input
+        #messageInput
+        type="text"
+        [(ngModel)]="inputMessage"
+        (keydown)="handleKeyPress($event)"
+        placeholder="Type a message..."
+        [disabled]="isLoading()"
+        class="message-input"
+        autocomplete="off"
+      />
+      <button
+        class="send-btn"
+        (click)="sendMessage()"
+        [disabled]="!inputMessage.trim() || isLoading()"
+        title="Send message"
+      >
+        <i class="bi bi-send-fill" style="transform: translateX(1px)"></i>
+      </button>
+    </div>
+  </div>
+</div>

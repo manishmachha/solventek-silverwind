@@ -9,6 +9,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { provideMarkdown, MARKED_OPTIONS } from 'ngx-markdown';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { unauthorizedInterceptor } from './core/interceptors/unauthorized.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
@@ -34,5 +35,14 @@ export const appConfig: ApplicationConfig = {
     provideNativeDateAdapter(),
     importProvidersFrom(MatSnackBarModule),
     provideCharts(withDefaultRegisterables()),
+    provideMarkdown({
+      markedOptions: {
+        provide: MARKED_OPTIONS,
+        useValue: {
+          gfm: true,
+          breaks: true,
+        },
+      },
+    }),
   ],
 };
