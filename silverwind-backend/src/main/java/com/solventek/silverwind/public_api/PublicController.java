@@ -34,6 +34,9 @@ public class PublicController {
             @PathVariable UUID jobId,
             @RequestPart("data") ApplicationController.ApplyRequest request,
             @RequestPart(value = "resume", required = false) MultipartFile resume) {
+        if (resume != null && resume.getSize() > 1024 * 1024) {
+            throw new org.springframework.web.multipart.MaxUploadSizeExceededException(1024 * 1024);
+        }
         
         // Pass null for vendorOrgId as this is a public application
         JobApplication app = applicationService.apply(jobId, request, resume, null);

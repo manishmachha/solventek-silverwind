@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -210,10 +210,74 @@ import { EditOrganizationDialogComponent } from '../components/edit-organization
               <h3 class="font-bold mb-2">Complete your Profile</h3>
               <p class="text-indigo-100 text-sm mb-4">A complete profile increases trust.</p>
               <div class="w-full bg-white/20 rounded-full h-2 mb-2">
-                <div class="bg-white h-2 rounded-full" style="width: 75%"></div>
+                <div
+                  class="bg-white h-2 rounded-full transition-all duration-500 ease-out"
+                  [style.width.%]="completionPercentage()"
+                ></div>
               </div>
-              <span class="text-xs font-medium text-indigo-100">75% Complete</span>
+              <span class="text-xs font-medium text-indigo-100"
+                >{{ completionPercentage() }}% Complete</span
+              >
             </div>
+          </div>
+        </div>
+
+        <!-- Employee Handbook Section -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+          <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <mat-icon class="text-indigo-600">book</mat-icon> Employee Handbook
+          </h2>
+          <p class="text-gray-600 mb-6">
+            Manage the official employee handbook. This document is used by the AI assistant to
+            answer policy-related questions.
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-4">
+            <!-- Download Button -->
+            <button
+              (click)="downloadHandbook()"
+              [disabled]="downloading()"
+              class="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <mat-icon *ngIf="!downloading()">download</mat-icon>
+              <div
+                *ngIf="downloading()"
+                class="animate-spin rounded-full h-4 w-4 border-2 border-gray-500 border-t-transparent"
+              ></div>
+              {{ downloading() ? 'Downloading...' : 'Download Current Handbook' }}
+            </button>
+
+            <!-- Upload Button -->
+            <div class="relative">
+              <input
+                type="file"
+                #fileInput
+                accept=".pdf"
+                class="hidden"
+                (change)="onFileSelected($event)"
+              />
+              <button
+                (click)="fileInput.click()"
+                [disabled]="uploading()"
+                class="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              >
+                <mat-icon *ngIf="!uploading()">upload</mat-icon>
+                <div
+                  *ngIf="uploading()"
+                  class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"
+                ></div>
+                {{ uploading() ? 'Processing...' : 'Upload New Handbook' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Status Message -->
+          <div
+            *ngIf="uploadStatus()"
+            class="mt-4 p-3 rounded-lg text-sm"
+            [ngClass]="uploadStatusClass()"
+          >
+            {{ uploadStatus() }}
           </div>
         </div>
       </ng-container>
@@ -228,6 +292,40 @@ export class MyOrganizationComponent implements OnInit {
 
   org = signal<Organization | null>(null);
   loading = signal(true);
+
+  // Handbook State
+  downloading = signal(false);
+  uploading = signal(false);
+  uploadStatus = signal<string | null>(null);
+  uploadStatusClass = signal<string>('bg-gray-100 text-gray-700');
+
+  // Computed Completion Percentage
+  completionPercentage = computed(() => {
+    const o = this.org();
+    if (!o) return 0;
+
+    const fields = [
+      'legalName',
+      'logoUrl',
+      'website',
+      'email',
+      'phone',
+      'addressLine1',
+      'city',
+      'country',
+      'description',
+      'industry',
+      'registrationNumber',
+      'taxId',
+    ];
+
+    const filled = fields.filter((f) => {
+      const val = (o as any)[f];
+      return val !== null && val !== undefined && val !== '';
+    }).length;
+
+    return Math.round((filled / fields.length) * 100);
+  });
 
   ngOnInit() {
     this.headerService.setTitle(
@@ -273,5 +371,63 @@ export class MyOrganizationComponent implements OnInit {
         this.loadOrg(); // Reload updated data
       }
     });
+  }
+
+  downloadHandbook() {
+    this.downloading.set(true);
+    this.orgService.getHandbookUrl().subscribe({
+      next: (res: any) => {
+        // API returns { success: true, data: "url" }
+        const url = res.data;
+        if (url) {
+          window.open(url, '_blank');
+        } else {
+          this.showStatus('Download failed: URL not found', 'error');
+        }
+        this.downloading.set(false);
+      },
+      error: (err) => {
+        console.error(err);
+        this.showStatus('Failed to download handbook', 'error');
+        this.downloading.set(false);
+      },
+    });
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.uploading.set(true);
+      this.uploadStatus.set(null);
+
+      this.orgService.uploadHandbook(file).subscribe({
+        next: () => {
+          this.showStatus('Handbook updated successfully!', 'success');
+          this.uploading.set(false);
+          // Clear input
+          event.target.value = '';
+        },
+        error: (err) => {
+          console.error(err);
+          this.showStatus('Failed to update handbook', 'error');
+          this.uploading.set(false);
+          event.target.value = '';
+        },
+      });
+    }
+  }
+
+  private showStatus(message: string, type: 'success' | 'error') {
+    this.uploadStatus.set(message);
+    this.uploadStatusClass.set(
+      type === 'success'
+        ? 'bg-green-100 text-green-700 border border-green-200'
+        : 'bg-red-100 text-red-700 border border-red-200',
+    );
+
+    // Clear after 5 seconds
+    setTimeout(() => {
+      this.uploadStatus.set(null);
+    }, 5000);
   }
 }

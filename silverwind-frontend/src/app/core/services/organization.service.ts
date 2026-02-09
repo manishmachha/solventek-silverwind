@@ -47,6 +47,18 @@ export class OrganizationService {
       .post<ApiResponse<string>>(`${environment.apiUrl}/organizations/${id}/logo`, formData)
       .pipe(map((res) => res.data));
   }
+
+  getHandbookUrl() {
+    return this.api.get<string>('/organizations/handbook');
+  }
+
+  uploadHandbook(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http
+      .post<ApiResponse<string>>(`${environment.apiUrl}/organizations/handbook`, formData)
+      .pipe(map((res) => res.data));
+  }
 }
 
 interface ApiResponse<T> {

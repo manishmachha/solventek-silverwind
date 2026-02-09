@@ -30,12 +30,16 @@ export class ChatService {
     if (intent) {
       payload.intent = intent;
     }
-    return this.http.post<{ data: { response: string } }>(this.apiUrl, payload).pipe(
-      catchError((error) => {
-        console.error('Chat API error:', error);
-        return of({ data: { response: 'Sorry, I encountered an error. Please try again.' } });
-      }),
-    );
+    return this.http
+      .post<{ data: { response: string } }>(this.apiUrl, payload, {
+        headers: { 'X-Skip-Loading': 'true' },
+      })
+      .pipe(
+        catchError((error) => {
+          console.error('Chat API error:', error);
+          return of({ data: { response: 'Sorry, I encountered an error. Please try again.' } });
+        }),
+      );
   }
 
   /**

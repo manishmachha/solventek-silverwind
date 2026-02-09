@@ -41,6 +41,9 @@ public class TrackingController {
             @PathVariable UUID applicationId,
             @RequestParam("category") String category,
             @RequestParam("file") MultipartFile file) {
+        if (file.getSize() > 1024 * 1024) {
+            throw new org.springframework.web.multipart.MaxUploadSizeExceededException(1024 * 1024);
+        }
         trackingService.uploadDocument(applicationId, category, file);
         return ResponseEntity.ok(ApiResponse.success("Document uploaded successfully", null));
     }

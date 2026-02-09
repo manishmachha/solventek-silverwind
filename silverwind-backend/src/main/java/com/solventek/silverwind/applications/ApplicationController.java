@@ -41,6 +41,9 @@ public class ApplicationController {
             @RequestPart("data") ApplyRequest request,
             @RequestPart(value = "resume", required = false) MultipartFile resume,
             @AuthenticationPrincipal UserPrincipal currentUser) {
+        if (resume != null && resume.getSize() > 1024 * 1024) {
+            throw new org.springframework.web.multipart.MaxUploadSizeExceededException(1024 * 1024);
+        }
         return ResponseEntity.ok(ApiResponse.success("Application submitted successfully.",
                 applicationService.apply(jobId, request, resume, currentUser.getOrgId())));
     }
@@ -134,6 +137,9 @@ public class ApplicationController {
             @RequestParam("category") String category,
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal UserPrincipal currentUser) {
+        if (file.getSize() > 1024 * 1024) {
+            throw new org.springframework.web.multipart.MaxUploadSizeExceededException(1024 * 1024);
+        }
         applicationService.uploadDocument(id, category, file, currentUser.getUsername());
         return ResponseEntity.ok(ApiResponse.success("Document uploaded successfully.", null));
     }

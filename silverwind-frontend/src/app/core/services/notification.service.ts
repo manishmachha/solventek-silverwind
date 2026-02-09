@@ -69,14 +69,32 @@ export class NotificationService {
     });
   }
 
-  getNotifications(page: number = 0, size: number = 10, unreadOnly: boolean = false) {
+  getNotifications(
+    page: number = 0,
+    size: number = 10,
+    unreadOnly: boolean = false,
+    skipLoading: boolean = false,
+  ) {
     let params = new HttpParams().set('page', page).set('size', size).set('unreadOnly', unreadOnly);
-    return this.api.get<Page<Notification>>('/notifications', params);
+    let headers;
+    if (skipLoading) {
+      headers = new HttpHeaders().set('X-Skip-Loading', 'true');
+    }
+    return this.api.get<Page<Notification>>('/notifications', params, headers);
   }
 
-  getNotificationsByCategory(category: string, page: number = 0, size: number = 20) {
+  getNotificationsByCategory(
+    category: string,
+    page: number = 0,
+    size: number = 20,
+    skipLoading: boolean = false,
+  ) {
     let params = new HttpParams().set('page', page).set('size', size);
-    return this.api.get<Page<Notification>>(`/notifications/category/${category}`, params);
+    let headers;
+    if (skipLoading) {
+      headers = new HttpHeaders().set('X-Skip-Loading', 'true');
+    }
+    return this.api.get<Page<Notification>>(`/notifications/category/${category}`, params, headers);
   }
 
   getUnreadCount(skipLoading: boolean = false) {
@@ -99,12 +117,20 @@ export class NotificationService {
     return this.api.get<string[]>(`/notifications/unread-entity-ids/${category}`);
   }
 
-  markAsRead(id: string) {
-    return this.api.post<void>(`/notifications/${id}/read`, {});
+  markAsRead(id: string, skipLoading: boolean = false) {
+    let headers;
+    if (skipLoading) {
+      headers = new HttpHeaders().set('X-Skip-Loading', 'true');
+    }
+    return this.api.post<void>(`/notifications/${id}/read`, {}, headers);
   }
 
-  markAllAsRead() {
-    return this.api.post<number>('/notifications/mark-all-read', {});
+  markAllAsRead(skipLoading: boolean = false) {
+    let headers;
+    if (skipLoading) {
+      headers = new HttpHeaders().set('X-Skip-Loading', 'true');
+    }
+    return this.api.post<number>('/notifications/mark-all-read', {}, headers);
   }
 
   deleteNotification(id: string) {

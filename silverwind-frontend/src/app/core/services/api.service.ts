@@ -27,29 +27,29 @@ export class ApiService {
     );
   }
 
-  put<T>(path: string, body: Object = {}): Observable<T> {
-    return this.http.put<ApiResponse<T>>(`${this.apiUrl}${path}`, body).pipe(
+  put<T>(path: string, body: Object = {}, headers?: HttpHeaders): Observable<T> {
+    return this.http.put<ApiResponse<T>>(`${this.apiUrl}${path}`, body, { headers }).pipe(
       map((response: ApiResponse<T>) => response.data),
       catchError(this.formatErrors),
     );
   }
 
-  post<T>(path: string, body: Object = {}): Observable<T> {
-    return this.http.post<ApiResponse<T>>(`${this.apiUrl}${path}`, body).pipe(
+  post<T>(path: string, body: Object = {}, headers?: HttpHeaders): Observable<T> {
+    return this.http.post<ApiResponse<T>>(`${this.apiUrl}${path}`, body, { headers }).pipe(
       map((response: ApiResponse<T>) => response.data),
       catchError(this.formatErrors),
     );
   }
 
-  patch<T>(path: string, body: Object = {}): Observable<T> {
-    return this.http.patch<ApiResponse<T>>(`${this.apiUrl}${path}`, body).pipe(
+  patch<T>(path: string, body: Object = {}, headers?: HttpHeaders): Observable<T> {
+    return this.http.patch<ApiResponse<T>>(`${this.apiUrl}${path}`, body, { headers }).pipe(
       map((response: ApiResponse<T>) => response.data),
       catchError(this.formatErrors),
     );
   }
 
-  delete<T>(path: string): Observable<T> {
-    return this.http.delete<ApiResponse<T>>(`${this.apiUrl}${path}`).pipe(
+  delete<T>(path: string, headers?: HttpHeaders): Observable<T> {
+    return this.http.delete<ApiResponse<T>>(`${this.apiUrl}${path}`, { headers }).pipe(
       map((response: ApiResponse<T>) => response.data),
       catchError(this.formatErrors),
     );

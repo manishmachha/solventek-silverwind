@@ -20,7 +20,26 @@ import java.util.UUID;
 public class OrganizationController {
 
     private final OrganizationService organizationService;
+    private final HandbookService handbookService;
     private final com.solventek.silverwind.auth.EmployeeRepository employeeRepository;
+
+    @PostMapping(value = "/handbook", consumes = "multipart/form-data")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','HR_ADMIN')")
+    public ResponseEntity<ApiResponse<String>> uploadHandbook(
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        handbookService.uploadHandbook(file);
+        return ResponseEntity.ok(ApiResponse.success("Handbook uploaded and indexed successfully.", null));
+    }
+
+    @GetMapping("/handbook")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'EMPLOYEE', 'HR_ADMIN', 'TA')")
+    public ResponseEntity<ApiResponse<String>> getHandbookUrl() {
+        String url = handbookService.getHandbookUrl();
+        if (url == null) {
+            return ResponseEntity.status(404).body(ApiResponse.error("Handbook not found.", null));
+        }
+        return ResponseEntity.ok(ApiResponse.success(url));
+    }
 
     @GetMapping("/vendors/pending")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN')")
@@ -100,6 +119,10 @@ public class OrganizationController {
     public ResponseEntity<ApiResponse<String>> uploadLogo(
             @PathVariable UUID id,
             @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        // Restrict logo size to 1MB (standard practice, distinct from 10MB handbook)
+        if (file.getSize() > 1024 * 1024) {
+             throw new org.springframework.web.multipart.MaxUploadSizeExceededException(1024 * 1024);
+        }
         return ResponseEntity.ok(ApiResponse.success("Logo uploaded successfully.", organizationService.uploadLogo(id, file)));
     }
 

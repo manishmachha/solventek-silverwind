@@ -277,6 +277,9 @@ public class EmployeeController {
             @PathVariable UUID id,
             @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
             @AuthenticationPrincipal UserPrincipal currentUser) {
+        if (file.getSize() > 1024 * 1024) {
+            throw new org.springframework.web.multipart.MaxUploadSizeExceededException(1024 * 1024);
+        }
         Employee updated = employeeService.uploadProfilePhoto(id, currentUser.getId(), file);
         return ResponseEntity.ok(ApiResponse.success("Photo uploaded successfully.", employeeMapper.toEmployeeResponse(updated)));
     }

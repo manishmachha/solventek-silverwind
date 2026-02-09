@@ -33,6 +33,9 @@ public class ProfileController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("type") String type, // e.g., "Resume"
             @RequestParam(value = "name", required = false) String name) {
+        if (file.getSize() > 1024 * 1024) {
+             throw new org.springframework.web.multipart.MaxUploadSizeExceededException(1024 * 1024);
+        }
         return ResponseEntity.ok(ApiResponse.success(profileService.uploadDocument(employeeId, file, type, name)));
     }
 

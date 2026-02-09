@@ -173,7 +173,7 @@ export class NotificationDropdownComponent implements OnInit {
   }
 
   loadNotifications() {
-    this.notificationService.getNotifications(0, 10, false).subscribe({
+    this.notificationService.getNotifications(0, 10, false, true).subscribe({
       next: (page) => {
         this.notifications.set(
           page.content.map((n: any) => ({
@@ -194,7 +194,7 @@ export class NotificationDropdownComponent implements OnInit {
 
   handleClick(notification: Notification) {
     if (!notification.read) {
-      this.notificationService.markAsRead(notification.id).subscribe(() => {
+      this.notificationService.markAsRead(notification.id, true).subscribe(() => {
         this.loadUnreadCount();
         notification.read = true;
       });
@@ -207,7 +207,7 @@ export class NotificationDropdownComponent implements OnInit {
   }
 
   markAllRead() {
-    this.notificationService.markAllAsRead().subscribe({
+    this.notificationService.markAllAsRead(true).subscribe({
       next: () => {
         this.loadNotifications();
         this.loadUnreadCount();

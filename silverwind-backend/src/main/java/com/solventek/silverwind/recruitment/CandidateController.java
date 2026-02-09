@@ -37,6 +37,9 @@ public class CandidateController {
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('VENDOR')")
     public ResponseEntity<ApiResponse<Candidate>> uploadResume(@RequestParam("file") MultipartFile file) {
+        if (file.getSize() > 1024 * 1024) {
+            throw new org.springframework.web.multipart.MaxUploadSizeExceededException(1024 * 1024);
+        }
         log.info("Received resume upload request: {}", file.getOriginalFilename());
         Employee user = getCurrentUser();
         return ResponseEntity.ok(ApiResponse.success(
@@ -47,6 +50,9 @@ public class CandidateController {
     @PostMapping(value = "/{id}/resume", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('VENDOR')")
     public ResponseEntity<ApiResponse<Candidate>> updateResume(@PathVariable UUID id, @RequestParam("file") MultipartFile file) {
+        if (file.getSize() > 1024 * 1024) {
+            throw new org.springframework.web.multipart.MaxUploadSizeExceededException(1024 * 1024);
+        }
         Candidate c = candidateService.getCandidate(id);
         Employee user = getCurrentUser();
         if (!c.getOrganization().getId().equals(user.getOrganization().getId())) {
