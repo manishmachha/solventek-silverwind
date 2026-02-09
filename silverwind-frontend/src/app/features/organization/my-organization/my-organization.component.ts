@@ -376,9 +376,7 @@ export class MyOrganizationComponent implements OnInit {
   downloadHandbook() {
     this.downloading.set(true);
     this.orgService.getHandbookUrl().subscribe({
-      next: (res: any) => {
-        // API returns { success: true, data: "url" }
-        const url = res.data;
+      next: (url: string) => {
         if (url) {
           window.open(url, '_blank');
         } else {
