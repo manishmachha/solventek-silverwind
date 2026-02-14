@@ -13,14 +13,7 @@ import com.solventek.silverwind.config.StorageProperties;
 public class SilverwindApplication {
 
 	public static void main(String[] args) {
-		SpringApplication app = new SpringApplication(SilverwindApplication.class);
-		app.addInitializers(ctx -> {
-			String pwd = ctx.getEnvironment().getProperty("spring.datasource.password");
-			System.out.println("DEBUG: Resolved spring.datasource.password: " + pwd);
-			System.out.println(
-					"DEBUG: Environment SPRING_DATASOURCE_PASSWORD: " + System.getenv("SPRING_DATASOURCE_PASSWORD"));
-		});
-		app.run(args);
+		SpringApplication.run(SilverwindApplication.class, args);
 	}
 
 }
