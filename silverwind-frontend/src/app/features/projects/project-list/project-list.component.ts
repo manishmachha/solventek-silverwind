@@ -4,6 +4,8 @@ import { RouterLink } from '@angular/router';
 import { UserAvatarComponent } from '../../../shared/components/user-avatar/user-avatar.component';
 import { ProjectService, UpdateStatusRequest } from '../../../core/services/project.service';
 import { Project } from '../../../core/models/project.model';
+import { Client } from '../../../core/models/client.model';
+import { ClientService } from '../../../core/services/client.service';
 import { Organization } from '../../../core/models/auth.model';
 import { OrganizationService } from '../../../core/services/organization.service';
 import { FormsModule } from '@angular/forms';
@@ -225,9 +227,22 @@ import { AddProjectModalComponent } from '../components/add-project-modal/add-pr
                   <div
                     *ngFor="let allocation of project.allocations.slice(0, 3)"
                     class="w-8 h-8 rounded-full border-2 border-white relative"
-                    [title]="allocation.user.firstName + ' ' + allocation.user.lastName"
+                    [title]="
+                      (allocation.user || allocation.candidateDetails)?.firstName +
+                      ' ' +
+                      (allocation.user || allocation.candidateDetails)?.lastName
+                    "
                   >
-                    <app-user-avatar [user]="allocation.user"></app-user-avatar>
+                    <ng-container *ngIf="allocation.user">
+                      <app-user-avatar [user]="allocation.user"></app-user-avatar>
+                    </ng-container>
+                    <div
+                      *ngIf="!allocation.user && allocation.candidateDetails"
+                      class="w-full h-full rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold"
+                    >
+                      {{ allocation.candidateDetails.firstName.charAt(0)
+                      }}{{ allocation.candidateDetails.lastName.charAt(0) }}
+                    </div>
                   </div>
                   <div
                     *ngIf="project.allocations.length > 3"
@@ -346,12 +361,13 @@ import { AddProjectModalComponent } from '../components/add-project-modal/add-pr
 })
 export class ProjectListComponent implements OnInit {
   projectService = inject(ProjectService);
+  clientService = inject(ClientService);
   orgService = inject(OrganizationService);
   headerService = inject(HeaderService);
   private notificationService = inject(NotificationService);
 
   projects = signal<Project[]>([]);
-  clients = signal<Organization[]>([]);
+  clients = signal<Client[]>([]);
   unreadProjectIds = new Set<string>();
 
   showCreateModal = false;
@@ -402,7 +418,7 @@ export class ProjectListComponent implements OnInit {
   }
 
   loadClients() {
-    this.orgService.getApprovedOrganizations().subscribe((data) => {
+    this.clientService.getAllClients().subscribe((data) => {
       this.clients.set(data);
     });
   }

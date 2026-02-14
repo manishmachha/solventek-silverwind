@@ -12,6 +12,7 @@ import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { OrganizationLogoComponent } from '../../../../shared/components/organization-logo/organization-logo.component';
 import { LoadingModalComponent } from '../../../../shared/components/loading-modal/loading-modal.component';
 import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { ClientSubmissionsComponent } from '../client-submissions/client-submissions.component';
 
 @Component({
   selector: 'app-candidate-detail',
@@ -24,29 +25,19 @@ import { ConfirmModalComponent } from '../../../../shared/components/confirm-mod
     OrganizationLogoComponent,
     LoadingModalComponent,
     ConfirmModalComponent,
+    ClientSubmissionsComponent,
   ],
   template: `
-    <div class="container mx-auto px-4 py-8 max-w-5xl" *ngIf="candidate()">
+    <div class="container mx-auto px-4 py-8" *ngIf="candidate()">
       <!-- Header Card -->
       <div
-        class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 mb-6 relative overflow-hidden group"
+        class="bg-linear-to-r from-indigo-50 to-rose-50 rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 mb-6 relative overflow-hidden group"
       >
-        <!-- Decorative Background Elements -->
-        <div
-          class="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 rounded-full bg-linear-to-br from-indigo-50/80 to-purple-50/80 blur-3xl transition-transform duration-700 group-hover:scale-110"
-        ></div>
-        <div
-          class="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 rounded-full bg-linear-to-tr from-blue-50/80 to-indigo-50/80 blur-3xl transition-transform duration-700 group-hover:scale-110"
-        ></div>
-        <div
-          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.03)_0%,transparent_70%)]"
-        ></div>
-
         <div class="flex flex-col md:flex-row gap-6 items-start relative z-10">
           <!-- Avatar -->
           <div class="shrink-0">
             <div
-              class="h-24 w-24 rounded-2xl bg-white/80 backdrop-blur-sm flex items-center justify-center text-3xl font-bold text-gray-400 border border-gray-100 shadow-sm"
+              class="h-24 w-24 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-3xl font-bold text-indigo-600 shrink-0 relative z-10"
             >
               {{ getInitials(candidate()!) }}
             </div>
@@ -59,8 +50,11 @@ import { ConfirmModalComponent } from '../../../../shared/components/confirm-mod
                 <h1 class="text-3xl font-bold text-gray-900 tracking-tight">
                   {{ candidate()!.firstName }} {{ candidate()!.lastName }}
                 </h1>
-                <p class="text-lg text-gray-500 font-medium mt-1">
-                  {{ candidate()!.currentDesignation || 'No Title' }}
+                <p class="text-lg text-gray-600 font-medium mt-1 flex items-center gap-2">
+                  <span
+                    class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-sm font-semibold tracking-wide uppercase"
+                    >{{ candidate()!.currentDesignation || 'No Title' }}</span
+                  >
                   <span *ngIf="candidate()!.currentCompany" class="text-gray-400">
                     at {{ candidate()!.currentCompany }}
                   </span>
@@ -72,21 +66,21 @@ import { ConfirmModalComponent } from '../../../../shared/components/confirm-mod
                 <button
                   *ngIf="authStore.orgType() === 'VENDOR'"
                   (click)="fileInput.click()"
-                  class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:text-gray-900 transition flex items-center gap-2 shadow-sm cursor-pointer"
+                  class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
                 >
                   <i class="bi bi-cloud-upload"></i> Update Resume
                 </button>
                 <a
                   *ngIf="authStore.orgType() === 'VENDOR'"
                   [routerLink]="['/candidates/edit', candidate()!.id]"
-                  class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:text-gray-900 transition flex items-center gap-2 shadow-sm cursor-pointer"
+                  class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
                 >
                   <i class="bi bi-pencil"></i> Edit
                 </a>
                 <button
                   *ngIf="authStore.orgType() === 'VENDOR'"
                   (click)="openDeleteConfirm()"
-                  class="px-4 py-2 rounded-lg text-sm font-semibold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 transition flex items-center gap-2 shadow-sm cursor-pointer"
+                  class="px-4 py-2 rounded-lg text-sm font-semibold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
                 >
                   <i class="bi bi-trash"></i> Delete
                 </button>
@@ -103,38 +97,85 @@ import { ConfirmModalComponent } from '../../../../shared/components/confirm-mod
             </div>
 
             <!-- Metadata Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-              <div class="flex items-center gap-2 text-sm text-gray-500">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-4">
+              <!-- Location -->
+              <div
+                class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-indigo-50/50 transition-colors group/item cursor-default border border-transparent hover:border-indigo-100"
+              >
                 <div
-                  class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 shrink-0"
+                  class="w-10 h-10 rounded-full bg-green-100 text-gray-400 flex items-center justify-center shrink-0 group-hover/item:bg-white group-hover/item:text-indigo-600 group-hover/item:shadow-sm transition-all"
                 >
-                  <i class="bi bi-geo-alt"></i>
+                  <i class="bi bi-geo-alt text-green-500 text-lg"></i>
                 </div>
-                <span class="truncate">{{ candidate()!.city || 'Location not specified' }}</span>
+                <div class="flex flex-col">
+                  <span class="text-xs text-gray-400 font-medium uppercase tracking-wider mb-0.5"
+                    >Location</span
+                  >
+                  <span
+                    class="text-sm font-semibold text-gray-700 group-hover/item:text-gray-900 truncate"
+                    >{{ candidate()!.city || 'Not specified' }}</span
+                  >
+                </div>
               </div>
-              <div class="flex items-center gap-2 text-sm text-gray-500">
+
+              <!-- Experience -->
+              <div
+                class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-indigo-50/50 transition-colors group/item cursor-default border border-transparent hover:border-indigo-100"
+              >
                 <div
-                  class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 shrink-0"
+                  class="w-10 h-10 rounded-full bg-blue-100 text-gray-400 flex items-center justify-center shrink-0 group-hover/item:bg-white group-hover/item:text-indigo-600 group-hover/item:shadow-sm transition-all"
                 >
-                  <i class="bi bi-briefcase"></i>
+                  <i class="bi bi-briefcase text-blue-500 text-lg"></i>
                 </div>
-                <span>{{ candidate()!.experienceYears || 0 }} years exp</span>
+                <div class="flex flex-col">
+                  <span class="text-xs text-gray-400 font-medium uppercase tracking-wider mb-0.5"
+                    >Experience</span
+                  >
+                  <span class="text-sm font-semibold text-gray-700 group-hover/item:text-gray-900"
+                    >{{ candidate()!.experienceYears || 0 }} years</span
+                  >
+                </div>
               </div>
-              <div class="flex items-center gap-2 text-sm text-gray-500" *ngIf="candidate()!.phone">
+
+              <!-- Phone -->
+              <div
+                class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-indigo-50/50 transition-colors group/item cursor-default border border-transparent hover:border-indigo-100"
+              >
                 <div
-                  class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 shrink-0"
+                  class="w-10 h-10 rounded-full bg-rose-100 text-gray-400 flex items-center justify-center shrink-0 group-hover/item:bg-white group-hover/item:text-indigo-600 group-hover/item:shadow-sm transition-all"
                 >
-                  <i class="bi bi-telephone"></i>
+                  <i class="bi bi-telephone text-rose-500 text-lg"></i>
                 </div>
-                <span class="truncate">{{ candidate()!.phone }}</span>
+                <div class="flex flex-col">
+                  <span class="text-xs text-gray-400 font-medium uppercase tracking-wider mb-0.5"
+                    >Phone</span
+                  >
+                  <span
+                    class="text-sm font-semibold text-gray-700 group-hover/item:text-gray-900 truncate"
+                    >{{ candidate()!.phone || '--' }}</span
+                  >
+                </div>
               </div>
-              <div class="flex items-center gap-2 text-sm text-gray-500">
+
+              <!-- Email -->
+              <div
+                class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-indigo-50/50 transition-colors group/item cursor-default border border-transparent hover:border-indigo-100"
+              >
                 <div
-                  class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 shrink-0"
+                  class="w-10 h-10 rounded-full bg-yellow-100 text-gray-400 flex items-center justify-center shrink-0 group-hover/item:bg-white group-hover/item:text-indigo-600 group-hover/item:shadow-sm transition-all"
                 >
-                  <i class="bi bi-envelope"></i>
+                  <i class="bi bi-envelope text-yellow-500 text-lg"></i>
                 </div>
-                <span class="truncate" [title]="candidate()!.email">{{ candidate()!.email }}</span>
+                <div class="flex flex-col">
+                  <span class="text-xs text-gray-400 font-medium uppercase tracking-wider mb-0.5"
+                    >Email</span
+                  >
+                  <span
+                    class="text-sm font-semibold text-gray-700 group-hover/item:text-gray-900 truncate"
+                    [title]="candidate()!.email"
+                    >{{ candidate()!.email }}</span
+                  >
+                </div>
               </div>
             </div>
 
@@ -171,6 +212,13 @@ import { ConfirmModalComponent } from '../../../../shared/components/confirm-mod
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Main Content -->
         <div class="lg:col-span-2 space-y-6">
+          <!-- Client Submissions Section (Visible to Solventek) -->
+          <div>
+            <app-client-submissions [candidateId]="candidate()!.id"></app-client-submissions>
+          </div>
+
+          <!-- AI Analysis Report (Solventek Only) -->
+          <!-- ... -->
           <!-- AI Analysis Report (Solventek Only) -->
           <div
             *ngIf="authStore.orgType() === 'SOLVENTEK' && analysis()"
@@ -573,6 +621,7 @@ import { ConfirmModalComponent } from '../../../../shared/components/confirm-mod
               </div>
             </div>
           </div>
+          <app-client-submissions [candidateId]="candidate()!.id"></app-client-submissions>
         </div>
       </div>
 

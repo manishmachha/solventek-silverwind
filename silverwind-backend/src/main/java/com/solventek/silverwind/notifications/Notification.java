@@ -62,6 +62,8 @@ public class Notification extends BaseEntity {
     // ========== ENUMS ==========
 
     public enum NotificationCategory {
+        CANDIDATE, // Candidate creation, updates
+        CLIENT, // Client creation, updates
         APPLICATION, // Application submissions, status changes
         JOB, // Job postings, updates
         TICKET, // Support tickets

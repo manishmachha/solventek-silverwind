@@ -19,6 +19,7 @@ import { TicketService } from '../../../../core/services/ticket.service';
 import { HeaderService } from '../../../../core/services/header.service';
 import { Ticket } from '../../../../core/models/ticket.model';
 import { TicketCreateComponent } from '../ticket-create/ticket-create.component';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-ticket-list',
@@ -85,6 +86,9 @@ export class TicketListComponent implements OnInit, OnDestroy {
   private ticketService = inject(TicketService);
   private headerService = inject(HeaderService);
   private dialog = inject(MatDialog);
+  private notificationService = inject(NotificationService);
+
+  unreadTicketIds = new Set<string>();
 
   ngOnInit(): void {
     this.headerService.setTitle(
@@ -92,7 +96,19 @@ export class TicketListComponent implements OnInit, OnDestroy {
       'Track and manage your requests and queries',
       'bi bi-life-preserver',
     );
+    this.loadUnreadTicketIds();
     this.startLiveUpdates();
+  }
+
+  loadUnreadTicketIds() {
+    this.notificationService.getUnreadEntityIds('TICKET').subscribe({
+      next: (ids) => (this.unreadTicketIds = new Set(ids)),
+      error: () => (this.unreadTicketIds = new Set()),
+    });
+  }
+
+  hasNotification(ticketId: string): boolean {
+    return this.unreadTicketIds.has(ticketId);
   }
 
   ngOnDestroy() {
@@ -107,7 +123,7 @@ export class TicketListComponent implements OnInit, OnDestroy {
       .pipe(
         switchMap(() =>
           this.ticketService.getMyTicketsForPolling().pipe(
-            catchError((err) => {
+            catchError((err: any) => {
               console.error('Polling error', err);
               return []; // Return empty array or handle gracefully to keep timer alive
             }),
@@ -125,13 +141,13 @@ export class TicketListComponent implements OnInit, OnDestroy {
     this.allTickets = tickets;
 
     // Smart Sorting:
-    // 1. Unread Tickets
+    // 1. Unread Tickets (from NotificationService or internal count)
     // 2. High Priority/Critical Tickets
     // 3. Newest Created
     const sorted = [...tickets].sort((a, b) => {
       // Unread check
-      const aUnread = (a.unreadCountForEmployee || 0) > 0;
-      const bUnread = (b.unreadCountForEmployee || 0) > 0;
+      const aUnread = this.hasNotification(a.id) || (a.unreadCountForEmployee || 0) > 0;
+      const bUnread = this.hasNotification(b.id) || (b.unreadCountForEmployee || 0) > 0;
       if (aUnread && !bUnread) return -1;
       if (!aUnread && bUnread) return 1;
 

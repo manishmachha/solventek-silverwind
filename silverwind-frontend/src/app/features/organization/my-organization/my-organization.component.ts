@@ -23,7 +23,7 @@ import { EditOrganizationDialogComponent } from '../components/edit-organization
     OrganizationLogoComponent,
   ],
   template: `
-    <div class="p-6 max-w-7xl mx-auto space-y-6">
+    <div class="p-6  mx-auto space-y-6">
       <!-- Loading State -->
       <div *ngIf="loading()" class="flex justify-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>

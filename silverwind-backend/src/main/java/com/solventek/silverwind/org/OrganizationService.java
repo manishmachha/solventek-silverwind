@@ -15,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import com.solventek.silverwind.notifications.Notification.NotificationCategory;
+import com.solventek.silverwind.notifications.NotificationService;
 
 import java.util.UUID;
 
@@ -29,11 +31,10 @@ public class OrganizationService {
     private final PasswordEncoder passwordEncoder;
     private final com.solventek.silverwind.timeline.TimelineService timelineService;
     private final com.solventek.silverwind.notifications.NotificationService notificationService;
+
     private final com.solventek.silverwind.rbac.RbacService rbacService;
     private final StorageService storageService;
     private final jakarta.persistence.EntityManager entityManager;
-
-
 
     public Organization getOrganization(UUID id) {
         log.debug("Fetching Organization ID: {}", id);
@@ -88,9 +89,28 @@ public class OrganizationService {
 
             notifySolventekAdmins("New Vendor Registration",
                     "New vendor " + org.getName() + " has registered.",
-                    "ORGANIZATION", org.getId());
+                    "ORGANIZATION", org.getId()); // Helper method update needed, or inline here.
+            // Let's optimize. The helper `notifySolventekAdmins` is simple but doesn't
+            // support actionUrl.
+            // I will inline the logic or create a better helper.
+            // Inline for now to be precise.
+            organizationRepository.findByType(OrganizationType.SOLVENTEK).stream().findFirst()
+                    .ifPresent(solventek -> {
+                        employeeRepository.findByOrganizationId(solventek.getId()).forEach(admin -> {
+                            notificationService.sendNotification(
+                                    NotificationService.NotificationBuilder.create()
+                                            .recipient(admin.getId())
+                                            .title("New Vendor Registration")
+                                            .body("New vendor " + org.getName() + " has registered.")
+                                            .category(NotificationCategory.ORGANIZATION)
+                                            .priority(
+                                                    com.solventek.silverwind.notifications.Notification.NotificationPriority.HIGH)
+                                            .refEntity("ORGANIZATION", org.getId())
+                                            .actionUrl("/organization/" + org.getId())
+                                            .icon("bi-building-plus"));
+                        });
+                    });
 
-            log.info("Successfully registered vendor org: {} (Pending Approval)", org.getId());
             log.info("Successfully registered vendor org: {} (Pending Approval)", org.getId());
             return enhanceOrganization(org);
         } catch (Exception e) {
@@ -159,10 +179,15 @@ public class OrganizationService {
 
             // Notify Vendor user
             java.util.List<Employee> vendorUsers = employeeRepository.findByOrganizationId(org.getId());
-            vendorUsers.forEach(user -> notificationService.sendNotification(user.getId(),
-                    "Organization Approved",
-                    "Your organization has been approved. You can now access the vendor portal.", 
-                    "ORGANIZATION", org.getId()));
+            vendorUsers.forEach(user -> notificationService.sendNotification(
+                    NotificationService.NotificationBuilder.create()
+                            .recipient(user.getId())
+                            .title("Organization Approved")
+                            .body("Your organization has been approved. You can now access the vendor portal.")
+                            .category(NotificationCategory.ORGANIZATION)
+                            .refEntity("ORGANIZATION", org.getId())
+                            .actionUrl("/portal/profile") // Landing page for new vendor
+                            .icon("bi-check-circle-fill")));
 
             log.info("Vendor organization approved successfully: {}", vendorOrgId);
         } catch (Exception e) {
@@ -212,12 +237,16 @@ public class OrganizationService {
 
             // Notify Organization users
             java.util.List<Employee> users = employeeRepository.findByOrganizationId(org.getId());
-            users.forEach(user -> notificationService.sendNotification(user.getId(),
-                    "Organization Status Updated",
-                    "Your organization status has been changed to " + newStatus + ".",
-                    "ORGANIZATION", org.getId()));
+            users.forEach(user -> notificationService.sendNotification(
+                    NotificationService.NotificationBuilder.create()
+                            .recipient(user.getId())
+                            .title("Organization Status Updated")
+                            .body("Your organization status has been changed to " + newStatus + ".")
+                            .category(NotificationCategory.ORGANIZATION)
+                            .refEntity("ORGANIZATION", org.getId())
+                            .actionUrl("/portal/profile")
+                            .icon("bi-info-circle")));
 
-            log.info("Organization status updated successfully: {} from {} to {}", orgId, oldStatus, newStatus);
             log.info("Organization status updated successfully: {} from {} to {}", orgId, oldStatus, newStatus);
             return enhanceOrganization(org);
         } catch (Exception e) {
@@ -233,35 +262,69 @@ public class OrganizationService {
             Organization org = organizationRepository.findById(orgId)
                     .orElseThrow(() -> new EntityNotFoundException("Organization not found"));
 
-            if (dto.getName() != null) org.setName(dto.getName());
-            if (dto.getDescription() != null) org.setDescription(dto.getDescription());
-            if (dto.getWebsite() != null) org.setWebsite(dto.getWebsite());
-            if (dto.getIndustry() != null) org.setIndustry(dto.getIndustry());
-            if (dto.getEmployeeCount() != null) org.setEmployeeCount(dto.getEmployeeCount());
-            if (dto.getPhone() != null) org.setPhone(dto.getPhone());
-
-            // Address
-            if (dto.getAddressLine1() != null) org.setAddressLine1(dto.getAddressLine1());
-            if (dto.getAddressLine2() != null) org.setAddressLine2(dto.getAddressLine2());
-            if (dto.getCity() != null) org.setCity(dto.getCity());
-            if (dto.getState() != null) org.setState(dto.getState());
-            if (dto.getCountry() != null) org.setCountry(dto.getCountry());
-            if (dto.getPostalCode() != null) org.setPostalCode(dto.getPostalCode());
-
-            if (dto.getServiceOfferings() != null) org.setServiceOfferings(dto.getServiceOfferings());
-
-            // Contact Person
-            if (dto.getContactPersonName() != null) org.setContactPersonName(dto.getContactPersonName());
-            if (dto.getContactPersonEmail() != null) org.setContactPersonEmail(dto.getContactPersonEmail());
-            if (dto.getContactPersonPhone() != null) org.setContactPersonPhone(dto.getContactPersonPhone());
-            if (dto.getContactPersonDesignation() != null) org.setContactPersonDesignation(dto.getContactPersonDesignation());
+            // ... (field updates omitted for brevity, keeping original logic) ...
+            if (dto.getName() != null)
+                org.setName(dto.getName());
+            if (dto.getDescription() != null)
+                org.setDescription(dto.getDescription());
+            if (dto.getWebsite() != null)
+                org.setWebsite(dto.getWebsite());
+            if (dto.getIndustry() != null)
+                org.setIndustry(dto.getIndustry());
+            if (dto.getEmployeeCount() != null)
+                org.setEmployeeCount(dto.getEmployeeCount());
+            if (dto.getPhone() != null)
+                org.setPhone(dto.getPhone());
+            if (dto.getAddressLine1() != null)
+                org.setAddressLine1(dto.getAddressLine1());
+            if (dto.getAddressLine2() != null)
+                org.setAddressLine2(dto.getAddressLine2());
+            if (dto.getCity() != null)
+                org.setCity(dto.getCity());
+            if (dto.getState() != null)
+                org.setState(dto.getState());
+            if (dto.getCountry() != null)
+                org.setCountry(dto.getCountry());
+            if (dto.getPostalCode() != null)
+                org.setPostalCode(dto.getPostalCode());
+            if (dto.getServiceOfferings() != null)
+                org.setServiceOfferings(dto.getServiceOfferings());
+            if (dto.getContactPersonName() != null)
+                org.setContactPersonName(dto.getContactPersonName());
+            if (dto.getContactPersonEmail() != null)
+                org.setContactPersonEmail(dto.getContactPersonEmail());
+            if (dto.getContactPersonPhone() != null)
+                org.setContactPersonPhone(dto.getContactPersonPhone());
+            if (dto.getContactPersonDesignation() != null)
+                org.setContactPersonDesignation(dto.getContactPersonDesignation());
 
             organizationRepository.saveAndFlush(org);
-
             timelineService.createEvent(org.getId(), "ORGANIZATION", org.getId(), "UPDATE", "Org Updated",
                     null, "Organization details updated", null);
 
-            log.info("Organization updated successfully: {}", orgId);
+            // Notify Org Admins & Solventek Admins
+            java.util.List<Employee> recipients = employeeRepository.findByOrganizationIdAndRoleNameNot(
+                    org.getId(), com.solventek.silverwind.rbac.RoleDefinitions.ROLE_EMPLOYEE);
+
+            java.util.List<Employee> solventekAdmins = employeeRepository.findByOrganizationTypeAndRoleNameNot(
+                    com.solventek.silverwind.org.OrganizationType.SOLVENTEK,
+                    com.solventek.silverwind.rbac.RoleDefinitions.ROLE_EMPLOYEE);
+
+            java.util.Set<Employee> allRecipients = new java.util.HashSet<>(recipients);
+            allRecipients.addAll(solventekAdmins);
+
+            allRecipients.forEach(admin -> {
+                notificationService.sendNotification(
+                        NotificationService.NotificationBuilder.create()
+                                .recipient(admin.getId())
+                                .title("Organization Updated")
+                                .body("Organization details have been updated.")
+                                .category(NotificationCategory.ORGANIZATION)
+                                .refEntity("ORGANIZATION", org.getId())
+                                .actionUrl("/portal/organizations/" + org.getId())
+                                .icon("bi-pencil-square"));
+            });
+
             log.info("Organization updated successfully: {}", orgId);
             return enhanceOrganization(org);
         } catch (Exception e) {
@@ -397,16 +460,18 @@ public class OrganizationService {
         }
     }
 
-
     /**
      * Helper to generate presigned URL for organization logo if applicable.
      */
     public Organization enhanceOrganization(Organization org) {
-        if (org == null) return null;
+        if (org == null)
+            return null;
 
         // Force initialization of proxy before detaching
-        // Accessing a property triggers initialization if it's a proxy attached to the session
-        // Only safe if we are inside a transaction (which calling services should ensure)
+        // Accessing a property triggers initialization if it's a proxy attached to the
+        // session
+        // Only safe if we are inside a transaction (which calling services should
+        // ensure)
         try {
             org.getLogoUrl();
             org.getName(); // Ensure main fields are loaded
@@ -415,7 +480,8 @@ public class OrganizationService {
             return org;
         }
 
-        // Detach from persistence context so our changes to logoUrl aren't saved back to DB
+        // Detach from persistence context so our changes to logoUrl aren't saved back
+        // to DB
         if (entityManager.contains(org)) {
             entityManager.detach(org);
         }
@@ -423,7 +489,8 @@ public class OrganizationService {
         String logoUrl = org.getLogoUrl();
         // If logoUrl is a storage key (i.e., not a presigned URL yet) and valid
         // Check for http (S3) and /api/files/ (Local) to prevent double-prefixing
-        if (logoUrl != null && !logoUrl.isEmpty() && !logoUrl.startsWith("http") && !logoUrl.startsWith("/api/files/")) {
+        if (logoUrl != null && !logoUrl.isEmpty() && !logoUrl.startsWith("http")
+                && !logoUrl.startsWith("/api/files/")) {
             try {
                 // Generate presigned URL (valid for 60 mins by default)
                 String presignedUrl = storageService.getPresignedUrl(logoUrl, java.time.Duration.ofMinutes(60));

@@ -18,15 +18,18 @@ export interface UserSummary {
   profilePhotoUrl?: string;
 }
 
+import { ClientSummary } from './client.model';
+// UserSummary and OrganizationSummary are defined in this file, so no need to import them from auth.model here.
+
 export interface Project {
   id: string;
   name: string;
-  description?: string;
-  client?: OrganizationSummary;
-  internalOrg?: OrganizationSummary;
-  startDate?: string;
-  endDate?: string;
+  description: string;
+  startDate: string;
+  endDate: string;
   status: 'ACTIVE' | 'COMPLETED' | 'ON_HOLD' | 'PLANNED';
+  client?: ClientSummary;
+  internalOrg: OrganizationSummary;
   allocations?: ProjectAllocation[];
 }
 
@@ -34,7 +37,8 @@ export interface ProjectAllocation {
   id: string;
   projectId?: string;
   projectName?: string;
-  user: UserSummary;
+  user?: UserSummary;
+  candidateDetails?: UserSummary;
   startDate: string;
   endDate?: string;
   allocationPercentage: number;

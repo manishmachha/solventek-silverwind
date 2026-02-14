@@ -31,7 +31,7 @@ import { AuthService } from '../../../core/services/auth.service';
     RouterLink,
   ],
   template: `
-    <div class="max-w-7xl mx-auto space-y-8 p-6">
+    <div class=" mx-auto space-y-8 p-6">
       <div *ngIf="loading()" class="flex justify-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>

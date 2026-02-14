@@ -18,6 +18,6 @@ public class ProjectResponse {
     private LocalDate startDate;
     private LocalDate endDate;
     private String status;
-    private OrganizationSummary client;
+    private com.solventek.silverwind.dto.ClientSummary client;
     private OrganizationSummary internalOrg;
 }

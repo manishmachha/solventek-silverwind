@@ -6,9 +6,15 @@ import com.solventek.silverwind.applications.JobApplication;
 import com.solventek.silverwind.applications.JobApplicationRepository;
 import com.solventek.silverwind.applications.ResumeAnalysisOrchestratorService;
 import com.solventek.silverwind.applications.ResumeIngestionService;
+import com.solventek.silverwind.auth.Employee;
+import com.solventek.silverwind.auth.EmployeeRepository;
+import com.solventek.silverwind.notifications.Notification.NotificationCategory;
+import com.solventek.silverwind.notifications.Notification.NotificationPriority;
+import com.solventek.silverwind.notifications.NotificationService;
 import com.solventek.silverwind.org.Organization;
 import com.solventek.silverwind.org.OrganizationRepository;
 import com.solventek.silverwind.org.OrganizationService;
+import com.solventek.silverwind.timeline.TimelineService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +38,10 @@ public class CandidateService {
     private final OrganizationService organizationService;
     private final ResumeIngestionService resumeIngestionService;
     private final ResumeAnalysisOrchestratorService resumeAnalysisService;
+    private final NotificationService notificationService;
+    private final TimelineService timelineService;
+    private final EmployeeRepository employeeRepository; // Needed for finding admins
+
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -53,7 +63,7 @@ public class CandidateService {
 
         // 3. Map to Entity
         Candidate candidate = new Candidate();
-        
+
         // Name
         if (parsedData.getCandidateName() != null) {
             String[] parts = parsedData.getCandidateName().split(" ", 2);
@@ -78,11 +88,13 @@ public class CandidateService {
         // Location
         if (parsedData.getCity() != null) {
             String loc = parsedData.getCity();
-            if (parsedData.getState() != null) loc += ", " + parsedData.getState();
-            if (parsedData.getCountry() != null) loc += ", " + parsedData.getCountry();
+            if (parsedData.getState() != null)
+                loc += ", " + parsedData.getState();
+            if (parsedData.getCountry() != null)
+                loc += ", " + parsedData.getCountry();
             candidate.setCity(loc);
         }
-        
+
         // URLs & Summary
         candidate.setLinkedInUrl(parsedData.getLinkedInUrl());
         candidate.setSummary(parsedData.getSummary());
@@ -103,24 +115,25 @@ public class CandidateService {
                 if (parsedData.getTotalExperienceYears() != null) {
                     candidate.setExperienceYears(parsedData.getTotalExperienceYears());
                 } else {
-                     // Fallback: Estimate from experience list if needed, or default to 0
-                     candidate.setExperienceYears(0.0);
+                    // Fallback: Estimate from experience list if needed, or default to 0
+                    candidate.setExperienceYears(0.0);
                 }
-                
+
                 // Set current designation if present
                 parsedData.getExperience().stream()
-                    .filter(e -> Boolean.TRUE.equals(e.getIsCurrent()))
-                    .findFirst()
-                    .ifPresent(e -> candidate.setCurrentDesignation(e.getTitle()));
+                        .filter(e -> Boolean.TRUE.equals(e.getIsCurrent()))
+                        .findFirst()
+                        .ifPresent(e -> candidate.setCurrentDesignation(e.getTitle()));
             }
-            
+
             if (parsedData.getEducation() != null) {
                 candidate.setEducationDetailsJson(objectMapper.writeValueAsString(parsedData.getEducation()));
             }
 
             // 4. Run General AI Analysis
             try {
-                // We need facts as JSON string. We can re-serialize parsedData or just use what we have.
+                // We need facts as JSON string. We can re-serialize parsedData or just use what
+                // we have.
                 String factsJson = objectMapper.writeValueAsString(parsedData);
                 var analysisResult = resumeAnalysisService.analyzeCandidate(ingestionResult.extractedText(), factsJson);
                 candidate.setAiAnalysisJson(objectMapper.writeValueAsString(analysisResult));
@@ -137,27 +150,67 @@ public class CandidateService {
         candidate.setResumeFilePath(ingestionResult.filePath());
         candidate.setResumeOriginalFileName(file.getOriginalFilename());
         candidate.setResumeContentType(file.getContentType());
-        
+
         // Organization
         Organization org = organizationRepository.findById(organizationId)
                 .orElseThrow(() -> new EntityNotFoundException("Organization not found"));
         candidate.setOrganization(org);
 
         candidateRepository.save(candidate);
+
+        // Notify Org Admins
+        try {
+            // 1. Notify Vendor Admins (Non-Employee roles in Vendor Org)
+            List<Employee> recipients = employeeRepository.findByOrganizationIdAndRoleNameNot(
+                    organizationId, com.solventek.silverwind.rbac.RoleDefinitions.ROLE_EMPLOYEE);
+
+            // 2. Notify Solventek Super Users (Non-Employees in Solventek Org)
+            List<Employee> solventekAdmins = employeeRepository.findByOrganizationTypeAndRoleNameNot(
+                    com.solventek.silverwind.org.OrganizationType.SOLVENTEK,
+                    com.solventek.silverwind.rbac.RoleDefinitions.ROLE_EMPLOYEE);
+
+            // Avoid duplicates
+            java.util.Set<Employee> allRecipients = new java.util.HashSet<>(recipients);
+            allRecipients.addAll(solventekAdmins);
+
+            allRecipients.forEach(admin -> {
+                notificationService.sendNotification(
+                        NotificationService.NotificationBuilder.create()
+                                .recipient(admin.getId())
+                                .title("New Candidate Added")
+                                .body("Candidate " + candidate.getFirstName() + " " + candidate.getLastName()
+                                        + " has been added.")
+                                .category(NotificationCategory.CANDIDATE)
+                                .priority(NotificationPriority.NORMAL)
+                                .refEntity("CANDIDATE", candidate.getId())
+                                .actionUrl("/candidates/" + candidate.getId())
+                                .icon("bi-person-plus-fill"));
+            });
+        } catch (Exception e) {
+            log.error("Failed to send candidate creation notification", e);
+        }
+
+        // Timeline
+        timelineService.createEvent(organizationId, "CANDIDATE", candidate.getId(), "CREATE",
+                "Candidate Created", null, "Created via Resume Upload", null);
+
         return enhanceCandidate(candidate);
     }
 
     @Transactional(readOnly = true)
     public List<Candidate> getAllCandidates(UUID organizationId) {
         // Vendors see only their own. Solventek might want to see all or specific ones.
-        // For now, simple by Org ID. If Solventek wants all, we'd need a different method or check types.
-        // For now, simple by Org ID. If Solventek wants all, we'd need a different method or check types.
+        // For now, simple by Org ID. If Solventek wants all, we'd need a different
+        // method or check types.
+        // For now, simple by Org ID. If Solventek wants all, we'd need a different
+        // method or check types.
         List<Candidate> candidates = candidateRepository.findByOrganizationId(organizationId);
         candidates.forEach(this::enhanceCandidate);
         return candidates;
     }
-    
-    // For Solventek to see all candidates (e.g., when viewing applications or searching pool)
+
+    // For Solventek to see all candidates (e.g., when viewing applications or
+    // searching pool)
     @Transactional(readOnly = true)
     public List<Candidate> getAllCandidatesForAdmin() {
         List<Candidate> candidates = candidateRepository.findAll();
@@ -186,6 +239,10 @@ public class CandidateService {
         c.setSummary(request.getSummary());
         c.setLinkedInUrl(request.getLinkedInUrl());
         candidateRepository.save(c);
+
+        timelineService.createEvent(c.getOrganization().getId(), "CANDIDATE", c.getId(), "UPDATE",
+                "Candidate Updated", null, "Profile details updated", null);
+
         return enhanceCandidate(c);
     }
 
@@ -198,9 +255,16 @@ public class CandidateService {
         }
         jobApplicationRepository.saveAll(applications);
 
+        Candidate c = getCandidate(id);
+        UUID orgId = c.getOrganization().getId();
+        String name = c.getFirstName() + " " + c.getLastName();
+
         candidateRepository.deleteById(id);
+
+        timelineService.createEvent(orgId, "CANDIDATE", id, "DELETE",
+                "Candidate Deleted", null, "Candidate deleted: " + name, null);
     }
-    
+
     public Resource getResumeFile(UUID id) {
         Candidate c = getCandidate(id);
         if (c.getResumeFilePath() == null) {
@@ -227,7 +291,8 @@ public class CandidateService {
         }
 
         // 3. Update Entity Fields
-        // Name (Optional: Only update if strictly valid, or maybe overwrite? Let's overwrite for now as resume is source of truth)
+        // Name (Optional: Only update if strictly valid, or maybe overwrite? Let's
+        // overwrite for now as resume is source of truth)
         if (parsedData.getCandidateName() != null) {
             String[] parts = parsedData.getCandidateName().split(" ", 2);
             candidate.setFirstName(parts[0]);
@@ -246,8 +311,10 @@ public class CandidateService {
         // Location
         if (parsedData.getCity() != null) {
             String loc = parsedData.getCity();
-            if (parsedData.getState() != null) loc += ", " + parsedData.getState();
-            if (parsedData.getCountry() != null) loc += ", " + parsedData.getCountry();
+            if (parsedData.getState() != null)
+                loc += ", " + parsedData.getState();
+            if (parsedData.getCountry() != null)
+                loc += ", " + parsedData.getCountry();
             candidate.setCity(loc);
         }
 
@@ -275,12 +342,12 @@ public class CandidateService {
 
                 // Set current designation/company if present
                 parsedData.getExperience().stream()
-                    .filter(e -> Boolean.TRUE.equals(e.getIsCurrent()))
-                    .findFirst()
-                    .ifPresent(e -> {
-                        candidate.setCurrentDesignation(e.getTitle());
-                        candidate.setCurrentCompany(e.getCompany());
-                    });
+                        .filter(e -> Boolean.TRUE.equals(e.getIsCurrent()))
+                        .findFirst()
+                        .ifPresent(e -> {
+                            candidate.setCurrentDesignation(e.getTitle());
+                            candidate.setCurrentCompany(e.getCompany());
+                        });
             }
 
             if (parsedData.getEducation() != null) {
@@ -306,6 +373,11 @@ public class CandidateService {
         candidate.setResumeContentType(file.getContentType());
 
         candidateRepository.save(candidate);
+
+        timelineService.createEvent(candidate.getOrganization().getId(), "CANDIDATE", candidate.getId(),
+                "RESUME_UPDATE",
+                "Resume Updated", null, "Resume file updated", null);
+
         return enhanceCandidate(candidate);
     }
 

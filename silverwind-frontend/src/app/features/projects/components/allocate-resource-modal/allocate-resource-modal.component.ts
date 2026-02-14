@@ -30,8 +30,34 @@ import { ModalComponent } from '../../../../shared/components/modal/modal.compon
       </div>
 
       <form [formGroup]="allocateForm" (ngSubmit)="allocateUser()" class="space-y-5">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Select User</label>
+        <!-- Resource Type Toggle -->
+        <div class="flex gap-4 p-1 bg-gray-100 rounded-lg">
+          <button
+            type="button"
+            (click)="setResourceType('EMPLOYEE')"
+            [class.bg-white]="resourceType === 'EMPLOYEE'"
+            [class.shadow-sm]="resourceType === 'EMPLOYEE'"
+            class="flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all"
+            [class.text-gray-900]="resourceType === 'EMPLOYEE'"
+            [class.text-gray-500]="resourceType !== 'EMPLOYEE'"
+          >
+            Employee
+          </button>
+          <button
+            type="button"
+            (click)="setResourceType('CANDIDATE')"
+            [class.bg-white]="resourceType === 'CANDIDATE'"
+            [class.shadow-sm]="resourceType === 'CANDIDATE'"
+            class="flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all"
+            [class.text-gray-900]="resourceType === 'CANDIDATE'"
+            [class.text-gray-500]="resourceType !== 'CANDIDATE'"
+          >
+            Candidate
+          </button>
+        </div>
+
+        <div *ngIf="resourceType === 'EMPLOYEE'">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Select Employee</label>
           <div class="relative">
             <select
               formControlName="userId"
@@ -43,12 +69,21 @@ import { ModalComponent } from '../../../../shared/components/modal/modal.compon
               </option>
             </select>
           </div>
-          <p
-            *ngIf="allocateForm.get('userId')?.touched && allocateForm.get('userId')?.invalid"
-            class="mt-1 text-xs text-red-600"
-          >
-            Please select a user to allocate.
-          </p>
+        </div>
+
+        <div *ngIf="resourceType === 'CANDIDATE'">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Select Candidate</label>
+          <div class="relative">
+            <select
+              formControlName="candidateId"
+              class="block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg border bg-white"
+            >
+              <option value="">Choose a candidate...</option>
+              <option *ngFor="let candidate of candidates" [value]="candidate.id">
+                {{ candidate.firstName }} {{ candidate.lastName }}
+              </option>
+            </select>
+          </div>
         </div>
 
         <div>
@@ -72,21 +107,7 @@ import { ModalComponent } from '../../../../shared/components/modal/modal.compon
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="block text-sm font-medium text-gray-700">Allocation %</label>
-              <div class="relative group">
-                <i
-                  class="bi bi-info-circle text-xs text-gray-400 hover:text-indigo-600 cursor-help transition-colors"
-                ></i>
-                <!-- Tooltip (Bottom aligned for modal) -->
-                <div
-                  class="absolute right-0 bottom-6 w-56 p-3 bg-white rounded-lg shadow-xl border border-gray-100 z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none text-left"
-                >
-                  <div class="text-xs text-gray-600 space-y-1">
-                    <p><strong class="text-gray-900">100%</strong> = Full Time (40h/wk)</p>
-                    <p><strong class="text-gray-900">50%</strong> = Half Time (20h/wk)</p>
-                    <p><strong class="text-gray-900">20%</strong> = ~1 Day/Week</p>
-                  </div>
-                </div>
-              </div>
+              <!-- Info Icon ... -->
             </div>
             <div class="relative rounded-md shadow-sm">
               <input
@@ -141,6 +162,7 @@ export class AllocateResourceModalComponent implements OnChanges {
   @Input() isOpen = false;
   @Input() projectId: string | null = null;
   @Input() users: User[] = [];
+  @Input() candidates: any[] = []; // Type should be Candidate[]
   @Output() close = new EventEmitter<void>();
   @Output() saved = new EventEmitter<void>();
 
@@ -149,9 +171,11 @@ export class AllocateResourceModalComponent implements OnChanges {
   private dialogService = inject(DialogService);
 
   isSaving = false;
+  resourceType: 'EMPLOYEE' | 'CANDIDATE' = 'EMPLOYEE';
 
   allocateForm = this.fb.group({
-    userId: ['', Validators.required],
+    userId: [''],
+    candidateId: [''],
     startDate: ['', Validators.required],
     percentage: [100, [Validators.required, Validators.min(0), Validators.max(100)]],
     billingRole: [''],
@@ -160,19 +184,44 @@ export class AllocateResourceModalComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['isOpen'] && this.isOpen) {
       this.allocateForm.reset({ percentage: 100 });
+      this.setResourceType('EMPLOYEE');
     }
+  }
+
+  setResourceType(type: 'EMPLOYEE' | 'CANDIDATE') {
+    this.resourceType = type;
+    const userCtrl = this.allocateForm.get('userId');
+    const candCtrl = this.allocateForm.get('candidateId');
+
+    if (type === 'EMPLOYEE') {
+      userCtrl?.setValidators(Validators.required);
+      candCtrl?.clearValidators();
+      candCtrl?.setValue('');
+    } else {
+      candCtrl?.setValidators(Validators.required);
+      userCtrl?.clearValidators();
+      userCtrl?.setValue('');
+    }
+    userCtrl?.updateValueAndValidity();
+    candCtrl?.updateValueAndValidity();
   }
 
   allocateUser() {
     if (this.allocateForm.valid && this.projectId) {
       this.isSaving = true;
       const val = this.allocateForm.value;
+
       const req: AllocateUserRequest = {
-        userId: val.userId!,
         startDate: val.startDate!,
         percentage: val.percentage!,
         billingRole: val.billingRole || undefined,
       };
+
+      if (this.resourceType === 'EMPLOYEE') {
+        req.userId = val.userId!;
+      } else {
+        req.candidateId = val.candidateId!;
+      }
 
       this.projectService.allocateUser(this.projectId, req).subscribe({
         next: () => {
@@ -182,7 +231,7 @@ export class AllocateResourceModalComponent implements OnChanges {
         },
         error: () => {
           this.isSaving = false;
-          this.dialogService.open('Error', 'Failed to allocate user');
+          this.dialogService.open('Error', 'Failed to allocate resource');
         },
       });
     }

@@ -1,7 +1,10 @@
 package com.solventek.silverwind.projects.dto;
 
 import com.solventek.silverwind.auth.Employee;
+import com.solventek.silverwind.client.Client;
+import com.solventek.silverwind.dto.ClientSummary;
 import com.solventek.silverwind.org.Organization;
+import com.solventek.silverwind.recruitment.Candidate;
 import com.solventek.silverwind.projects.Project;
 import com.solventek.silverwind.projects.ProjectAllocation;
 import com.solventek.silverwind.storage.StorageService;
@@ -18,7 +21,8 @@ public class ProjectMapper {
     private final StorageService storageService;
 
     public ProjectResponse toProjectResponse(Project project) {
-        if (project == null) return null;
+        if (project == null)
+            return null;
 
         return ProjectResponse.builder()
                 .id(project.getId())
@@ -27,13 +31,14 @@ public class ProjectMapper {
                 .startDate(project.getStartDate())
                 .endDate(project.getEndDate())
                 .status(project.getStatus() != null ? project.getStatus().name() : null)
-                .client(toOrganizationSummary(project.getClient()))
+                .client(toClientSummary(project.getClient()))
                 .internalOrg(toOrganizationSummary(project.getInternalOrg()))
                 .build();
     }
 
     public ProjectAllocationResponse toAllocationResponse(ProjectAllocation allocation) {
-        if (allocation == null) return null;
+        if (allocation == null)
+            return null;
 
         return ProjectAllocationResponse.builder()
                 .id(allocation.getId())
@@ -45,21 +50,51 @@ public class ProjectMapper {
                 .allocationPercentage(allocation.getAllocationPercentage())
                 .billingRole(allocation.getBillingRole())
                 .status(allocation.getStatus() != null ? allocation.getStatus().name() : null)
+                .status(allocation.getStatus() != null ? allocation.getStatus().name() : null)
+                .candidateDetails(toCandidateSummary(allocation.getCandidate()))
+                .build();
+    }
+
+    public ClientSummary toClientSummary(Client client) {
+        if (client == null)
+            return null;
+        return ClientSummary.builder()
+                .id(client.getId())
+                .name(client.getName())
+                .logoUrl(client.getLogoUrl())
+                .industry(client.getIndustry())
+                .build();
+    }
+
+    public UserSummary toCandidateSummary(Candidate candidate) {
+        if (candidate == null)
+            return null;
+        return UserSummary.builder()
+                .id(candidate.getId())
+                .firstName(candidate.getFirstName())
+                .lastName(candidate.getLastName())
+                .email(candidate.getEmail())
+                // Candidate doesn't have profilePhotoUrl in the entity snippet I saw, likely no
+                // photo or different field.
+                // Checking Candidate.java... it has resume fields but no explicit photo url.
+                // Leaving photoUrl null or maybe we can add it to Candidate later.
                 .build();
     }
 
     public OrganizationSummary toOrganizationSummary(Organization org) {
-        if (org == null) return null;
+        if (org == null)
+            return null;
 
         String logoUrl = org.getLogoUrl();
         if (logoUrl != null && !logoUrl.isBlank()) {
             try {
-                // If it looks like a raw S3 key (doesn't start with / or http), or follows /api/files convention
+                // If it looks like a raw S3 key (doesn't start with / or http), or follows
+                // /api/files convention
                 String key = logoUrl;
                 if (logoUrl.startsWith("/api/files/")) {
                     key = logoUrl.replace("/api/files/", "");
                 }
-                
+
                 // Only sign if it's not already a full URL (http/https)
                 if (!logoUrl.startsWith("http")) {
                     logoUrl = storageService.getPresignedUrl(key, java.time.Duration.ofMinutes(60));
@@ -78,8 +113,9 @@ public class ProjectMapper {
     }
 
     public UserSummary toUserSummary(Employee employee) {
-        if (employee == null) return null;
-        
+        if (employee == null)
+            return null;
+
         String photoUrl = employee.getProfilePhotoUrl();
         if (photoUrl != null && photoUrl.startsWith("/api/files/")) {
             try {

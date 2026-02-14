@@ -18,6 +18,7 @@ export type ApplicationStatus =
 export interface JobApplication {
   id: string;
   job: Job;
+  candidate: Candidate;
 
   // Flat fields matching Backend
   firstName: string;

@@ -24,11 +24,12 @@ public class Project {
     @Column(nullable = false)
     private String name;
 
+    @Column(length = 2000)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_org_id")
-    private Organization client;
+    @JoinColumn(name = "client_id")
+    private com.solventek.silverwind.client.Client client;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "internal_org_id", nullable = false)

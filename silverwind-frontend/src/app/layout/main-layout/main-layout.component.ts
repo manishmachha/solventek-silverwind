@@ -40,7 +40,7 @@ import { CommonModule } from '@angular/common';
 
         <!-- Content Area -->
         <main class="flex-1 overflow-y-auto">
-          <div class="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full animate-fade-in-up">
+          <div class="p-2 md:p-4 w-full h-full animate-fade-in-up">
             <router-outlet></router-outlet>
           </div>
         </main>

@@ -4,6 +4,7 @@ import com.solventek.silverwind.auth.Employee;
 import com.solventek.silverwind.auth.EmployeeRepository;
 import com.solventek.silverwind.enums.EmploymentType;
 import com.solventek.silverwind.notifications.NotificationService;
+import com.solventek.silverwind.notifications.Notification.NotificationCategory;
 import com.solventek.silverwind.org.Organization;
 import com.solventek.silverwind.org.OrganizationRepository;
 import com.solventek.silverwind.org.OrganizationService;
@@ -103,9 +104,15 @@ public class JobService {
             // Notify Org Admins if not Draft
             if (jobStatus != JobStatus.DRAFT) {
                 employeeRepository.findByOrganizationId(orgId).forEach(admin -> {
-                    notificationService.sendNotification(admin.getId(), "New Job Created",
-                            "A new job '" + title + "' has been created/submitted.",
-                            "JOB", job.getId());
+                    notificationService.sendNotification(
+                            NotificationService.NotificationBuilder.create()
+                                    .recipient(admin.getId())
+                                    .title("New Job Created")
+                                    .body("A new job '" + title + "' has been created/submitted.")
+                                    .category(NotificationCategory.JOB)
+                                    .refEntity("JOB", job.getId())
+                                    .actionUrl("/jobs/" + job.getId())
+                                    .icon("bi-briefcase"));
                 });
             }
 
@@ -167,10 +174,18 @@ public class JobService {
 
             // Notify Org Admins
             String statusTitle = "Job Status Updated";
-            String statusBody = "Job '" + job.getTitle() + "' status changed from " + oldStatus + " to " + newStatus + ".";
+            String statusBody = "Job '" + job.getTitle() + "' status changed from " + oldStatus + " to " + newStatus
+                    + ".";
             employeeRepository.findByOrganizationId(job.getOrganization().getId()).forEach(admin -> {
-                // Don't notify actor? No, notify everyone to be safe/consistent
-                notificationService.sendNotification(admin.getId(), statusTitle, statusBody, "JOB", jobId);
+                notificationService.sendNotification(
+                        NotificationService.NotificationBuilder.create()
+                                .recipient(admin.getId())
+                                .title(statusTitle)
+                                .body(statusBody)
+                                .category(NotificationCategory.JOB)
+                                .refEntity("JOB", jobId)
+                                .actionUrl("/portal/jobs/" + jobId)
+                                .icon("bi-arrow-repeat"));
             });
 
             return enhanceJob(job);
@@ -220,10 +235,27 @@ public class JobService {
                     "Job verified by Admin", null);
             log.info("Job verified successfully: {}", jobId);
 
-            // Notify Org Admins
-            employeeRepository.findByOrganizationId(job.getOrganization().getId()).forEach(admin -> {
-                 notificationService.sendNotification(admin.getId(), "Job Verified", 
-                    "Job '" + job.getTitle() + "' has been verified.", "JOB", jobId);
+            // Notify Org Admins & Solventek Admins
+            List<Employee> recipients = employeeRepository.findByOrganizationIdAndRoleNameNot(
+                    job.getOrganization().getId(), com.solventek.silverwind.rbac.RoleDefinitions.ROLE_EMPLOYEE);
+
+            List<Employee> solventekAdmins = employeeRepository.findByOrganizationTypeAndRoleNameNot(
+                    com.solventek.silverwind.org.OrganizationType.SOLVENTEK,
+                    com.solventek.silverwind.rbac.RoleDefinitions.ROLE_EMPLOYEE);
+
+            java.util.Set<Employee> allRecipients = new java.util.HashSet<>(recipients);
+            allRecipients.addAll(solventekAdmins);
+
+            allRecipients.forEach(admin -> {
+                notificationService.sendNotification(
+                        NotificationService.NotificationBuilder.create()
+                                .recipient(admin.getId())
+                                .title("New Job Verified")
+                                .body("Job '" + job.getTitle() + "' has been verified.")
+                                .category(NotificationCategory.JOB)
+                                .refEntity("JOB", job.getId())
+                                .actionUrl("/portal/jobs/" + job.getId())
+                                .icon("bi-check-circle"));
             });
 
             return enhanceJob(job);
@@ -250,6 +282,30 @@ public class JobService {
             timelineService.createEvent(job.getOrganization().getId(), "JOB", jobId, "ENRICH", "Job Enriched", actorId,
                     "Job enriched by TA", null);
             log.info("Job enriched successfully: {}", jobId);
+
+            // Notify Org Admins & Solventek Admins
+            List<Employee> recipients = employeeRepository.findByOrganizationIdAndRoleNameNot(
+                    job.getOrganization().getId(), com.solventek.silverwind.rbac.RoleDefinitions.ROLE_EMPLOYEE);
+
+            List<Employee> solventekAdmins = employeeRepository.findByOrganizationTypeAndRoleNameNot(
+                    com.solventek.silverwind.org.OrganizationType.SOLVENTEK,
+                    com.solventek.silverwind.rbac.RoleDefinitions.ROLE_EMPLOYEE);
+
+            java.util.Set<Employee> allRecipients = new java.util.HashSet<>(recipients);
+            allRecipients.addAll(solventekAdmins);
+
+            allRecipients.forEach(admin -> {
+                notificationService.sendNotification(
+                        NotificationService.NotificationBuilder.create()
+                                .recipient(admin.getId())
+                                .title("Job Enriched")
+                                .body("Job '" + job.getTitle() + "' has been enriched with details.")
+                                .category(NotificationCategory.JOB)
+                                .refEntity("JOB", jobId)
+                                .actionUrl("/portal/jobs/" + jobId)
+                                .icon("bi-stars"));
+            });
+
             return enhanceJob(job);
         } catch (Exception e) {
             log.error("Error enriching job {}: {}", jobId, e.getMessage(), e);
@@ -278,8 +334,15 @@ public class JobService {
 
             // Notify Org Admins
             employeeRepository.findByOrganizationId(job.getOrganization().getId()).forEach(admin -> {
-                 notificationService.sendNotification(admin.getId(), "Job Approved", 
-                    "Job '" + job.getTitle() + "' has been finally approved and is ready to publish.", "JOB", jobId);
+                notificationService.sendNotification(
+                        NotificationService.NotificationBuilder.create()
+                                .recipient(admin.getId())
+                                .title("Job Approved")
+                                .body("Job '" + job.getTitle() + "' has been finally approved and is ready to publish.")
+                                .category(NotificationCategory.JOB)
+                                .refEntity("JOB", jobId)
+                                .actionUrl("/portal/jobs/" + jobId)
+                                .icon("bi-check-all"));
             });
 
             return enhanceJob(job);
@@ -305,9 +368,15 @@ public class JobService {
 
             // Notify Org Admins
             employeeRepository.findByOrganizationId(job.getOrganization().getId()).forEach(admin -> {
-                notificationService.sendNotification(admin.getId(), "Job Published",
-                        "Job '" + job.getTitle() + "' is now LIVE.",
-                        "JOB", job.getId());
+                notificationService.sendNotification(
+                        NotificationService.NotificationBuilder.create()
+                                .recipient(admin.getId())
+                                .title("Job Published")
+                                .body("Job '" + job.getTitle() + "' is now LIVE.")
+                                .category(NotificationCategory.JOB)
+                                .refEntity("JOB", job.getId())
+                                .actionUrl("/portal/jobs/" + job.getId())
+                                .icon("bi-megaphone"));
             });
 
             // Notify ALL Approved Vendors
@@ -316,9 +385,16 @@ public class JobService {
                             OrganizationStatus.APPROVED)
                     .forEach(vendorOrg -> {
                         employeeRepository.findByOrganizationId(vendorOrg.getId()).forEach(vendorUser -> {
-                            notificationService.sendNotification(vendorUser.getId(), "New Job Opportunity",
-                                    "A new job '" + job.getTitle() + "' is available for your candidates.",
-                                    "JOB", job.getId());
+                            notificationService.sendNotification(
+                                    NotificationService.NotificationBuilder.create()
+                                            .recipient(vendorUser.getId())
+                                            .title("New Job Opportunity")
+                                            .body("A new job '" + job.getTitle()
+                                                    + "' is available for your candidates.")
+                                            .category(NotificationCategory.JOB)
+                                            .refEntity("JOB", job.getId())
+                                            .actionUrl("/jobs/" + job.getId())
+                                            .icon("bi-briefcase-fill"));
                         });
                     });
 

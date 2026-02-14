@@ -10,7 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProjectService } from '../../../../core/services/project.service';
-import { Organization } from '../../../../core/models/auth.model';
+import { Client } from '../../../../core/models/client.model';
 import { Project } from '../../../../core/models/project.model';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 
@@ -42,10 +42,10 @@ import { ModalComponent } from '../../../../shared/components/modal/modal.compon
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1.5">Client (Optional)</label>
-          <select formControlName="clientOrgId" class="input-modern bg-white">
+          <select formControlName="clientId" class="input-modern bg-white">
             <option value="">-- Internal Project --</option>
             <option *ngFor="let client of clients" [value]="client.id">
-              {{ client.name }} ({{ client.type }})
+              {{ client.name }}
             </option>
           </select>
         </div>
@@ -89,7 +89,7 @@ import { ModalComponent } from '../../../../shared/components/modal/modal.compon
 })
 export class AddProjectModalComponent implements OnChanges {
   @Input() isOpen = false;
-  @Input() clients: Organization[] = [];
+  @Input() clients: Client[] = [];
   @Input() editProject: Project | null = null;
   @Output() close = new EventEmitter<void>();
   @Output() saved = new EventEmitter<void>();
@@ -102,7 +102,7 @@ export class AddProjectModalComponent implements OnChanges {
   projectForm = this.fb.group({
     name: ['', Validators.required],
     description: [''],
-    clientOrgId: [''],
+    clientId: [''],
     startDate: [''],
     endDate: [''],
   });
@@ -116,13 +116,13 @@ export class AddProjectModalComponent implements OnChanges {
         this.projectForm.patchValue({
           name: this.editProject.name,
           description: this.editProject.description || '',
-          clientOrgId: this.editProject.client?.id || '',
+          clientId: this.editProject.client?.id || '',
           startDate: this.editProject.startDate || '',
           endDate: this.editProject.endDate || '',
         });
       } else {
         // Creating new project
-        this.projectForm.patchValue({ clientOrgId: '' });
+        this.projectForm.patchValue({ clientId: '' });
       }
     }
   }
@@ -131,7 +131,7 @@ export class AddProjectModalComponent implements OnChanges {
     if (this.projectForm.valid) {
       this.isSaving = true;
       const payload = { ...this.projectForm.value };
-      if (!payload.clientOrgId) payload.clientOrgId = null;
+      if (!payload.clientId) payload.clientId = undefined;
 
       const request$ = this.editProject
         ? this.projectService.updateProject(this.editProject.id, payload as any)

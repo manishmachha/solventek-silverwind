@@ -177,6 +177,7 @@ interface GroupedNotifications {
 export class NotificationsComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private headerService = inject(HeaderService);
+  private router = inject(Router);
 
   notifications = signal<Notification[]>([]);
   unreadCount = signal(0);
@@ -294,7 +295,7 @@ export class NotificationsComponent implements OnInit {
     }
     // Navigate if actionUrl is set
     if (notification.actionUrl) {
-      window.location.href = notification.actionUrl;
+      this.router.navigateByUrl(notification.actionUrl);
     }
   }
 

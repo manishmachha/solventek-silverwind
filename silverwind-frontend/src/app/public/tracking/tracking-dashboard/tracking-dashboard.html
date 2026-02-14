@@ -1,26 +1,20 @@
-<div
-  *ngIf="!dashboardData"
-  class="flex flex-col gap-3 items-center justify-center min-h-screen text-slate-500 bg-slate-50"
->
-  <div
-    class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"
-  ></div>
+<div *ngIf="!dashboardData"
+  class="flex flex-col gap-3 items-center justify-center min-h-screen text-slate-500 bg-slate-50">
+  <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
   <p class="font-medium animate-pulse">Loading dashboard context...</p>
 </div>
 <div class="dashboard-container font-sans text-slate-800 pt-28" *ngIf="dashboardData">
   <!-- Header -->
   <header class="dashboard-header bg-white shadow-sm relative z-30">
-    <div class="max-w-7xl mx-auto h-20 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+    <div class=" mx-auto h-20 flex items-center justify-between px-4 sm:px-6 lg:px-8">
       <div class="flex items-center gap-4">
         <div
-          class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-200"
-        >
+          class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-200">
           <i class="bi bi-briefcase-fill text-lg"></i>
         </div>
         <div>
           <h1
-            class="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-indigo-700 to-blue-600 leading-none"
-          >
+            class="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-indigo-700 to-blue-600 leading-none">
             Application Portal
           </h1>
           <p class="text-xs text-slate-500 font-medium">
@@ -35,22 +29,18 @@
           <p class="text-xs text-slate-500">Applicant</p>
         </div>
         <div
-          class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 text-lg border-2 border-white shadow-sm"
-        >
+          class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 text-lg border-2 border-white shadow-sm">
           {{ dashboardData.candidateName.charAt(0) }}
         </div>
-        <button
-          (click)="refreshData()"
-          class="p-2 text-slate-400 hover:text-indigo-600 transition-colors"
-          title="Refresh"
-        >
+        <button (click)="refreshData()" class="p-2 text-slate-400 hover:text-indigo-600 transition-colors"
+          title="Refresh">
           <i class="bi bi-arrow-clockwise text-xl"></i>
         </button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+  <main class=" mx-auto py-8 px-4 sm:px-6 lg:px-8">
     <!-- Welcome / Status Banner -->
     <div class="mb-8">
       <div class="dashboard-card p-6 md:p-8 bg-linear-to-r from-white to-slate-50">
@@ -61,25 +51,20 @@
             </h2>
             <p class="text-slate-500 max-w-2xl">
               Here is the latest update on your application for
-              <span class="font-semibold text-indigo-600">{{ dashboardData.jobTitle }}</span
-              >. We appreciate your interest in joining our team.
+              <span class="font-semibold text-indigo-600">{{ dashboardData.jobTitle }}</span>. We appreciate your
+              interest in joining our team.
             </p>
           </div>
           <div class="flex flex-col items-end gap-2">
-            <span class="text-sm font-semibold text-slate-400 uppercase tracking-wider"
-              >Current Status</span
-            >
+            <span class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Current Status</span>
             <div class="status-badge status-{{ dashboardData.status }} shadow-sm">
-              <i
-                class="bi"
-                [ngClass]="{
+              <i class="bi" [ngClass]="{
                   'bi-send-check': dashboardData.status === 'APPLIED',
                   'bi-star': dashboardData.status === 'SHORTLISTED',
                   'bi-calendar-event': dashboardData.status === 'INTERVIEW_SCHEDULED',
                   'bi-trophy': dashboardData.status === 'OFFERED',
                   'bi-x-circle': dashboardData.status === 'REJECTED',
-                }"
-              ></i>
+                }"></i>
               {{ dashboardData.status.replace('_', ' ') }}
             </div>
           </div>
@@ -95,9 +80,7 @@
             <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
               <i class="bi bi-clock-history text-indigo-500"></i> Activity Timeline
             </h3>
-            <span
-              class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium"
-            >
+            <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
               {{ dashboardData.timeline.length }} Updates
             </span>
           </div>
@@ -107,34 +90,27 @@
 
             <div class="space-y-8">
               <div *ngFor="let event of dashboardData.timeline" class="timeline-item flex gap-4">
-                <div
-                  class="timeline-icon shrink-0"
-                  [ngClass]="{
+                <div class="timeline-icon shrink-0" [ngClass]="{
                     'bg-blue-50 text-blue-600': event.eventType === 'STATUS_CHANGE',
                     'bg-indigo-50 text-indigo-600': event.eventType === 'COMMENT',
                     'bg-green-50 text-green-600': event.eventType === 'INTERVIEW_SCHEDULE',
                     'bg-amber-50 text-amber-600': event.eventType === 'DOCUMENT_UPLOAD',
-                  }"
-                >
-                  <i
-                    class="bi text-lg"
-                    [ngClass]="{
+                  }">
+                  <i class="bi text-lg" [ngClass]="{
                       'bi-arrow-left-right': event.eventType === 'STATUS_CHANGE',
                       'bi-chat-left-text': event.eventType === 'COMMENT',
                       'bi-calendar-check': event.eventType === 'INTERVIEW_SCHEDULE',
                       'bi-file-earmark-arrow-up': event.eventType === 'DOCUMENT_UPLOAD',
-                    }"
-                  ></i>
+                    }"></i>
                 </div>
 
                 <div
-                  class="flex-1 bg-white p-4 rounded-lg border border-slate-100 shadow-sm hover:border-indigo-100 transition-colors"
-                >
+                  class="flex-1 bg-white p-4 rounded-lg border border-slate-100 shadow-sm hover:border-indigo-100 transition-colors">
                   <div class="flex justify-between items-start mb-1">
                     <p class="font-semibold text-slate-800">{{ event.title }}</p>
                     <span class="text-xs text-slate-400 whitespace-nowrap">{{
                       event.createdAt | date: 'MMM d, h:mm a'
-                    }}</span>
+                      }}</span>
                   </div>
                   <p class="text-slate-600 text-sm leading-relaxed">{{ event.description }}</p>
                   <p class="text-xs text-slate-400 mt-2 font-medium">by {{ event.createdBy }}</p>
@@ -155,37 +131,28 @@
 
           <!-- Upload Form -->
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
-            <label class="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide"
-              >Upload New Document</label
-            >
+            <label class="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Upload New
+              Document</label>
             <div class="space-y-3">
-              <select
-                [(ngModel)]="selectedCategory"
-                class="w-full text-sm rounded-lg border-slate-300 focus:ring-indigo-500 focus:border-indigo-500 py-2"
-              >
+              <select [(ngModel)]="selectedCategory"
+                class="w-full text-sm rounded-lg border-slate-300 focus:ring-indigo-500 focus:border-indigo-500 py-2">
                 <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
               </select>
 
               <div class="flex items-center gap-2">
                 <label
-                  class="flex-1 cursor-pointer bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 transition-colors flex items-center gap-2 text-sm text-slate-600 overflow-hidden"
-                >
+                  class="flex-1 cursor-pointer bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 transition-colors flex items-center gap-2 text-sm text-slate-600 overflow-hidden">
                   <i class="bi bi-paperclip text-lg"></i>
                   <span class="truncate">{{
                     selectedFile ? selectedFile.name : 'Choose File...'
-                  }}</span>
+                    }}</span>
                   <input type="file" (change)="onFileSelected($event)" class="hidden" />
                 </label>
-                <button
-                  (click)="uploadDocument()"
-                  [disabled]="isUploading || !selectedFile"
-                  class="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-md shadow-indigo-200"
-                >
+                <button (click)="uploadDocument()" [disabled]="isUploading || !selectedFile"
+                  class="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-md shadow-indigo-200">
                   <i class="bi bi-cloud-upload text-lg" *ngIf="!isUploading"></i>
-                  <span
-                    *ngIf="isUploading"
-                    class="block w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin"
-                  ></span>
+                  <span *ngIf="isUploading"
+                    class="block w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin"></span>
                 </button>
               </div>
             </div>
@@ -193,13 +160,9 @@
 
           <!-- List -->
           <div class="space-y-3">
-            <div
-              *ngFor="let doc of dashboardData.documents"
-              class="flex items-center gap-3 p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors group"
-            >
-              <div
-                class="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0"
-              >
+            <div *ngFor="let doc of dashboardData.documents"
+              class="flex items-center gap-3 p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors group">
+              <div class="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
                 <i class="bi bi-file-earmark-pdf text-xl"></i>
               </div>
               <div class="flex-1 min-w-0">
@@ -208,16 +171,12 @@
                   {{ doc.category }} • {{ doc.uploadedAt | date: 'MMM d' }}
                 </p>
               </div>
-              <button
-                class="text-slate-400 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-all"
-              >
+              <button class="text-slate-400 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-all">
                 <i class="bi bi-download"></i>
               </button>
             </div>
-            <div
-              *ngIf="!dashboardData.documents || dashboardData.documents.length === 0"
-              class="text-center py-6 text-slate-400 text-sm"
-            >
+            <div *ngIf="!dashboardData.documents || dashboardData.documents.length === 0"
+              class="text-center py-6 text-slate-400 text-sm">
               No documents uploaded yet.
             </div>
           </div>
@@ -230,20 +189,13 @@
           </h3>
 
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <label class="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide"
-              >Send a Message</label
-            >
-            <textarea
-              [(ngModel)]="newComment"
-              rows="3"
+            <label class="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Send a
+              Message</label>
+            <textarea [(ngModel)]="newComment" rows="3"
               class="w-full text-sm rounded-lg border-slate-300 focus:ring-indigo-500 focus:border-indigo-500 mb-3"
-              placeholder="Ask a question or provide an update..."
-            ></textarea>
-            <button
-              (click)="sendComment()"
-              [disabled]="isSending || !newComment"
-              class="w-full bg-slate-900 text-white py-2 rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors text-sm font-medium shadow-lg shadow-slate-200"
-            >
+              placeholder="Ask a question or provide an update..."></textarea>
+            <button (click)="sendComment()" [disabled]="isSending || !newComment"
+              class="w-full bg-slate-900 text-white py-2 rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors text-sm font-medium shadow-lg shadow-slate-200">
               {{ isSending ? 'Sending...' : 'Send Message' }}
             </button>
           </div>

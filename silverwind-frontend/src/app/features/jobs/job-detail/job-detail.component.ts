@@ -29,7 +29,7 @@ import { HeaderService } from '../../../core/services/header.service';
       *ngIf="job()"
       class="min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50/30 py-8 px-4"
     >
-      <div class="max-w-7xl mx-auto space-y-6">
+      <div class=" mx-auto space-y-6">
         <!-- Back Button -->
         <a
           routerLink="/jobs"

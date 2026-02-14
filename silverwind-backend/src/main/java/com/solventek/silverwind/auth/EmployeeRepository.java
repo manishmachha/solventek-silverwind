@@ -27,6 +27,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
 
     java.util.List<Employee> findByManagerId(UUID managerId);
 
+    // Find all users in an org except those with strict EMPLOYEE role (i.e. find
+    // Admins, Managers, Vendors)
+    java.util.List<Employee> findByOrganizationIdAndRoleNameNot(UUID organizationId, String roleName);
+
+    // Find all users in organizations of a specific type (e.g. SOLVENTEK) except
+    // those with strict EMPLOYEE role
+    java.util.List<Employee> findByOrganizationTypeAndRoleNameNot(com.solventek.silverwind.org.OrganizationType type,
+            String roleName);
+
     boolean existsByRoleId(UUID roleId);
 
     boolean existsByEmail(String email);

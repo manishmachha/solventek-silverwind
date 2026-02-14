@@ -190,6 +190,17 @@ export const routes: Routes = [
         },
       },
 
+      // ========== CLIENTS (Solventek Only) ==========
+      {
+        path: 'clients',
+        loadChildren: () => import('./features/clients/client.routes').then((m) => m.CLIENT_ROUTES),
+        canActivate: [roleGuard],
+        data: {
+          roles: ['SUPER_ADMIN', 'TA'],
+          orgTypes: ['SOLVENTEK'],
+        },
+      },
+
       // ========== TICKETS (Portal) ==========
       {
         path: 'portal/tickets',

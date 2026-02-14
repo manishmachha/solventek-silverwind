@@ -34,7 +34,8 @@ public class ProjectController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TA', 'EMPLOYEE')")
-    public ResponseEntity<ApiResponse<List<ProjectResponse>>> getProjects(@AuthenticationPrincipal UserPrincipal currentUser) {
+    public ResponseEntity<ApiResponse<List<ProjectResponse>>> getProjects(
+            @AuthenticationPrincipal UserPrincipal currentUser) {
         List<ProjectResponse> projects = projectService.getMyProjects(currentUser.getOrgId()).stream()
                 .map(projectMapper::toProjectResponse)
                 .toList();
@@ -54,8 +55,9 @@ public class ProjectController {
             @AuthenticationPrincipal UserPrincipal currentUser,
             @RequestBody @Valid CreateProjectRequest request) {
         Project created = projectService.createProject(currentUser.getOrgId(), request.name, request.description,
-                request.clientOrgId, request.startDate, request.endDate);
-        return ResponseEntity.ok(ApiResponse.success("Project created successfully.", projectMapper.toProjectResponse(created)));
+                request.clientId, request.startDate, request.endDate);
+        return ResponseEntity
+                .ok(ApiResponse.success("Project created successfully.", projectMapper.toProjectResponse(created)));
     }
 
     @PutMapping("/{id}")
@@ -64,8 +66,9 @@ public class ProjectController {
             @PathVariable UUID id,
             @RequestBody @Valid UpdateProjectRequest request) {
         Project updated = projectService.updateProject(id, request.name, request.description,
-                request.clientOrgId, request.startDate, request.endDate);
-        return ResponseEntity.ok(ApiResponse.success("Project updated successfully.", projectMapper.toProjectResponse(updated)));
+                request.clientId, request.startDate, request.endDate);
+        return ResponseEntity
+                .ok(ApiResponse.success("Project updated successfully.", projectMapper.toProjectResponse(updated)));
     }
 
     @PutMapping("/{id}/status")
@@ -74,7 +77,8 @@ public class ProjectController {
             @PathVariable UUID id,
             @RequestBody @Valid UpdateStatusRequest request) {
         Project updated = projectService.updateStatus(id, request.status);
-        return ResponseEntity.ok(ApiResponse.success("Project status updated.", projectMapper.toProjectResponse(updated)));
+        return ResponseEntity
+                .ok(ApiResponse.success("Project status updated.", projectMapper.toProjectResponse(updated)));
     }
 
     @DeleteMapping("/{id}")
@@ -100,9 +104,11 @@ public class ProjectController {
     public ResponseEntity<ApiResponse<ProjectAllocationResponse>> allocateUser(
             @PathVariable UUID id,
             @RequestBody @Valid AllocateUserRequest request) {
-        ProjectAllocation allocation = projectService.allocateUser(id, request.userId, request.startDate, request.endDate, request.percentage,
+        ProjectAllocation allocation = projectService.allocateUser(id, request.userId, request.candidateId,
+                request.startDate, request.endDate, request.percentage,
                 request.billingRole);
-        return ResponseEntity.ok(ApiResponse.success("User allocated to project successfully.", projectMapper.toAllocationResponse(allocation)));
+        return ResponseEntity.ok(ApiResponse.success("User allocated to project successfully.",
+                projectMapper.toAllocationResponse(allocation)));
     }
 
     @PutMapping("/{projectId}/allocations/{allocationId}")
@@ -113,7 +119,8 @@ public class ProjectController {
             @RequestBody @Valid UpdateAllocationRequest request) {
         ProjectAllocation updated = projectService.updateAllocation(projectId, allocationId, request.startDate,
                 request.endDate, request.percentage, request.billingRole, request.status);
-        return ResponseEntity.ok(ApiResponse.success("Allocation updated successfully.", projectMapper.toAllocationResponse(updated)));
+        return ResponseEntity.ok(
+                ApiResponse.success("Allocation updated successfully.", projectMapper.toAllocationResponse(updated)));
     }
 
     @DeleteMapping("/{projectId}/allocations/{allocationId}")
@@ -132,7 +139,7 @@ public class ProjectController {
         @NotBlank
         private String name;
         private String description;
-        private UUID clientOrgId;
+        private UUID clientId;
         private LocalDate startDate;
         private LocalDate endDate;
     }
@@ -141,7 +148,7 @@ public class ProjectController {
     public static class UpdateProjectRequest {
         private String name;
         private String description;
-        private UUID clientOrgId;
+        private UUID clientId;
         private LocalDate startDate;
         private LocalDate endDate;
     }
@@ -154,8 +161,8 @@ public class ProjectController {
 
     @Data
     public static class AllocateUserRequest {
-        @NotNull
         private UUID userId;
+        private UUID candidateId;
         @NotNull
         private LocalDate startDate;
         private LocalDate endDate;

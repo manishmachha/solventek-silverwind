@@ -82,10 +82,6 @@ public class Organization extends BaseEntity {
     @JsonIgnore
     private java.util.List<com.solventek.silverwind.auth.Employee> employees;
 
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private java.util.List<com.solventek.silverwind.projects.Project> clientProjects;
-
     @OneToMany(mappedBy = "internalOrg", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private java.util.List<com.solventek.silverwind.projects.Project> ownedProjects;

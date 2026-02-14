@@ -319,6 +319,13 @@ export class SidebarComponent implements OnInit {
       icon: 'bi bi-people',
       items: [
         {
+          label: 'Clients',
+          route: '/clients',
+          icon: 'bi bi-briefcase',
+          roles: ['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN', 'TA'],
+          orgTypes: ['SOLVENTEK'],
+        },
+        {
           label: 'Projects',
           route: '/projects',
           icon: 'bi bi-kanban',

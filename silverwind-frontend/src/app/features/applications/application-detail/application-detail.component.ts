@@ -26,6 +26,7 @@ import { HeaderService } from '../../../core/services/header.service';
 import { JobApplication, ApplicationStatus } from '../../../core/models/application.model';
 import { AuthStore } from '../../../core/stores/auth.store';
 import { OrganizationLogoComponent } from '../../../shared/components/organization-logo/organization-logo.component';
+import { ClientSubmissionsComponent } from '../../candidates/components/client-submissions/client-submissions.component';
 
 @Component({
   selector: 'app-application-detail',
@@ -43,6 +44,7 @@ import { OrganizationLogoComponent } from '../../../shared/components/organizati
     MatProgressSpinnerModule,
     BaseChartDirective,
     OrganizationLogoComponent,
+    ClientSubmissionsComponent,
   ],
   templateUrl: './application-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

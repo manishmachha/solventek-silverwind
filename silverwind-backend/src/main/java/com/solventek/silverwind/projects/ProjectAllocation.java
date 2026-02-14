@@ -1,6 +1,7 @@
 package com.solventek.silverwind.projects;
 
 import com.solventek.silverwind.auth.Employee;
+import com.solventek.silverwind.recruitment.Candidate;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -25,8 +26,12 @@ public class ProjectAllocation {
     private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "employee_id")
     private Employee employee;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "candidate_id")
+    private Candidate candidate;
 
     private LocalDate startDate;
     private LocalDate endDate;

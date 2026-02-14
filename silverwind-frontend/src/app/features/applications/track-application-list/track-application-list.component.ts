@@ -40,7 +40,7 @@ import { OrganizationLogoComponent } from '../../../shared/components/organizati
     MatSelectModule,
     MatTooltipModule,
     FormsModule,
-    OrganizationLogoComponent
+    OrganizationLogoComponent,
   ],
   template: `
     <div class="p-6 max-w-[1600px] mx-auto space-y-6">
@@ -94,6 +94,12 @@ import { OrganizationLogoComponent } from '../../../shared/components/organizati
           </th>
           <td mat-cell *matCellDef="let app" class="px-6 py-4">
             <div class="flex items-center gap-3">
+              <div *ngIf="hasNotification(app.id)" class="relative flex h-2.5 w-2.5 shrink-0">
+                <span
+                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
+                ></span>
+                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+              </div>
               <div
                 class="h-10 w-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold shrink-0"
               >
@@ -211,6 +217,7 @@ import { OrganizationLogoComponent } from '../../../shared/components/organizati
           mat-row
           *matRowDef="let row; columns: displayedColumns"
           class="hover:bg-gray-50/50 transition-colors border-b border-gray-100 last:border-0"
+          [ngClass]="hasNotification(row.id) ? 'bg-indigo-50/50' : ''"
         ></tr>
 
         <!-- Empty State -->

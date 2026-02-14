@@ -6,6 +6,7 @@ import { CandidateService } from '../../services/candidate.service';
 import { Candidate } from '../../models/candidate.model';
 import { HeaderService } from '../../../../core/services/header.service';
 import { AuthStore } from '../../../../core/stores/auth.store';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 import { OrganizationLogoComponent } from '../../../../shared/components/organization-logo/organization-logo.component';
 
@@ -19,10 +20,12 @@ export class CandidateListComponent implements OnInit {
   private candidateService = inject(CandidateService);
   private headerService = inject(HeaderService);
   public authStore = inject(AuthStore);
+  private notificationService = inject(NotificationService);
 
   candidates = signal<Candidate[]>([]);
   filteredCandidates = signal<Candidate[]>([]);
   searchQuery = signal('');
+  unreadCandidateIds = new Set<string>();
 
   loading = signal(true);
 
@@ -32,14 +35,33 @@ export class CandidateListComponent implements OnInit {
       'Manage your candidate database',
       'bi bi-people-fill',
     );
+    this.loadUnreadCandidateIds();
     this.loadCandidates();
+  }
+
+  loadUnreadCandidateIds() {
+    this.notificationService.getUnreadEntityIds('CANDIDATE').subscribe({
+      next: (ids) => (this.unreadCandidateIds = new Set(ids)),
+      error: () => (this.unreadCandidateIds = new Set()),
+    });
+  }
+
+  hasNotification(candidateId: string): boolean {
+    return this.unreadCandidateIds.has(candidateId);
   }
 
   loadCandidates() {
     this.loading.set(true);
     this.candidateService.getCandidates().subscribe({
       next: (data) => {
-        this.candidates.set(data);
+        // Sort: notified candidates first
+        const sorted = [...data].sort((a, b) => {
+          const aHasNotif = this.hasNotification(a.id) ? 1 : 0;
+          const bHasNotif = this.hasNotification(b.id) ? 1 : 0;
+          return bHasNotif - aHasNotif;
+        });
+
+        this.candidates.set(sorted);
         this.filterCandidates();
         this.loading.set(false);
       },

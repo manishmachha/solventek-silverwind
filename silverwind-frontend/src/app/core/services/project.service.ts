@@ -7,7 +7,7 @@ import { Project, ProjectAllocation } from '../models/project.model';
 export interface CreateProjectRequest {
   name: string;
   description?: string;
-  clientOrgId?: string;
+  clientId?: string;
   startDate?: string;
   endDate?: string;
 }
@@ -15,7 +15,7 @@ export interface CreateProjectRequest {
 export interface UpdateProjectRequest {
   name?: string;
   description?: string;
-  clientOrgId?: string;
+  clientId?: string;
   startDate?: string;
   endDate?: string;
 }
@@ -25,7 +25,8 @@ export interface UpdateStatusRequest {
 }
 
 export interface AllocateUserRequest {
-  userId: string;
+  userId?: string;
+  candidateId?: string;
   startDate: string;
   endDate?: string;
   percentage?: number;
