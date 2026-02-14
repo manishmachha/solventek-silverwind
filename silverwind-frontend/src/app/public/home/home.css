@@ -46,3 +46,43 @@
   -webkit-text-fill-color: transparent;
   background-image: linear-gradient(to right, #3b82f6, #8b5cf6, #ec4899);
 }
+
+/* Tech Stack Marquee Animation */
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll-left 20s linear infinite;
+  display: flex;
+  width: max-content;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
+}
+
+/* Services Marquee Animation */
+@keyframes scroll-services {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll-services {
+  animation: scroll-services 30s linear infinite;
+  display: flex;
+  width: max-content;
+}
+
+.animate-scroll-services:hover {
+  animation-play-state: paused;
+}

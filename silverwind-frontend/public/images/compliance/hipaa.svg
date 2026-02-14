@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" fill="none">
+  <!-- Shield outer -->
+  <path d="M100 8 L185 45 C185 45 190 130 100 205 C10 130 15 45 15 45 Z" fill="#1565C0" stroke="#0D47A1" stroke-width="3"/>
+  <!-- Shield inner -->
+  <path d="M100 20 L175 52 C175 52 179 125 100 193 C21 125 25 52 25 52 Z" fill="#2196F3"/>
+  <!-- White border -->
+  <path d="M100 20 L175 52 C175 52 179 125 100 193 C21 125 25 52 25 52 Z" fill="none" stroke="white" stroke-width="2.5" opacity="0.6"/>
+  <!-- Medical cross -->
+  <rect x="82" y="55" width="36" height="80" rx="4" fill="white"/>
+  <rect x="62" y="75" width="76" height="40" rx="4" fill="white"/>
+  <!-- HIPAA text -->
+  <text x="100" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="22" fill="white" letter-spacing="2">HIPAA</text>
+  <text x="100" y="185" text-anchor="middle" font-family="Arial, sans-serif" font-weight="600" font-size="13" fill="white" opacity="0.9" letter-spacing="1">COMPLIANT</text>
+</svg>

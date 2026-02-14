@@ -3,7 +3,7 @@ export interface ServiceItem {
   title: string;
   description: string;
   icon: string;
-  category: 'tech' | 'management' | 'design' | 'consulting'; // Added consulting
+  category: string;
   features?: string[]; // New: For detailed service page
 }
 

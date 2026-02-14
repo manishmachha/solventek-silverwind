@@ -7,9 +7,7 @@
     <span class="text-teal-400 font-bold tracking-wider uppercase mb-4 block">Our Work</span>
     <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
       Real World
-      <span class="text-transparent bg-clip-text bg-linear-to-r from-teal-400 to-blue-500"
-        >Success Stories</span
-      >
+      <span class="text-transparent bg-clip-text bg-linear-to-r from-teal-400 to-blue-500">Success Stories</span>
     </h1>
     <p class="text-xl text-slate-400 max-w-2xl mx-auto">
       See how we've helped organizations across the globe achieve their digital transformation
@@ -22,66 +20,58 @@
 <div class="bg-transparent min-h-screen pb-24">
   <div class="container mx-auto px-6 space-y-20">
     @for (study of studies(); track study.id) {
-      <div
-        class="bg-slate-800 rounded-3xl overflow-hidden border border-slate-700 shadow-xl group hover:border-teal-500/50 transition-all duration-500"
-      >
-        <div class="flex flex-col lg:flex-row">
-          <!-- Image Section -->
-          <div class="w-full lg:w-2/5 relative h-64 lg:h-auto overflow-hidden">
-            <img
-              [src]="study.imageUrl"
-              [alt]="study.title"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            />
-            <div
-              class="absolute inset-0 bg-linear-to-r from-slate-900/80 to-transparent lg:bg-linear-to-t"
-            ></div>
-            <div class="absolute bottom-6 left-6">
-              <span
-                class="bg-teal-500/20 text-teal-300 border border-teal-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide backdrop-blur-md"
-              >
-                {{ study.category }}
-              </span>
+    <div [id]="'case-' + study.id"
+      class="bg-slate-800 rounded-3xl overflow-hidden border border-slate-700 shadow-xl group hover:border-teal-500/50 transition-all duration-500">
+      <div class="flex flex-col lg:flex-row">
+        <!-- Image Section -->
+        <div class="w-full lg:w-2/5 relative h-64 lg:h-auto overflow-hidden">
+          <img [src]="study.imageUrl" [alt]="study.title"
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+          <div class="absolute inset-0 bg-linear-to-r from-slate-900/80 to-transparent lg:bg-linear-to-t"></div>
+          <div class="absolute bottom-6 left-6">
+            <span
+              class="bg-teal-500/20 text-teal-300 border border-teal-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide backdrop-blur-md">
+              {{ study.category }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Content Section -->
+        <div class="w-full lg:w-3/5 p-8 lg:p-12">
+          <h2 class="text-3xl font-bold text-white mb-2">{{ study.title }}</h2>
+          <div class="text-slate-400 font-medium mb-6 flex items-center gap-2">
+            <mat-icon class="text-sm! w-4! h-4!">business</mat-icon> {{ study.client }}
+          </div>
+
+          <p class="text-slate-300 mb-8 text-lg leading-relaxed">{{ study.description }}</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 border-t border-slate-700 pt-8">
+            <div>
+              <h4 class="text-red-400 font-bold uppercase text-xs mb-3 tracking-wider">
+                The Challenge
+              </h4>
+              <p class="text-slate-400 text-sm leading-relaxed">{{ study.challenge }}</p>
+            </div>
+            <div>
+              <h4 class="text-teal-400 font-bold uppercase text-xs mb-3 tracking-wider">
+                The Solution
+              </h4>
+              <p class="text-slate-400 text-sm leading-relaxed">{{ study.solution }}</p>
             </div>
           </div>
 
-          <!-- Content Section -->
-          <div class="w-full lg:w-3/5 p-8 lg:p-12">
-            <h2 class="text-3xl font-bold text-white mb-2">{{ study.title }}</h2>
-            <div class="text-slate-400 font-medium mb-6 flex items-center gap-2">
-              <mat-icon class="text-sm! w-4! h-4!">business</mat-icon> {{ study.client }}
-            </div>
-
-            <p class="text-slate-300 mb-8 text-lg leading-relaxed">{{ study.description }}</p>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 border-t border-slate-700 pt-8">
-              <div>
-                <h4 class="text-red-400 font-bold uppercase text-xs mb-3 tracking-wider">
-                  The Challenge
-                </h4>
-                <p class="text-slate-400 text-sm leading-relaxed">{{ study.challenge }}</p>
-              </div>
-              <div>
-                <h4 class="text-teal-400 font-bold uppercase text-xs mb-3 tracking-wider">
-                  The Solution
-                </h4>
-                <p class="text-slate-400 text-sm leading-relaxed">{{ study.solution }}</p>
-              </div>
-            </div>
-
-            <div class="flex flex-wrap gap-3">
-              @for (result of study.results; track result) {
-                <span
-                  class="bg-slate-700 text-slate-200 px-3 py-1 rounded-md text-sm font-medium border border-slate-600 flex items-center gap-2"
-                >
-                  <mat-icon class="text-sm! w-4! h-4! text-green-400">trending_up</mat-icon>
-                  {{ result }}
-                </span>
-              }
-            </div>
+          <div class="flex flex-wrap gap-3">
+            @for (result of study.results; track result) {
+            <span
+              class="bg-slate-700 text-slate-200 px-3 py-1 rounded-md text-sm font-medium border border-slate-600 flex items-center gap-2">
+              <mat-icon class="text-sm! w-4! h-4! text-green-400">trending_up</mat-icon>
+              {{ result }}
+            </span>
+            }
           </div>
         </div>
       </div>
+    </div>
     }
   </div>
 </div>

@@ -7,9 +7,7 @@
     <span class="text-blue-400 font-bold tracking-wider uppercase mb-4 block">Our Expertise</span>
     <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
       End-to-End
-      <span class="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-500"
-        >Digital Solutions</span
-      >
+      <span class="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-500">Digital Solutions</span>
     </h1>
     <p class="text-xl text-slate-400 max-w-2xl mx-auto">
       We empower businesses with cutting-edge technology, strategic consulting, and creative design
@@ -18,66 +16,86 @@
   </div>
 </div>
 
-<!-- Services Grid -->
-<!-- Services Grid -->
+<!-- Services Grid - 3 Categories -->
+<!-- Services Grid - 3 Categories -->
 <section class="py-24 bg-transparent border-t border-slate-800">
   <div class="container mx-auto px-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      @for (service of services(); track service.id) {
+
+    @for (cat of categories(); track cat.name; let last = $last) {
+    <div [class.mb-20]="!last">
+      <!-- Category Header -->
+      <div class="flex items-center gap-4 mb-10">
+        <div class="w-1 h-10 rounded-full" [class.bg-blue-500]="cat.meta.color === 'blue'"
+          [class.bg-purple-500]="cat.meta.color === 'purple'" [class.bg-green-500]="cat.meta.color === 'green'"></div>
+        <div>
+          <h2 class="text-3xl font-bold text-white">{{ cat.name }}</h2>
+          <p class="text-slate-400 mt-1">{{ cat.meta.description }}</p>
+        </div>
+      </div>
+
+      <!-- Service Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        @for (service of cat.services; track service.id) {
         <div
-          class="group relative p-1 rounded-2xl bg-linear-to-b from-slate-700 to-slate-800 hover:from-blue-500 hover:to-purple-600 transition-all duration-500"
-        >
-          <div
-            class="bg-slate-900/60 backdrop-blur-sm h-full rounded-xl p-8 relative overflow-hidden"
-          >
+          class="group relative p-1 rounded-2xl bg-linear-to-b from-slate-700 to-slate-800 transition-all duration-500"
+          [class.hover:from-blue-500]="cat.meta.color === 'blue'" [class.hover:to-cyan-600]="cat.meta.color === 'blue'"
+          [class.hover:from-purple-500]="cat.meta.color === 'purple'"
+          [class.hover:to-pink-600]="cat.meta.color === 'purple'"
+          [class.hover:from-green-500]="cat.meta.color === 'green'"
+          [class.hover:to-teal-600]="cat.meta.color === 'green'">
+          <div class="bg-slate-900/60 backdrop-blur-sm h-full rounded-xl p-8 relative overflow-hidden flex flex-col">
             <!-- Icon -->
             <div
-              class="w-16 h-16 bg-slate-800 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/20"
-            >
-              <mat-icon
-                class="w-8! h-8! text-[2rem]! text-blue-400! group-hover:text-white! transition-colors"
-                >{{ service.icon }}</mat-icon
-              >
+              class="w-16 h-16 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300"
+              [class.bg-blue-500/10]="cat.meta.color === 'blue'" [class.border-blue-500/20]="cat.meta.color === 'blue'"
+              [class.bg-purple-500/10]="cat.meta.color === 'purple'"
+              [class.border-purple-500/20]="cat.meta.color === 'purple'"
+              [class.bg-green-500/10]="cat.meta.color === 'green'"
+              [class.border-green-500/20]="cat.meta.color === 'green'" style="border-width: 1px">
+              <mat-icon class="w-8! h-8! text-[2rem]! group-hover:text-white! transition-colors"
+                [class.text-blue-400!]="cat.meta.color === 'blue'"
+                [class.text-purple-400!]="cat.meta.color === 'purple'"
+                [class.text-green-400!]="cat.meta.color === 'green'">{{ service.icon }}</mat-icon>
             </div>
 
-            <!-- Content -->
-            <h3
-              class="text-2xl font-bold text-white mb-4 group-hover:text-blue-300 transition-colors"
-            >
+            <!-- Title & Description -->
+            <h3 class="text-2xl font-bold text-white mb-4 transition-colors"
+              [class.group-hover:text-blue-300]="cat.meta.color === 'blue'"
+              [class.group-hover:text-purple-300]="cat.meta.color === 'purple'"
+              [class.group-hover:text-green-300]="cat.meta.color === 'green'">
               {{ service.title }}
             </h3>
             <p class="text-slate-400 mb-6 leading-relaxed">{{ service.description }}</p>
 
-            <!-- Expanded Features -->
+            <!-- Features -->
             @if (service.features) {
-              <ul class="space-y-3 mb-8">
-                @for (feature of service.features; track feature) {
-                  <li class="flex items-start gap-3 text-sm text-slate-300">
-                    <mat-icon class="w-5! h-5! text-[1.25rem]! text-green-400! shrink-0"
-                      >check_circle</mat-icon
-                    >
-                    <span>{{ feature }}</span>
-                  </li>
-                }
-              </ul>
+            <ul class="space-y-3 mb-8">
+              @for (feature of service.features; track feature) {
+              <li class="flex items-start gap-3 text-sm text-slate-300">
+                <mat-icon class="w-5! h-5! text-[1.25rem]! shrink-0" [class.text-blue-400!]="cat.meta.color === 'blue'"
+                  [class.text-purple-400!]="cat.meta.color === 'purple'"
+                  [class.text-green-400!]="cat.meta.color === 'green'">check_circle</mat-icon>
+                <span>{{ feature }}</span>
+              </li>
+              }
+            </ul>
             }
 
             <!-- CTA -->
             <div class="mt-auto">
-              <a
-                mat-button
-                color="primary"
-                class="px-0! group-hover:translate-x-2! transition-transform duration-300"
-                routerLink="/contact"
-              >
+              <a mat-button color="primary" class="px-0! group-hover:translate-x-2! transition-transform duration-300"
+                routerLink="/contact">
                 <span class="group-hover:mr-2 transition-all">Get Started</span>
                 <mat-icon>arrow_forward</mat-icon>
               </a>
             </div>
           </div>
         </div>
-      }
+        }
+      </div>
     </div>
+    }
+
   </div>
 </section>
 
