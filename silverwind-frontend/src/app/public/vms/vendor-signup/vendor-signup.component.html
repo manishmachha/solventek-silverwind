@@ -1,0 +1,439 @@
+<div class="min-h-screen relative overflow-hidden bg-[#0c1929] pt-24 pb-12">
+    <!-- Animated Background Shapes -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+        <div
+            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] bg-blue-500/8 rounded-full blur-3xl opacity-25 animate-pulse">
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="w-full max-w-7xl mx-auto grid lg:grid-cols-5 gap-8 p-4 relative z-10">
+        <!-- Left Side: Brand/Welcome (sticky on desktop) -->
+        <div class="hidden lg:flex lg:col-span-2 flex-col justify-center p-6 text-white animate-fade-in-up">
+            <div class="sticky top-32">
+                <div class="flex items-center gap-3 mb-6">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-blue-500/20 backdrop-blur flex items-center justify-center border border-blue-400/20">
+                        <i class="bi bi-wind text-2xl text-blue-300"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">Silverwind</h1>
+                        <p class="text-emerald-300/70 text-xs">Vendor Portal</p>
+                    </div>
+                </div>
+
+                <h2 class="text-3xl xl:text-4xl font-bold leading-tight mb-5">
+                    Grow Your Business
+                    <br />
+                    <span class="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-emerald-400">with
+                        Silverwind</span>
+                </h2>
+
+                <p class="text-slate-300/80 text-base max-w-sm leading-relaxed mb-8">
+                    Join our exclusive network of top-tier vendors and connect your talent with world-class enterprises.
+                </p>
+
+                <!-- Features -->
+                <div class="space-y-3 mb-10">
+                    <div class="flex items-center gap-3 text-slate-200/90">
+                        <div
+                            class="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-400/15 flex items-center justify-center shrink-0">
+                            <i class="bi bi-check2 text-emerald-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm">End-to-end hiring workflow</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-slate-200/90">
+                        <div
+                            class="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-400/15 flex items-center justify-center shrink-0">
+                            <i class="bi bi-check2 text-emerald-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm">Real-time application tracking</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-slate-200/90">
+                        <div
+                            class="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-400/15 flex items-center justify-center shrink-0">
+                            <i class="bi bi-check2 text-emerald-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm">Multi-role collaboration</span>
+                    </div>
+                </div>
+
+                <!-- Testimonial Card -->
+                <div class="glass-card rounded-xl p-5 border border-white/10">
+                    <div class="flex gap-1 text-yellow-400 mb-2 text-sm">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="text-slate-300/90 text-sm italic mb-3">
+                        "Silverwind has transformed how we manage our placements. The unified platform saves us hours
+                        every week."
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-400/20 flex items-center justify-center text-xs font-bold text-blue-300">
+                            TS
+                        </div>
+                        <div>
+                            <div class="text-sm font-semibold text-white">TechSolutions Inc.</div>
+                            <div class="text-xs text-slate-400">Partner since 2024</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Multi-step Form + Vertical Steps -->
+        <div class="lg:col-span-3 w-full max-w-4xl mx-auto animate-fade-in-up">
+            <!-- Mobile Branding -->
+            <div class="lg:hidden text-center mb-6 mt-3">
+                <p class="text-blue-300/70 text-xs font-medium tracking-wider uppercase">
+                    Silverwind Vendor Portal
+                </p>
+            </div>
+
+            <!-- Mobile Horizontal Progress Steps (visible only on small screens) -->
+            <div class="md:hidden mb-8 px-2">
+                <div class="flex items-center justify-between relative">
+                    <div class="absolute left-0 top-5 w-full h-0.5 bg-white/10 rounded-full"></div>
+                    <div class="absolute left-0 top-5 h-0.5 rounded-full transition-all duration-500"
+                        [style.width.%]="((currentStep() - 1) / (steps.length - 1)) * 100"
+                        style="background: linear-gradient(90deg, #2563eb, #10b981);">
+                    </div>
+                    <div *ngFor="let step of steps; let i = index"
+                        class="flex flex-col items-center gap-2 relative cursor-pointer z-10"
+                        (click)="currentStep() > i + 1 ? currentStep.set(i + 1) : null">
+                        <div class="step-circle" [class.step-complete]="i + 1 < currentStep()"
+                            [class.step-active]="i + 1 === currentStep()" [class.step-inactive]="i + 1 > currentStep()">
+                            <i *ngIf="i + 1 < currentStep()" class="bi bi-check-lg"></i>
+                            <span *ngIf="i + 1 >= currentStep()">{{ i + 1 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desktop Layout: Form + Vertical Steps -->
+            <div class="flex gap-6 items-stretch">
+                <!-- Glass Card Form Container -->
+                <div class="glass-card rounded-2xl p-4 sm:p-6 lg:p-8 flex-1 min-w-0">
+                    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+                        <!-- Step 1: Company Info -->
+                        <div *ngIf="currentStep() === 1" class="animate-fade-in">
+                            <div class="section-header">
+                                <div class="section-icon">
+                                    <i class="bi bi-building"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">Company Details</h3>
+                                    <p class="text-sm text-slate-400">Tell us about your organization</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                <div class="lg:col-span-2">
+                                    <label class="field-label">Organization Name <span class="required">*</span></label>
+                                    <input formControlName="orgName" type="text" class="custom-input"
+                                        placeholder="e.g. Acme Solutions Pvt Ltd" />
+                                    <p *ngIf="isFieldInvalid('orgName')" class="field-error">
+                                        <i class="bi bi-exclamation-circle"></i> Organization name is required
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <label class="field-label">Legal Name</label>
+                                    <input formControlName="legalName" type="text" class="custom-input"
+                                        placeholder="Registered legal name" />
+                                </div>
+
+                                <div>
+                                    <label class="field-label">Tax ID / PAN</label>
+                                    <input formControlName="taxId" type="text" class="custom-input"
+                                        placeholder="Tax Identification Number" />
+                                </div>
+
+                                <div>
+                                    <label class="field-label">Registration Number</label>
+                                    <input formControlName="registrationNumber" type="text" class="custom-input"
+                                        placeholder="Company Registration No." />
+                                </div>
+
+                                <div>
+                                    <label class="field-label">Website</label>
+                                    <div class="icon-input">
+                                        <i class="bi bi-globe"></i>
+                                        <input formControlName="website" type="url" class="custom-input"
+                                            placeholder="https://www.example.com" />
+                                    </div>
+                                </div>
+
+                                <div class="lg:col-span-2">
+                                    <label class="field-label">Industry</label>
+                                    <select formControlName="industry" class="custom-input">
+                                        <option value="">Select Industry</option>
+                                        <option value="IT Services">IT Services</option>
+                                        <option value="Staffing">Staffing & Recruiting</option>
+                                        <option value="Consulting">Consulting</option>
+                                        <option value="Product">Software Product</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+
+                                <div class="lg:col-span-2">
+                                    <label class="field-label">Description</label>
+                                    <textarea formControlName="description" rows="3" class="custom-input"
+                                        placeholder="Brief description of your company..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Contact Details -->
+                        <div *ngIf="currentStep() === 2" class="animate-fade-in">
+                            <div class="section-header">
+                                <div class="section-icon">
+                                    <i class="bi bi-geo-alt"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">Location & Contact</h3>
+                                    <p class="text-sm text-slate-400">Where is your HQ located?</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                <div class="lg:col-span-2">
+                                    <label class="field-label">Address Line 1 <span class="required">*</span></label>
+                                    <input formControlName="addressLine1" type="text" class="custom-input"
+                                        placeholder="Building, Street" />
+                                </div>
+
+                                <div class="lg:col-span-2">
+                                    <label class="field-label">Address Line 2</label>
+                                    <input formControlName="addressLine2" type="text" class="custom-input"
+                                        placeholder="Floor, Unit, Landmark" />
+                                </div>
+
+                                <div>
+                                    <label class="field-label">City <span class="required">*</span></label>
+                                    <input formControlName="city" type="text" class="custom-input" />
+                                </div>
+
+                                <div>
+                                    <label class="field-label">State <span class="required">*</span></label>
+                                    <input formControlName="state" type="text" class="custom-input" />
+                                </div>
+
+                                <div>
+                                    <label class="field-label">Country <span class="required">*</span></label>
+                                    <input formControlName="country" type="text" class="custom-input" />
+                                </div>
+
+                                <div>
+                                    <label class="field-label">Postal Code</label>
+                                    <input formControlName="postalCode" type="text" class="custom-input" />
+                                </div>
+
+                                <div class="lg:col-span-2">
+                                    <label class="field-label">Company Phone</label>
+                                    <div class="icon-input">
+                                        <i class="bi bi-telephone"></i>
+                                        <input formControlName="companyPhone" type="tel" class="custom-input"
+                                            placeholder="+1 234 567 8900" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Admin User -->
+                        <div *ngIf="currentStep() === 3" class="animate-fade-in">
+                            <div class="section-header">
+                                <div class="section-icon">
+                                    <i class="bi bi-person-badge"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">Primary Contact</h3>
+                                    <p class="text-sm text-slate-400">Super admin details for account access</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="field-label">First Name <span class="required">*</span></label>
+                                    <input formControlName="firstName" type="text" class="custom-input" />
+                                </div>
+
+                                <div>
+                                    <label class="field-label">Last Name <span class="required">*</span></label>
+                                    <input formControlName="lastName" type="text" class="custom-input" />
+                                </div>
+
+                                <div class="lg:col-span-2">
+                                    <label class="field-label">Work Email <span class="required">*</span></label>
+                                    <div class="icon-input">
+                                        <i class="bi bi-envelope"></i>
+                                        <input formControlName="email" type="email" class="custom-input"
+                                            placeholder="you@company.com" />
+                                    </div>
+                                    <p class="text-xs text-slate-500 mt-1 ml-1">This email will be used for login.</p>
+                                </div>
+
+                                <div class="lg:col-span-2">
+                                    <label class="field-label">Password <span class="required">*</span></label>
+                                    <div class="icon-input">
+                                        <i class="bi bi-lock"></i>
+                                        <input formControlName="password" type="password" class="custom-input"
+                                            placeholder="Min 8 characters" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="field-label">Personal Phone</label>
+                                    <input formControlName="phone" type="tel" class="custom-input" />
+                                </div>
+
+                                <div>
+                                    <label class="field-label">Designation</label>
+                                    <input formControlName="designation" type="text" class="custom-input"
+                                        placeholder="e.g. Director" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Business Details -->
+                        <div *ngIf="currentStep() === 4" class="animate-fade-in">
+                            <div class="section-header">
+                                <div class="section-icon">
+                                    <i class="bi bi-briefcase"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">Business Profile</h3>
+                                    <p class="text-sm text-slate-400">Additional business information</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="field-label">Employee Count</label>
+                                    <select formControlName="employeeCount" class="custom-input">
+                                        <option [ngValue]="null">Select Range</option>
+                                        <option [ngValue]="10">1-10</option>
+                                        <option [ngValue]="50">11-50</option>
+                                        <option [ngValue]="200">51-200</option>
+                                        <option [ngValue]="500">201-500</option>
+                                        <option [ngValue]="1000">500+</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="field-label">Years in Business</label>
+                                    <input formControlName="yearsInBusiness" type="number" class="custom-input" />
+                                </div>
+
+                                <div class="lg:col-span-2">
+                                    <label class="field-label">Service Offerings</label>
+                                    <input formControlName="serviceOfferings" type="text" class="custom-input"
+                                        placeholder="e.g. Java Development, Cloud Migration, QA" />
+                                </div>
+
+                                <div class="lg:col-span-2">
+                                    <label class="field-label">Key Clients (Optional)</label>
+                                    <textarea formControlName="keyClients" rows="2" class="custom-input"
+                                        placeholder="Mention few key clients..."></textarea>
+                                </div>
+
+                                <div class="lg:col-span-2">
+                                    <label class="field-label">How did you hear about us?</label>
+                                    <select formControlName="referralSource" class="custom-input">
+                                        <option value="">Select Option</option>
+                                        <option value="LinkedIn">LinkedIn</option>
+                                        <option value="Referral">Referral</option>
+                                        <option value="Search Engine">Search Engine</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="mt-8 pt-6 border-t border-white/10 flex justify-between items-center">
+                            <button type="button" (click)="prevStep()" *ngIf="currentStep() > 1" class="btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </button>
+                            <div *ngIf="currentStep() === 1"></div>
+
+                            <button type="button" (click)="nextStep()" *ngIf="currentStep() < 4"
+                                class="btn-gradient ml-auto">
+                                Next Step <i class="bi bi-arrow-right"></i>
+                            </button>
+
+                            <button type="submit" *ngIf="currentStep() === 4"
+                                [disabled]="signupForm.invalid || isSubmitting()" class="btn-gradient ml-auto">
+                                <i *ngIf="isSubmitting()" class="bi bi-arrow-repeat animate-spin"></i>
+                                <i *ngIf="!isSubmitting()" class="bi bi-check-lg"></i>
+                                {{ isSubmitting() ? 'Registering...' : 'Complete Registration' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Vertical Progress Steps (desktop only) -->
+                <div class="hidden md:flex flex-col items-center py-8 shrink-0">
+                    <div class="relative flex-1 flex flex-col justify-between items-start min-w-[170px]">
+                        <!-- Vertical line background (20px from left = center of 40px circle) -->
+                        <div class="absolute top-5 bottom-5 left-5 -translate-x-1/2 w-0.5 bg-white/10 rounded-full">
+                        </div>
+                        <!-- Active vertical line -->
+                        <div class="absolute top-5 left-5 -translate-x-1/2 w-0.5 rounded-full transition-all duration-500"
+                            [style.height.%]="((currentStep() - 1) / (steps.length - 1)) * 100"
+                            style="background: linear-gradient(180deg, #2563eb, #10b981);">
+                        </div>
+
+                        <div *ngFor="let step of steps; let i = index; let last = last"
+                            class="relative z-10 flex items-start cursor-pointer group"
+                            (click)="currentStep() > i + 1 ? currentStep.set(i + 1) : null">
+                            <!-- Step circle -->
+                            <div class="step-circle shrink-0" [class.step-complete]="i + 1 < currentStep()"
+                                [class.step-active]="i + 1 === currentStep()"
+                                [class.step-inactive]="i + 1 > currentStep()">
+                                <i *ngIf="i + 1 < currentStep()" class="bi bi-check-lg"></i>
+                                <span *ngIf="i + 1 >= currentStep()">{{ i + 1 }}</span>
+                            </div>
+                            <!-- Step label -->
+                            <div class="ml-4 pt-1">
+                                <span class="text-xs font-semibold whitespace-nowrap transition-colors block"
+                                    [class.text-emerald-400]="i + 1 < currentStep()"
+                                    [class.text-blue-300]="i + 1 === currentStep()"
+                                    [class.text-slate-500]="i + 1 > currentStep()">
+                                    {{ step.label }}
+                                </span>
+                                <span class="text-[10px] whitespace-nowrap block mt-0.5 font-medium"
+                                    [class.text-slate-500]="i + 1 !== currentStep()"
+                                    [class.text-slate-400]="i + 1 === currentStep()">
+                                    Step {{ i + 1 }} of {{ steps.length }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sign-in Link -->
+            <div class="mt-6 pt-4 text-center">
+                <p class="text-sm text-slate-400">
+                    Already have an account?
+                    <a routerLink="/vms/login"
+                        class="font-semibold text-emerald-400 hover:text-emerald-300 transition-colors">
+                        Sign in
+                    </a>
+                </p>
+            </div>
+
+            <div class="mt-4 text-center">
+                <p class="text-xs text-slate-500">© 2026 Solventek Technologies. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</div>

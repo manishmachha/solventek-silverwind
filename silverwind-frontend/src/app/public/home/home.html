@@ -68,30 +68,30 @@
 
   <!-- Hero Content -->
   <section
-    class="relative z-10 container mx-auto pt-36 px-6 min-h-screen flex flex-col justify-center items-center text-center pb-12">
-    <div class="relative w-full max-w-5xl mx-auto h-[400px] flex items-center justify-center">
+    class="relative z-10 container mx-auto pt-28 sm:pt-40 pb-8 px-6 min-h-[85vh] flex flex-col justify-center items-center text-center">
+    <div class="relative w-full max-w-5xl mx-auto h-[520px] sm:h-[450px] flex items-center justify-center">
       @for (option of heroOptions; track $index) {
       <div class="absolute inset-0 flex flex-col justify-center items-center transition-all duration-700 ease-in-out"
         [class.opacity-100]="currentHeroIndex() === $index" [class.opacity-0]="currentHeroIndex() !== $index"
         [class.translate-x-0]="currentHeroIndex() === $index"
         [class.pointer-events-none]="currentHeroIndex() !== $index">
         <span
-          class="inline-block py-1 px-3 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-semibold mb-6 backdrop-blur-sm transition-all duration-700 delay-100"
+          class="inline-block py-1 px-3 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs sm:text-sm font-semibold mb-4 sm:mb-6 backdrop-blur-sm transition-all duration-700 delay-100"
           [class.translate-y-0]="currentHeroIndex() === $index" [class.translate-y-4]="currentHeroIndex() !== $index"
           [class.opacity-0]="currentHeroIndex() !== $index">
           {{ option.pill }}
         </span>
         <h1
-          class="text-4xl md:text-6xl font-bold mb-8 text-white tracking-tight leading-tight transition-all duration-700 delay-200"
+          class="text-3xl md:text-6xl font-bold mb-4 md:mb-8 text-white tracking-tight leading-tight transition-all duration-700 delay-200"
           [class.translate-y-0]="currentHeroIndex() === $index" [class.translate-y-8]="currentHeroIndex() !== $index"
           [class.opacity-0]="currentHeroIndex() !== $index" [innerHTML]="option.headline">
         </h1>
-        <p class="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto mb-12 leading-relaxed transition-all duration-700 delay-300"
+        <p class="text-lg md:text-2xl text-slate-300 max-w-3xl mx-auto mb-8 md:mb-12 leading-relaxed transition-all duration-700 delay-300"
           [class.translate-y-0]="currentHeroIndex() === $index" [class.translate-y-8]="currentHeroIndex() !== $index"
           [class.opacity-0]="currentHeroIndex() !== $index">
           {{ option.subheadline }}
         </p>
-        <div class="flex flex-col sm:flex-row gap-6 transition-all duration-700 delay-500"
+        <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 transition-all duration-700 delay-500"
           [class.translate-y-0]="currentHeroIndex() === $index" [class.translate-y-8]="currentHeroIndex() !== $index"
           [class.opacity-0]="currentHeroIndex() !== $index">
           <a mat-flat-button color="primary"
@@ -110,7 +110,7 @@
     </div>
 
     <!-- Carousel Indicators -->
-    <div class="flex gap-3 justify-center mt-12 mb-6 relative z-20">
+    <div class="flex gap-3 justify-center mt-6 mb-8 relative z-20">
       @for (option of heroOptions; track $index) {
       <button (click)="currentHeroIndex.set($index)" class="w-3 h-3 rounded-full transition-all duration-300"
         [class.bg-blue-500]="currentHeroIndex() === $index" [class.w-8]="currentHeroIndex() === $index"

@@ -1,0 +1,190 @@
+<div class="min-h-screen relative flex items-center justify-center overflow-hidden bg-[#0c1929] pt-24">
+    <!-- Animated Background Shapes -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+        <!-- Central soft glow -->
+        <div
+            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] bg-blue-500/8 rounded-full blur-3xl opacity-25 animate-pulse">
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="w-full max-w-[1050px] grid md:grid-cols-2 gap-8 p-4 relative z-10">
+        <!-- Left Side: Brand/Welcome -->
+        <div class="hidden md:flex flex-col justify-center p-8 text-white animate-fade-in-up">
+            <div class="flex items-center gap-3 mb-6">
+                <div
+                    class="w-12 h-12 rounded-xl bg-blue-500/20 backdrop-blur flex items-center justify-center border border-blue-400/20">
+                    <i class="bi bi-wind text-2xl text-blue-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">Silverwind</h1>
+                    <p class="text-emerald-300/70 text-xs">Vendor Portal</p>
+                </div>
+            </div>
+
+            <h2 class="text-4xl xl:text-5xl font-bold leading-tight mb-6">
+                Welcome to <br />
+                <span class="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-emerald-400">Vendor
+                    Portal</span>
+            </h2>
+
+            <p class="text-slate-300/80 text-lg max-w-md leading-relaxed mb-10">
+                Streamline your vendor relationships, manage candidates, and track applications all in one
+                place.
+            </p>
+
+            <!-- Features -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-3 text-slate-200/90">
+                    <div
+                        class="w-9 h-9 rounded-lg bg-emerald-500/15 border border-emerald-400/15 flex items-center justify-center">
+                        <i class="bi bi-check2 text-emerald-400"></i>
+                    </div>
+                    <span>End-to-end hiring workflow</span>
+                </div>
+                <div class="flex items-center gap-3 text-slate-200/90">
+                    <div
+                        class="w-9 h-9 rounded-lg bg-emerald-500/15 border border-emerald-400/15 flex items-center justify-center">
+                        <i class="bi bi-check2 text-emerald-400"></i>
+                    </div>
+                    <span>Real-time application tracking</span>
+                </div>
+                <div class="flex items-center gap-3 text-slate-200/90">
+                    <div
+                        class="w-9 h-9 rounded-lg bg-emerald-500/15 border border-emerald-400/15 flex items-center justify-center">
+                        <i class="bi bi-check2 text-emerald-400"></i>
+                    </div>
+                    <span>Multi-role collaboration</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Login Form -->
+        <div class="glass-card rounded-2xl p-8 md:p-10 w-full max-w-md mx-auto animate-fade-in-up">
+            <!-- Logo & Header -->
+            <div class="text-center mb-8">
+                <div
+                    class="w-20 h-20 bg-blue-500/15 rounded-2xl shadow-lg border border-blue-400/15 mx-auto flex items-center justify-center mb-4 backdrop-blur-sm transform rotate-3 hover:rotate-0 transition-all duration-300">
+                    <img src="Solventek_logo.png" alt="Solventek Logo"
+                        class="w-full h-full object-contain drop-shadow-md brightness-110" />
+                </div>
+                <h2 class="text-2xl font-bold text-white">Vendor Sign In</h2>
+                <p class="text-slate-400 text-sm mt-1">Enter your credentials to access the portal</p>
+            </div>
+
+            <!-- Mobile Branding -->
+            <div class="md:hidden text-center mb-6">
+                <p class="text-blue-300/70 text-xs font-medium tracking-wider uppercase">
+                    Silverwind Vendor Portal
+                </p>
+            </div>
+
+            <!-- Error Alert -->
+            <div *ngIf="error()" class="mb-6 bg-red-500/10 border-l-4 border-red-400 p-4 rounded-r animate-fade-in">
+                <div class="flex">
+                    <div class="shrink-0">
+                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-200">{{ error() }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5">
+                <!-- Email Input -->
+                <div class="space-y-1.5">
+                    <label for="vms-email" class="block text-sm font-semibold text-slate-300 ml-1">Email</label>
+                    <div class="relative group">
+                        <div
+                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-blue-400 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <input type="email" id="vms-email" formControlName="email"
+                            class="custom-input block w-full pl-10 pr-3 py-3 rounded-xl text-sm placeholder-slate-500 focus:outline-none"
+                            placeholder="you@company.com" [class.border-red-500]="
+                loginForm.get('email')?.invalid && loginForm.get('email')?.touched
+              " />
+                    </div>
+                    <p *ngIf="loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched"
+                        class="text-red-400 text-xs ml-1">
+                        Email is required
+                    </p>
+                </div>
+
+                <!-- Password Input -->
+                <div class="space-y-1.5">
+                    <label for="vms-password" class="block text-sm font-semibold text-slate-300 ml-1">Password</label>
+                    <div class="relative group">
+                        <div
+                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-blue-400 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <input [type]="hidePassword() ? 'password' : 'text'" id="vms-password"
+                            formControlName="password"
+                            class="custom-input block w-full pl-10 pr-10 py-3 rounded-xl text-sm placeholder-slate-500 focus:outline-none"
+                            placeholder="Enter your password" [class.border-red-500]="
+                loginForm.get('password')?.invalid && loginForm.get('password')?.touched
+              " />
+                        <button type="button" (click)="togglePasswordVisibility($event)"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 transition-colors focus:outline-none">
+                            <i class="bi" [class.bi-eye]="!hidePassword()" [class.bi-eye-slash]="hidePassword()"></i>
+                        </button>
+                    </div>
+                    <p *ngIf="
+              loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched
+            " class="text-red-400 text-xs ml-1">
+                        Password is required
+                    </p>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" [disabled]="loginForm.invalid || isLoading()"
+                    class="btn-gradient w-full text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-4 hover:shadow-blue-500/35">
+                    <span *ngIf="!isLoading()">Sign In</span>
+                    <span *ngIf="isLoading()" class="flex items-center">
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        Signing in...
+                    </span>
+                    <i *ngIf="!isLoading()" class="bi bi-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- Vendor Signup Link -->
+            <div class="mt-8 pt-6 border-t border-white/10 text-center">
+                <p class="text-sm text-slate-400">
+                    New vendor?
+                    <a routerLink="/vms/vendor-signup"
+                        class="font-semibold text-emerald-400 hover:text-emerald-300 transition-colors">
+                        Register your company
+                    </a>
+                </p>
+            </div>
+
+            <div class="mt-6 text-center">
+                <p class="text-xs text-slate-500">© 2026 Solventek Technologies. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</div>

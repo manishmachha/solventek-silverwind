@@ -13,7 +13,13 @@ export const routes: Routes = [
   },
   {
     path: 'vms',
-    loadChildren: () => import('./features/vms/vms.routes').then((m) => m.VMS_ROUTES),
+    component: PublicLayoutComponent,
+    children: [
+      {
+        path: '',
+        loadChildren: () => import('./public/vms/vms.routes').then((m) => m.VMS_ROUTES),
+      },
+    ],
   },
   {
     path: '',
