@@ -125,7 +125,7 @@ public class ApplicationController {
     }
 
     @GetMapping("/{id}/analysis")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','HR_ADMIN','TA')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','HR_ADMIN','TA','VENDOR')")
     public ResponseEntity<ApiResponse<ResumeAnalysis>> getLatestAnalysis(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(applicationService.getLatestAnalysis(id)));
     }
