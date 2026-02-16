@@ -35,7 +35,7 @@ public class ApplicationController {
     private final ApplicationService applicationService;
 
     @PostMapping(value = "/jobs/{jobId}/apply", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TA', 'VENDOR')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'VENDOR')")
     public ResponseEntity<ApiResponse<JobApplication>> apply(
             @PathVariable UUID jobId,
             @RequestPart("data") ApplyRequest request,
@@ -80,7 +80,7 @@ public class ApplicationController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TA')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA')")
     public ResponseEntity<ApiResponse<Void>> deleteApplication(@PathVariable UUID id) {
         applicationService.withdrawApplication(id);
         return ResponseEntity.ok(ApiResponse.success("Application withdrawn successfully.", null));
@@ -116,7 +116,7 @@ public class ApplicationController {
     }
 
     @PostMapping("/{id}/decision")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TA')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA')")
     public ResponseEntity<ApiResponse<JobApplication>> makeDecision(
             @PathVariable UUID id,
             @RequestBody @Valid ClientDecisionRequest request) {
@@ -125,7 +125,7 @@ public class ApplicationController {
     }
 
     @GetMapping("/{id}/analysis")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','HR_ADMIN','TA', 'VENDOR')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','HR_ADMIN','TA')")
     public ResponseEntity<ApiResponse<ResumeAnalysis>> getLatestAnalysis(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(applicationService.getLatestAnalysis(id)));
     }
@@ -170,14 +170,14 @@ public class ApplicationController {
     }
 
     @PostMapping("/{id}/analysis")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TA')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA')")
     public ResponseEntity<ApiResponse<Void>> triggerAnalysis(@PathVariable UUID id) {
         applicationService.triggerManualAnalysis(id);
         return ResponseEntity.ok(ApiResponse.success("Analysis triggered successfully.", null));
     }
 
     @GetMapping("/documents/{docId}/download")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TA')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA')")
     public ResponseEntity<Resource> downloadDocument(@PathVariable UUID docId) {
         ApplicationDocuments doc = applicationService.getDocument(docId);
         Resource resource = applicationService.downloadDocumentResource(docId);
@@ -188,7 +188,7 @@ public class ApplicationController {
     }
 
     @GetMapping("/{id}/resume/download")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TA', 'VENDOR')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','HR_ADMIN', 'TA', 'VENDOR')")
     public ResponseEntity<Resource> downloadResume(@PathVariable UUID id) {
         JobApplication app = applicationService.getApplication(id);
         if (app.getResumeFilePath() == null) {
@@ -202,7 +202,7 @@ public class ApplicationController {
     }
 
     @PostMapping("/{id}/timeline")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TA')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA')")
     public ResponseEntity<ApiResponse<Void>> addTimelineEvent(
             @PathVariable UUID id,
             @RequestBody TimelineEventRequest request,

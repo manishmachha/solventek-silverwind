@@ -143,7 +143,7 @@ public class JobController {
      * Delete job - Solventek only
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteJob(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserPrincipal currentUser) {
@@ -166,7 +166,7 @@ public class JobController {
      * Verify job - Solventek only
      */
     @PostMapping("/{id}/verify")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
     public ResponseEntity<ApiResponse<Job>> verifyJob(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserPrincipal currentUser) {
@@ -191,7 +191,7 @@ public class JobController {
      * Approve job - Solventek only
      */
     @PostMapping("/{id}/approve")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
     public ResponseEntity<ApiResponse<Job>> approveJob(
             @PathVariable UUID id,
             @RequestBody @Valid ApproveJobRequest request,
@@ -204,7 +204,7 @@ public class JobController {
      * Publish job - Solventek only
      */
     @PostMapping("/{id}/publish")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN')")
     public ResponseEntity<ApiResponse<Job>> publishJob(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserPrincipal currentUser) {

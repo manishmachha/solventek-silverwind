@@ -57,16 +57,28 @@ export class ApplicationDetailComponent implements OnInit {
   private authStore = inject(AuthStore);
 
   // Permission Signal
-  isManager = computed(() => {
+  // Permission Signals
+  canManageApplication = computed(() => {
+    // Super Admin, HR Admin, TA can manage
+    return !this.authStore.isEmployee() && !this.authStore.isVendor();
+  });
+
+  canDownloadResume = computed(() => {
+    // Managers + Vendor (if they own the application)
     const app = this.application();
     const user = this.authStore.user();
-
     if (!app || !user) return false;
 
-    // Check if the current user belongs to the organization that posted the job
-    // If yes, they are the "Manager" (Hiring Side).
-    // If no, they are likely the "Applicant" (Vendor Side) or a 3rd party viewer.
-    return user.orgId === app.job.organization?.id;
+    if (this.canManageApplication()) return true;
+    if (this.authStore.isVendor()) {
+      return app.vendor?.id === user.orgId;
+    }
+    return false;
+  });
+
+  canDownloadDocuments = computed(() => {
+    // Only Managers can download internal docs (Offer, etc)
+    return this.canManageApplication();
   });
 
   // State Signals

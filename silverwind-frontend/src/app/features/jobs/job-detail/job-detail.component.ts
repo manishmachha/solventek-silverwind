@@ -277,7 +277,7 @@ import { HeaderService } from '../../../core/services/header.service';
                 </button>
 
                 <button
-                  *ngIf="canManage()"
+                  *ngIf="canPerformCriticalAction()"
                   (click)="deleteJob()"
                   class="w-full inline-flex justify-center items-center px-4 py-3 text-sm font-medium rounded-xl text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 transition-all shadow-xs"
                 >
@@ -672,24 +672,39 @@ export class JobDetailComponent implements OnInit {
     }
   }
 
-  // Permission Checks - Allow all Solventek admins/TA (non-employee)
+  // Permission Checks - Allow all Solventek admins/TA (non-employee) for basic management
   canManage() {
     return !this.authStore.isEmployee() && this.authStore.orgType() === 'SOLVENTEK';
   }
 
+  // Critical actions restricted to Super Admin and HR Admin (No TA)
+  canPerformCriticalAction() {
+    return this.canManage() && !this.authStore.isTA();
+  }
+
   canVerify() {
     return (
-      this.canManage() && (this.job()?.status === 'SUBMITTED' || this.job()?.status === 'DRAFT')
+      this.canPerformCriticalAction() &&
+      (this.job()?.status === 'SUBMITTED' || this.job()?.status === 'DRAFT')
     );
   }
   canEnrich() {
-    return this.canManage() && this.job()?.status === 'ADMIN_VERIFIED';
+    return (
+      this.canManage() && // TA can enrich
+      this.job()?.status === 'ADMIN_VERIFIED'
+    );
   }
   canFinalVerify() {
-    return this.canManage() && this.job()?.status === 'TA_ENRICHED';
+    return (
+      this.canPerformCriticalAction() && // TA cannot final verify/approve
+      this.job()?.status === 'TA_ENRICHED'
+    );
   }
   canPublish() {
-    return this.canManage() && this.job()?.status === 'ADMIN_FINAL_VERIFIED';
+    return (
+      this.canPerformCriticalAction() && // TA cannot publish
+      this.job()?.status === 'ADMIN_FINAL_VERIFIED'
+    );
   }
 
   // Formatters
