@@ -247,8 +247,8 @@ import { EditOrganizationDialogComponent } from '../components/edit-organization
               {{ downloading() ? 'Downloading...' : 'Download Current Handbook' }}
             </button>
 
-            <!-- Upload Button -->
-            <div class="relative">
+            <!-- Upload Button (Solventek Admins Only) -->
+            <div class="relative" *ngIf="canUploadHandbook()">
               <input
                 type="file"
                 #fileInput
@@ -298,6 +298,11 @@ export class MyOrganizationComponent implements OnInit {
   uploading = signal(false);
   uploadStatus = signal<string | null>(null);
   uploadStatusClass = signal<string>('bg-gray-100 text-gray-700');
+
+  // Permissions
+  canUploadHandbook = computed(() => {
+    return this.authStore.orgType() === 'SOLVENTEK' && this.authStore.isAdmin();
+  });
 
   // Computed Completion Percentage
   completionPercentage = computed(() => {

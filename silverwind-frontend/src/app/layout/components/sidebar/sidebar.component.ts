@@ -285,7 +285,7 @@ export class SidebarComponent implements OnInit {
           label: 'Jobs',
           route: '/jobs',
           icon: 'bi bi-briefcase-fill',
-          roles: ['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN', 'TA', 'EMPLOYEE', 'VENDOR'],
+          roles: ['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN', 'TA', 'VENDOR'],
           orgTypes: ['SOLVENTEK', 'VENDOR'],
           notificationCategory: 'JOB',
         },

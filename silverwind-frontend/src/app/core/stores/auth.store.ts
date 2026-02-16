@@ -86,7 +86,7 @@ export class AuthStore {
   }
 
   isAdmin(): boolean {
-    return ['SUPER_ADMIN', 'HR_ADMIN'].includes(this.userRole() || '');
+    return ['SUPER_ADMIN', 'HR_ADMIN', 'ADMIN'].includes(this.userRole() || '');
   }
 
   constructor() {
