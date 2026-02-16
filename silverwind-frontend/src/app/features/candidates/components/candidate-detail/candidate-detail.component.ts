@@ -64,21 +64,21 @@ import { ClientSubmissionsComponent } from '../client-submissions/client-submiss
               <!-- Actions (Desktop) -->
               <div class="flex flex-wrap gap-3">
                 <button
-                  *ngIf="authStore.orgType() === 'VENDOR'"
+                  *ngIf="!authStore.isEmployee()"
                   (click)="fileInput.click()"
                   class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
                 >
                   <i class="bi bi-cloud-upload"></i> Update Resume
                 </button>
                 <a
-                  *ngIf="authStore.orgType() === 'VENDOR'"
+                  *ngIf="!authStore.isEmployee()"
                   [routerLink]="['/candidates/edit', candidate()!.id]"
                   class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
                 >
                   <i class="bi bi-pencil"></i> Edit
                 </a>
                 <button
-                  *ngIf="authStore.orgType() === 'VENDOR'"
+                  *ngIf="!authStore.isEmployee()"
                   (click)="openDeleteConfirm()"
                   class="px-4 py-2 rounded-lg text-sm font-semibold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
                 >

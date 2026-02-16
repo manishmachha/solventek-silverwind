@@ -23,6 +23,11 @@ export class JobDetailsDialogComponent {
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: { job: Job }) {}
 
+  get skills(): string[] {
+    if (!this.data.job.skills) return [];
+    return this.data.job.skills.split(',').map((s) => s.trim());
+  }
+
   openApplyDialog() {
     this.dialog.open(JobApplicationDialogComponent, {
       width: '600px',

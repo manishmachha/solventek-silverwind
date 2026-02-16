@@ -35,7 +35,7 @@ public class CandidateController {
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('VENDOR')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'VENDOR')")
     public ResponseEntity<ApiResponse<Candidate>> uploadResume(@RequestParam("file") MultipartFile file) {
         if (file.getSize() > 1024 * 1024) {
             throw new org.springframework.web.multipart.MaxUploadSizeExceededException(1024 * 1024);
@@ -48,14 +48,16 @@ public class CandidateController {
     }
 
     @PostMapping(value = "/{id}/resume", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('VENDOR')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'VENDOR')")
     public ResponseEntity<ApiResponse<Candidate>> updateResume(@PathVariable UUID id, @RequestParam("file") MultipartFile file) {
         if (file.getSize() > 1024 * 1024) {
             throw new org.springframework.web.multipart.MaxUploadSizeExceededException(1024 * 1024);
         }
         Candidate c = candidateService.getCandidate(id);
         Employee user = getCurrentUser();
-        if (!c.getOrganization().getId().equals(user.getOrganization().getId())) {
+        // Security check: Vendor can only update their own
+        if (user.getOrganization().getType() == OrganizationType.VENDOR && 
+            !c.getOrganization().getId().equals(user.getOrganization().getId())) {
              throw new RuntimeException("Access Denied");
         }
         return ResponseEntity.ok(ApiResponse.success(
@@ -94,25 +96,27 @@ public class CandidateController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('VENDOR')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'VENDOR')")
     public ResponseEntity<ApiResponse<Candidate>> updateCandidate(@PathVariable UUID id, @RequestBody CandidateDTO.UpdateRequest request) {
         // Security check done in service usually, but let's do simple check here or service.
         // For simplicity, service method just updates. 
         // Ideally we check ownership here.
         Candidate c = candidateService.getCandidate(id);
         Employee user = getCurrentUser();
-        if (!c.getOrganization().getId().equals(user.getOrganization().getId())) {
+        if (user.getOrganization().getType() == OrganizationType.VENDOR && 
+            !c.getOrganization().getId().equals(user.getOrganization().getId())) {
              throw new RuntimeException("Access Denied");
         }
         return ResponseEntity.ok(ApiResponse.success(candidateService.updateCandidate(id, request)));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('VENDOR')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'HR_ADMIN', 'TA', 'VENDOR')")
     public ResponseEntity<ApiResponse<Void>> deleteCandidate(@PathVariable UUID id) {
         Candidate c = candidateService.getCandidate(id);
         Employee user = getCurrentUser();
-        if (!c.getOrganization().getId().equals(user.getOrganization().getId())) {
+        if (user.getOrganization().getType() == OrganizationType.VENDOR && 
+            !c.getOrganization().getId().equals(user.getOrganization().getId())) {
              throw new RuntimeException("Access Denied");
         }
         candidateService.deleteCandidate(id);
