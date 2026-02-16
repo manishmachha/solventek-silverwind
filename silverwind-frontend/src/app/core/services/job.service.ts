@@ -44,6 +44,18 @@ export class JobService {
     return this.api.post<Job>(`/jobs/${id}/publish`, {});
   }
 
+  updateJob(id: string, data: any) {
+    return this.api.put<Job>(`/jobs/${id}`, data);
+  }
+
+  deleteJob(id: string) {
+    return this.api.delete<void>(`/jobs/${id}`);
+  }
+
+  updateStatus(id: string, status: string, message?: string) {
+    return this.api.post<Job>(`/jobs/${id}/status`, { status, message });
+  }
+
   getPublishedJobs(page: number = 0, size: number = 20) {
     const params = new HttpParams().set('page', page).set('size', size);
     return this.api.get<Page<Job>>('/public/jobs', params);

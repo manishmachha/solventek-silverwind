@@ -260,8 +260,38 @@ import { HeaderService } from '../../../core/services/header.service';
                   <i class="bi bi-globe mr-2"></i> Publish Job
                 </button>
 
+                <button
+                  *ngIf="canManage()"
+                  [routerLink]="['/jobs', 'edit', job()?.id]"
+                  class="w-full inline-flex justify-center items-center px-4 py-3 text-sm font-medium rounded-xl text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-all shadow-xs"
+                >
+                  <i class="bi bi-pencil mr-2"></i> Edit Job
+                </button>
+
+                <button
+                  *ngIf="canManage()"
+                  (click)="showUpdateStatusForm = true"
+                  class="w-full inline-flex justify-center items-center px-4 py-3 text-sm font-medium rounded-xl text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-all shadow-xs"
+                >
+                  <i class="bi bi-arrow-repeat mr-2"></i> Update Status
+                </button>
+
+                <button
+                  *ngIf="canManage()"
+                  (click)="deleteJob()"
+                  class="w-full inline-flex justify-center items-center px-4 py-3 text-sm font-medium rounded-xl text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 transition-all shadow-xs"
+                >
+                  <i class="bi bi-trash mr-2"></i> Delete Job
+                </button>
+
                 <div
-                  *ngIf="!canVerify() && !canEnrich() && !canFinalVerify() && !canPublish()"
+                  *ngIf="
+                    !canVerify() &&
+                    !canEnrich() &&
+                    !canFinalVerify() &&
+                    !canPublish() &&
+                    !canManage()
+                  "
                   class="text-center py-4"
                 >
                   <div class="p-3 bg-gray-50 rounded-xl">
@@ -524,6 +554,70 @@ import { HeaderService } from '../../../core/services/header.service';
             </form>
           </div>
         </div>
+
+        <!-- Update Status Modal -->
+        <div
+          *ngIf="showUpdateStatusForm"
+          class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4"
+        >
+          <div
+            class="bg-white p-8 rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md transform transition-all"
+          >
+            <div class="flex items-center gap-3 mb-6">
+              <div class="p-2.5 bg-linear-to-br from-indigo-500 to-purple-600 rounded-xl">
+                <i class="bi bi-arrow-repeat text-white text-xl"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-gray-900">Update Job Status</h3>
+                <p class="text-sm text-gray-500">Change the current status of this job</p>
+              </div>
+            </div>
+            <form [formGroup]="updateStatusForm" (ngSubmit)="onUpdateStatus()" class="space-y-5">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">New Status</label>
+                <select
+                  formControlName="status"
+                  class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none bg-white"
+                >
+                  <option value="DRAFT">Draft</option>
+                  <option value="SUBMITTED">Submitted</option>
+                  <option value="ADMIN_VERIFIED">Admin Verified</option>
+                  <option value="TA_ENRICHED">TA Enriched</option>
+                  <option value="ADMIN_FINAL_VERIFIED">Admin Final Verified</option>
+                  <option value="PUBLISHED">Published</option>
+                  <option value="CLOSED">Closed</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5"
+                  >Message (Optional)</label
+                >
+                <textarea
+                  formControlName="message"
+                  rows="3"
+                  placeholder="Reason for status change..."
+                  class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none resize-none"
+                ></textarea>
+              </div>
+              <div class="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  (click)="showUpdateStatusForm = false"
+                  class="px-5 py-2.5 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  [disabled]="updateStatusForm.invalid"
+                  class="px-5 py-2.5 bg-linear-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 font-medium transition-all shadow-lg shadow-indigo-200 disabled:opacity-50"
+                >
+                  Update Status
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   `,
@@ -578,34 +672,24 @@ export class JobDetailComponent implements OnInit {
     }
   }
 
-  // Permission Checks
+  // Permission Checks - Allow all Solventek admins/TA (non-employee)
+  canManage() {
+    return !this.authStore.isEmployee() && this.authStore.orgType() === 'SOLVENTEK';
+  }
+
   canVerify() {
     return (
-      (this.authStore.hasPermission('JOB_VERIFY') && this.job()?.status === 'SUBMITTED') ||
-      (this.job()?.status === 'DRAFT' &&
-        this.authStore.organizationName() === this.job()?.organization?.name)
+      this.canManage() && (this.job()?.status === 'SUBMITTED' || this.job()?.status === 'DRAFT')
     );
   }
   canEnrich() {
-    return (
-      this.authStore.hasPermission('JOB_ENRICH') &&
-      this.job()?.status === 'ADMIN_VERIFIED' &&
-      this.authStore.organizationName() === this.job()?.organization?.name
-    );
+    return this.canManage() && this.job()?.status === 'ADMIN_VERIFIED';
   }
   canFinalVerify() {
-    return (
-      this.authStore.hasPermission('JOB_APPROVE') &&
-      this.job()?.status === 'TA_ENRICHED' &&
-      this.authStore.organizationName() === this.job()?.organization?.name
-    );
+    return this.canManage() && this.job()?.status === 'TA_ENRICHED';
   }
   canPublish() {
-    return (
-      this.authStore.hasPermission('JOB_PUBLISH') &&
-      this.job()?.status === 'ADMIN_FINAL_VERIFIED' &&
-      this.authStore.organizationName() === this.job()?.organization?.name
-    );
+    return this.canManage() && this.job()?.status === 'ADMIN_FINAL_VERIFIED';
   }
 
   // Formatters
@@ -702,6 +786,35 @@ export class JobDetailComponent implements OnInit {
   publish() {
     if (confirm('Publish this job?')) {
       this.jobService.publishJob(this.job()!.id).subscribe(() => this.loadJob());
+    }
+  }
+
+  deleteJob() {
+    if (confirm('Are you sure you want to delete this job? This action cannot be undone.')) {
+      this.jobService.deleteJob(this.job()!.id).subscribe(() => {
+        this.router.navigate(['/jobs']);
+      });
+    }
+  }
+
+  showUpdateStatusForm = false;
+  updateStatusForm = this.fb.group({
+    status: ['', Validators.required],
+    message: [''],
+  });
+
+  onUpdateStatus() {
+    if (this.updateStatusForm.valid) {
+      this.jobService
+        .updateStatus(
+          this.job()!.id,
+          this.updateStatusForm.value.status!,
+          this.updateStatusForm.value.message || '',
+        )
+        .subscribe(() => {
+          this.showUpdateStatusForm = false;
+          this.loadJob();
+        });
     }
   }
 }

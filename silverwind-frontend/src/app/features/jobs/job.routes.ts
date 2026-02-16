@@ -11,6 +11,11 @@ export const JOB_ROUTES: Routes = [
       import('./job-create/job-create.component').then((m) => m.JobCreateComponent),
   },
   {
+    path: 'edit/:id',
+    loadComponent: () =>
+      import('./job-create/job-create.component').then((m) => m.JobCreateComponent),
+  },
+  {
     path: ':id',
     loadComponent: () =>
       import('./job-detail/job-detail.component').then((m) => m.JobDetailComponent),

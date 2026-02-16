@@ -23,7 +23,7 @@ import { NotificationService } from '../../../core/services/notification.service
         <!-- Title and Description moved to HeaderService -->
         <div></div>
         <a
-          *ngIf="authStore.hasPermission('JOB_CREATE')"
+          *ngIf="!authStore.isEmployee()"
           routerLink="/jobs/create"
           class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
         >
@@ -187,7 +187,7 @@ import { NotificationService } from '../../../core/services/notification.service
         </p>
         <div class="mt-6">
           <a
-            *ngIf="authStore.hasPermission('JOB_CREATE')"
+            *ngIf="!authStore.isEmployee()"
             routerLink="/jobs/create"
             class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >

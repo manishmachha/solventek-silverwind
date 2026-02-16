@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { JobService } from '../../../core/services/job.service';
 
@@ -20,8 +20,16 @@ import { JobService } from '../../../core/services/job.service';
               <i class="bi bi-briefcase-fill text-white text-xl"></i>
             </div>
             <div>
-              <h1 class="text-2xl font-bold text-gray-900">Create New Job</h1>
-              <p class="text-sm text-gray-500">Fill in the details to post a new job requisition</p>
+              <h1 class="text-2xl font-bold text-gray-900">
+                {{ isEditing() ? 'Edit Job' : 'Create New Job' }}
+              </h1>
+              <p class="text-sm text-gray-500">
+                {{
+                  isEditing()
+                    ? 'Update the details of this job requisition'
+                    : 'Fill in the details to post a new job requisition'
+                }}
+              </p>
             </div>
           </div>
         </div>
@@ -231,7 +239,15 @@ import { JobService } from '../../../core/services/job.service';
                   [class.bi-arrow-repeat]="isSubmitting()"
                   [class.animate-spin]="isSubmitting()"
                 ></i>
-                {{ isSubmitting() ? 'Submitting...' : 'Submit Job' }}
+                {{
+                  isSubmitting()
+                    ? isEditing()
+                      ? 'Updating...'
+                      : 'Submitting...'
+                    : isEditing()
+                      ? 'Update Job'
+                      : 'Submit Job'
+                }}
               </button>
             </div>
           </div>
@@ -244,8 +260,11 @@ export class JobCreateComponent {
   fb = inject(FormBuilder);
   jobService = inject(JobService);
   router = inject(Router);
+  route = inject(ActivatedRoute);
 
   isSubmitting = signal(false);
+  isEditing = signal(false);
+  jobId = signal<string | null>(null);
 
   jobForm = this.fb.group({
     title: ['', Validators.required],
@@ -260,22 +279,58 @@ export class JobCreateComponent {
     status: ['SUBMITTED'],
   });
 
+  ngOnInit() {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.isEditing.set(true);
+      this.jobId.set(id);
+      this.loadJob(id);
+    }
+  }
+
+  loadJob(id: string) {
+    this.jobService.getJob(id).subscribe((job) => {
+      this.jobForm.patchValue({
+        title: job.title,
+        description: job.description,
+        requirements: job.requirements,
+        rolesAndResponsibilities: job.rolesAndResponsibilities,
+        experience: job.experience,
+        skills: job.skills,
+        employmentType: job.employmentType,
+        billRate: job.billRate,
+        payRate: job.payRate,
+        status: job.status,
+      } as any);
+    });
+  }
+
   onSubmit() {
     if (this.jobForm.valid) {
       this.isSubmitting.set(true);
       const formValue = this.jobForm.value;
 
-      // Ensure status is SUBMITTED
-      formValue.status = 'SUBMITTED';
-
-      this.jobService.createJob(formValue as any).subscribe({
-        next: () => {
-          this.router.navigate(['/jobs']);
-        },
-        error: () => {
-          this.isSubmitting.set(false);
-        },
-      });
+      if (this.isEditing() && this.jobId()) {
+        this.jobService.updateJob(this.jobId()!, formValue as any).subscribe({
+          next: () => {
+            this.router.navigate(['/jobs', this.jobId()]);
+          },
+          error: () => {
+            this.isSubmitting.set(false);
+          },
+        });
+      } else {
+        // Ensure status is SUBMITTED for new jobs
+        formValue.status = 'SUBMITTED';
+        this.jobService.createJob(formValue as any).subscribe({
+          next: () => {
+            this.router.navigate(['/jobs']);
+          },
+          error: () => {
+            this.isSubmitting.set(false);
+          },
+        });
+      }
     }
   }
 
@@ -283,10 +338,18 @@ export class JobCreateComponent {
     const formValue = this.jobForm.value;
     formValue.status = 'DRAFT';
 
-    this.jobService.createJob(formValue as any).subscribe({
-      next: () => {
-        this.router.navigate(['/jobs']);
-      },
-    });
+    if (this.isEditing() && this.jobId()) {
+      this.jobService.updateJob(this.jobId()!, formValue as any).subscribe({
+        next: () => {
+          this.router.navigate(['/jobs', this.jobId()]);
+        },
+      });
+    } else {
+      this.jobService.createJob(formValue as any).subscribe({
+        next: () => {
+          this.router.navigate(['/jobs']);
+        },
+      });
+    }
   }
 }
