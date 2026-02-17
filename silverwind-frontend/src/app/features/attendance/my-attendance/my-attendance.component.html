@@ -116,12 +116,12 @@
                 </td>
                 <td class="px-6 py-4 text-gray-600 whitespace-nowrap">
                   <span *ngIf="record.checkInTime; else noTime" class="font-mono">
-                    {{ record.checkInTime | date: 'shortTime' }}
+                    {{ formatTime(record.checkInTime) }}
                   </span>
                 </td>
                 <td class="px-6 py-4 text-gray-600 whitespace-nowrap">
                   <span *ngIf="record.checkOutTime; else noTime" class="font-mono">
-                    {{ record.checkOutTime | date: 'shortTime' }}
+                    {{ formatTime(record.checkOutTime) }}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -184,7 +184,7 @@
                 <p class="text-xs text-gray-500 uppercase">Check In</p>
                 <p class="font-mono text-gray-700 font-medium">
                   <ng-container *ngIf="record.checkInTime; else noTime">
-                    {{ record.checkInTime | date: 'shortTime' }}
+                    {{ formatTime(record.checkInTime) }}
                   </ng-container>
                 </p>
               </div>
@@ -192,7 +192,7 @@
                 <p class="text-xs text-gray-500 uppercase">Check Out</p>
                 <p class="font-mono text-gray-700 font-medium">
                   <ng-container *ngIf="record.checkOutTime; else noTime">
-                    {{ record.checkOutTime | date: 'shortTime' }}
+                    {{ formatTime(record.checkOutTime) }}
                   </ng-container>
                 </p>
               </div>

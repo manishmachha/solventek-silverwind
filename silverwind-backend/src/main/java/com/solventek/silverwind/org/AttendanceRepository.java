@@ -13,6 +13,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
 
     List<Attendance> findByEmployee_Id(UUID userId);
 
+    @org.springframework.data.jpa.repository.Query("SELECT a FROM Attendance a JOIN FETCH a.employee WHERE a.employee.id = :userId AND a.date BETWEEN :startDate AND :endDate")
     List<Attendance> findByEmployee_IdAndDateBetween(UUID userId, LocalDate startDate, LocalDate endDate);
 
     Optional<Attendance> findByEmployee_IdAndDate(UUID userId, LocalDate date);
