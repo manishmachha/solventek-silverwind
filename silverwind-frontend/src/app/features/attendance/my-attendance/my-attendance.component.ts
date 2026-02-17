@@ -102,7 +102,7 @@ export class MyAttendanceComponent implements OnInit {
       next: (data: Attendance[]) => {
         this.attendanceHistory.set(data);
         this.loading.set(false);
-        this.loadTimesheet(); // Also load timesheet summary for same range
+        this.calculateTimesheet(data); // Calculate locally
       },
       error: (err: any) => {
         console.error('Failed to load history', err);
@@ -111,17 +111,49 @@ export class MyAttendanceComponent implements OnInit {
     });
   }
 
-  loadTimesheet() {
-    const start = this.startDate();
-    const end = this.endDate();
-    if (!start || !end) return;
+  calculateTimesheet(attendanceList: Attendance[]) {
+    if (!attendanceList) return;
 
-    this.attendanceService.getMyTimesheet(start, end).subscribe({
-      next: (data: TimesheetSummary) => {
-        this.timesheet.set(data);
-      },
-      error: (err: any) => console.error('Failed to load timesheet', err),
+    let totalHours = 0;
+    let daysPresent = 0;
+
+    const entries = attendanceList.map((a) => {
+      let hours = 0;
+      if (a.checkInTime && a.checkOutTime) {
+        const checkIn = new Date(`1970-01-01T${a.checkInTime}`);
+        const checkOut = new Date(`1970-01-01T${a.checkOutTime}`);
+        // Calculate difference in milliseconds
+        const diff = checkOut.getTime() - checkIn.getTime();
+        // Convert to hours
+        hours = diff / (1000 * 60 * 60);
+      }
+
+      if (a.status === 'PRESENT' || a.status === 'HALF_DAY') {
+        daysPresent++;
+      }
+      totalHours += hours;
+
+      return {
+        date: a.date,
+        checkInTime: a.checkInTime,
+        checkOutTime: a.checkOutTime,
+        status: a.status,
+        hoursWorked: hours,
+        notes: a.notes,
+      };
     });
+
+    const summary: TimesheetSummary = {
+      userId: this.userId()!,
+      userName: '', // Not needed for self-view or can be fetched from auth store if critical
+      startDate: this.startDate(),
+      endDate: this.endDate(),
+      totalHours: Math.round(totalHours * 100) / 100,
+      daysPresent,
+      entries,
+    };
+
+    this.timesheet.set(summary);
   }
 
   checkIn() {
