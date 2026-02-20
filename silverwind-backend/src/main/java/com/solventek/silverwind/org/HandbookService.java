@@ -116,6 +116,22 @@ public class HandbookService {
      * Called by CommandLineRunner on startup.
      */
     public void initDefaultIfMissing() {
+        // Ensure standard handbook table exists
+        try {
+            jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS handbook_chunks (
+                    chunk_id VARCHAR(36) PRIMARY KEY,
+                    source VARCHAR(255),
+                    doc_hash VARCHAR(255),
+                    page_start INT,
+                    page_end INT,
+                    raw_content LONGTEXT
+                )
+            """);
+        } catch (Exception e) {
+            log.error("Failed to ensure handbook_chunks table exists", e);
+        }
+
         // Check if we have any chunks indexed
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM handbook_chunks WHERE source=?", Integer.class, SOURCE);
         if (count != null && count > 0) {
