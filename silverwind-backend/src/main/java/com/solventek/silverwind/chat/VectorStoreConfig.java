@@ -15,8 +15,8 @@ public class VectorStoreConfig {
     CommandLineRunner initVectorStore(JdbcTemplate jdbcTemplate, HandbookService handbookService) {
         return args -> {
             try {
-                jdbcTemplate.execute("CREATE EXTENSION IF NOT EXISTS vector");
-                // Table and indexes are managed by Flyway migrations
+                // MariaDB vector tables are managed by Spring AI initialize-schema or Flyway
+                // No need to create vector extension like in Postgres
 
                 // Delegate handbook initialization to the service
                 handbookService.initDefaultIfMissing();

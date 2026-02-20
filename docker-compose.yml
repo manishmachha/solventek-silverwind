@@ -2,20 +2,19 @@
 version: "3.8"
 
 services:
-  # PostgreSQL Database
+  # MariaDB Database
   db:
-    image: postgres:16-alpine
+    image: mariadb:10.11
     container_name: silverwind-db
     environment:
-      POSTGRES_DB: silverwind
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      MARIADB_DATABASE: solventek_silverwind
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - dbdata:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d silverwind"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,9 +29,9 @@ services:
     container_name: silverwind-backend
     environment:
       # Database
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/silverwind
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
+      SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/solventek_silverwind
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-root}
       # AWS S3 (disabled by default for local dev)
       AWS_S3_ENABLED: ${AWS_S3_ENABLED:-false}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET:-solventek-silverwind}
@@ -96,7 +95,7 @@ services:
       - silverwind-network
 
 volumes:
-  pgdata:
+  dbdata:
     driver: local
   uploads:
     driver: local
