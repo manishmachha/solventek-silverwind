@@ -52,6 +52,6 @@ public class TimelineEvent extends BaseEntity {
     private String message;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "json")
     private Map<String, Object> metadata;
 }

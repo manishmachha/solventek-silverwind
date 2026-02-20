@@ -15,8 +15,8 @@ public class VectorStoreConfig {
     CommandLineRunner initVectorStore(JdbcTemplate jdbcTemplate, HandbookService handbookService) {
         return args -> {
             try {
-                // MariaDB vector tables are managed by Spring AI initialize-schema or Flyway
-                // No need to create vector extension like in Postgres
+                // Qdrant vector store is managed by Spring AI initialize-schema
+                // No need to manually create vector extension/table
 
                 // Delegate handbook initialization to the service
                 handbookService.initDefaultIfMissing();

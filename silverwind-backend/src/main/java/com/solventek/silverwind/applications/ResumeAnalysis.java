@@ -45,15 +45,15 @@ public class ResumeAnalysis extends BaseEntity {
     private String summary;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "json")
     private String redFlagsJson; // List of RedFlag objects
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "json")
     private String evidenceJson; // List of Evidence objects
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "json")
     private String interviewQuestionsJson; // Map<String, List<String>>
 
     @Builder.Default

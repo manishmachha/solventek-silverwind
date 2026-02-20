@@ -2,6 +2,33 @@
 # Uses pre-built images from container registry
 
 services:
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: silverwind-qdrant
+    restart: always
+    expose:
+      - "6333"
+      - "6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:6333/readyz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - silverwind-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   # Spring Boot Backend
   backend:
     image: ${DOCKER_REGISTRY}/silverwind-backend:${IMAGE_TAG:-latest}
@@ -20,6 +47,8 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       # JWT
       APP_JWT_SECRET: ${JWT_SECRET}
+      # Vector Store
+      SPRING_AI_VECTORSTORE_QDRANT_HOST: qdrant
       # Google AI
       SPRING_AI_GOOGLE_GENAI_API_KEY: ${GOOGLE_AI_API_KEY:-}
       GOOGLE_AI_API_KEY: ${GOOGLE_AI_API_KEY:-}
@@ -68,6 +97,8 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+      qdrant:
+        condition: service_healthy
     volumes:
       # SSL certificates (mount from host)
       - /etc/letsencrypt:/etc/letsencrypt:ro
@@ -84,6 +115,10 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+volumes:
+  qdrant_storage:
+    driver: local
 
 networks:
   silverwind-network:

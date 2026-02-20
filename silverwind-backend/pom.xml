@@ -189,7 +189,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
-			<artifactId>spring-ai-starter-vector-store-mariadb</artifactId>
+			<artifactId>spring-ai-starter-vector-store-qdrant</artifactId>
 		</dependency>
 	</dependencies>
 

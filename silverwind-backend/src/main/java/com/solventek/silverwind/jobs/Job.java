@@ -55,7 +55,7 @@ public class Job extends BaseEntity {
     private BigDecimal payRate;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "ai_insights", columnDefinition = "jsonb")
+    @Column(name = "ai_insights", columnDefinition = "json")
     private Map<String, Object> aiInsights;
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
