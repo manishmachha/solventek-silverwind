@@ -16,11 +16,6 @@ services:
       resources:
         limits:
           memory: 512M
-    healthcheck:
-      test: ["CMD", "curl", "-s", "http://localhost:6333/readyz"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     networks:
       - silverwind-network
     logging:
@@ -98,7 +93,7 @@ services:
       backend:
         condition: service_healthy
       qdrant:
-        condition: service_healthy
+        condition: service_started
     volumes:
       # SSL certificates (mount from host)
       - /etc/letsencrypt:/etc/letsencrypt:ro

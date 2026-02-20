@@ -30,11 +30,6 @@ services:
       - "6334:6334"
     volumes:
       - qdrant_storage:/qdrant/storage
-    healthcheck:
-      test: ["CMD", "curl", "-s", "http://localhost:6333/readyz"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - silverwind-network
 
@@ -65,7 +60,7 @@ services:
       db:
         condition: service_healthy
       qdrant:
-        condition: service_healthy
+        condition: service_started
     volumes:
       - uploads:/app/uploads
     healthcheck:
