@@ -57,7 +57,7 @@ ASSET_TYPES = [
     ("Chair", "Herman Miller", "Aeron")
 ]
 
-ORG_ID = '4d3572a8-678e-4e60-bc92-4069165853d1'
+ORG_ID = 'ce9c7bad-8732-407a-b77c-97d8b2bd0a8d'
 ROLE_IDS = [get_uuid() for _ in range(3)] # Admin, Manager, Employee
 LEAVE_TYPE_IDS = [get_uuid() for _ in range(3)] # SL, CL, PL
 
@@ -67,7 +67,7 @@ now = datetime.now()
 print(f"INSERT INTO organizations (id, created_at, updated_at, name, type, status, email) VALUES ({quote(ORG_ID)}, {timestamp_str(now)}, {timestamp_str(now)}, 'Solventek Demo', 'SOLVENTEK', 'APPROVED', 'info@solventek.com') ON CONFLICT DO NOTHING;")
 
 # 2. Roles
-role_names = ["Admin", "Manager", "Employee"]
+role_names = ["ADMIN", "TA", "EMPLOYEE"]
 for i, rid in enumerate(ROLE_IDS):
     print(f"INSERT INTO roles (id, created_at, updated_at, name, org_id) VALUES ({quote(rid)}, {timestamp_str(now)}, {timestamp_str(now)}, {quote(role_names[i])}, {quote(ORG_ID)}) ON CONFLICT DO NOTHING;")
 
@@ -78,17 +78,16 @@ for i, ltid in enumerate(LEAVE_TYPE_IDS):
 
 # 4. Generate Assets
 global_assets = []
-print("-- Generating 500 Assets (10 types * 50)")
+print("-- Generating 10 Grouped Assets (10 types, quantity 50 each)")
 for t_idx, (atype, brand, model) in enumerate(ASSET_TYPES):
-    for q in range(50):
-        asset_id = get_uuid()
-        tag_prefix = atype[:2].upper()
-        asset_tag = f"{tag_prefix}-{t_idx}-{q+1000}"
-        serial = f"SN-{t_idx}-{q}-{random.randint(1000,9999)}"
-        
-        print(f"INSERT INTO assets (id, created_at, updated_at, asset_tag, asset_type, brand, model, serial_number, active, total_quantity, org_id) VALUES ({quote(asset_id)}, {timestamp_str(now)}, {timestamp_str(now)}, {quote(asset_tag)}, {quote(atype)}, {quote(brand)}, {quote(model)}, {quote(serial)}, true, 1, {quote(ORG_ID)}) ON CONFLICT DO NOTHING;")
-        
-        global_assets.append({'id': asset_id, 'type': atype})
+    asset_id = get_uuid()
+    tag_prefix = atype[:2].upper()
+    asset_tag = f"{tag_prefix}-{t_idx}-GROUP"
+    serial = f"SN-{t_idx}-GROUP-{random.randint(1000,9999)}"
+    
+    print(f"INSERT INTO assets (id, created_at, updated_at, asset_tag, asset_type, brand, model, serial_number, active, total_quantity, org_id) VALUES ({quote(asset_id)}, {timestamp_str(now)}, {timestamp_str(now)}, {quote(asset_tag)}, {quote(atype)}, {quote(brand)}, {quote(model)}, {quote(serial)}, true, 50, {quote(ORG_ID)}) ON CONFLICT DO NOTHING;")
+    
+    global_assets.append({'id': asset_id, 'type': atype})
 
 # 5. Employees & Related Data
 for i, emp_id in enumerate(EMPLOYEE_IDS):
@@ -178,19 +177,17 @@ phones = [a for a in global_assets if a['type'] == 'Smartphone']
 headphones = [a for a in global_assets if a['type'] == 'Headphones']
 others = [a for a in global_assets if a['type'] not in ['Laptop', 'Smartphone', 'Headphones']]
 
-random.shuffle(laptops)
-random.shuffle(phones)
-random.shuffle(headphones)
-random.shuffle(others)
-
 for emp_id in EMPLOYEE_IDS:
     kit = []
-    if laptops: kit.append(laptops.pop())
-    if phones: kit.append(phones.pop())
-    if headphones: kit.append(headphones.pop())
+    if laptops: kit.append(random.choice(laptops))
+    if phones: kit.append(random.choice(phones))
+    if headphones: kit.append(random.choice(headphones))
     if others:
         for _ in range(random.randint(1, 2)):
-            if others: kit.append(others.pop())
+            kit.append(random.choice(others))
+            
+    # Remove duplicates from kit if any (in case random.choice(others) picked the same asset twice)
+    kit = list({a['id']: a for a in kit}.values())
             
     for asset in kit:
         assign_id = get_uuid()
