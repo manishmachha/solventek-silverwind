@@ -1,0 +1,58 @@
+name: silverwind_flutter
+description: Silverwind - Solventek VMS Platform
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Routing
+  go_router: ^14.8.1
+
+  # Networking
+  dio: ^5.7.0
+
+  # Storage
+  flutter_secure_storage: ^9.2.4
+  shared_preferences: ^2.3.5
+
+  # UI
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.17
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+
+  # Charts
+  fl_chart: ^0.70.2
+
+  # Markdown
+  flutter_markdown: ^0.7.6
+
+  # Utils
+  intl: ^0.20.2
+  url_launcher: ^6.3.1
+
+  # Icons
+  bootstrap_icons: ^1.11.3
+  file_picker: ^10.3.10
+  desktop_drop: ^0.7.0
+  cross_file: ^0.3.5+2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.14
+  json_serializable: ^6.9.4
+  riverpod_generator: ^2.6.4
+
+flutter:
+  uses-material-design: true

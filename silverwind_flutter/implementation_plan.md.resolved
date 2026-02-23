@@ -1,0 +1,305 @@
+# Angular → Flutter Migration: Silverwind Frontend
+
+## Analysis Summary
+
+### Angular Architecture Overview
+
+| Aspect | Details |
+|--------|---------|
+| **Framework** | Angular 21 (standalone components, signals-based state) |
+| **Styling** | TailwindCSS 4 + Angular Material 21 + Custom CSS variables |
+| **HTTP** | Angular HttpClient with 5 interceptors |
+| **State** | Signal-based [AuthStore](file:///Users/manishmachha/Desktop/MyWorkspace/solventek-silverwind/silverwind-frontend/src/app/core/stores/auth.store.ts#22-180) with `sessionStorage` persistence |
+| **Routing** | Angular Router with lazy-loaded routes, 2 guards (auth + role) |
+| **Auth** | JWT Bearer tokens, role-based access (6 roles, 2 org types) |
+| **Charts** | Chart.js via ng2-charts |
+| **Markdown** | ngx-markdown |
+| **Icons** | Bootstrap Icons |
+
+### Feature Modules (17 total)
+
+| Module | Components | Routes |
+|--------|-----------|--------|
+| Dashboard | Role-based dashboard | `/dashboard` |
+| Admin | Employee list/detail, Audit logs | `/admin/employees`, `/admin/employees/:id`, `/admin/audit-logs` |
+| Vendors | List, Detail | `/vendors`, `/vendors/:id` |
+| Jobs | List, Create/Edit, Detail | `/jobs`, `/jobs/create`, `/jobs/edit/:id`, `/jobs/:id` |
+| Applications | List, Detail, Vendor list, Track list | `/applications`, `/applications/:id`, `/vendor-applications`, `/track-applications` |
+| Candidates | List, Form, Detail | `/candidates`, `/candidates/new`, `/candidates/edit/:id`, `/candidates/:id` |
+| Projects | List, Detail | `/projects`, `/projects/:id` |
+| Clients | List, Detail | `/clients`, `/clients/:id` |
+| Tickets | List, Detail | `/portal/tickets`, `/portal/tickets/:id` |
+| Holidays | List | `/holidays` |
+| Assets | Management, My Assets | `/admin/assets`, `/my-assets` |
+| Payroll | Management, My Payslips | `/admin/payroll`, `/my-payslips` |
+| Attendance | Management, My Attendance | `/admin/attendance`, `/my-attendance` |
+| Leave | My Leaves, Management, Configuration | `/my-leaves`, `/admin/leave-management`, `/admin/leave-configuration` |
+| Organization | Discovery, My Organization | `/organization/discovery`, `/organization/my-organization` |
+| Notifications | List | `/notifications` |
+| Profile | User Details | `/profile` |
+
+### Public Pages (10+)
+
+Home, About, Services, Careers, Case Studies, Leadership, Contact, Login, Tracking (Login + Dashboard), VMS
+
+### Design System Extraction
+
+```
+Colors:
+  Primary: #6366f1 (Indigo 500), Dark: #4f46e5, Light: #818cf8
+  Secondary: #8b5cf6 (Violet 500), Dark: #7c3aed, Light: #a78bfa
+  Surface: #f8fafc → #f1f5f9 → #e2e8f0 → #cbd5e1
+  Text: Main #0f172a, Muted #64748b, Light #94a3b8
+  Success: #10b981, Warning: #f59e0b, Danger: #ef4444, Info: #3b82f6
+
+Typography: Inter font, system fallbacks
+Gradients: Primary (135deg, indigo→violet), Success, Dark, Surface
+Shadows: sm, md, lg, card, card-hover, glow
+Border Radius: 0.75rem (inputs), 1rem (cards), 9999px (badges/avatars)
+Transitions: fast (150ms), normal (300ms), cubic-bezier(0.4, 0, 0.2, 1)
+```
+
+### Auth Flow
+1. User enters email/password → `POST /api/auth/login`
+2. Backend returns `{ success, message, data: { accessToken, refreshToken, user } }`
+3. Tokens stored in `sessionStorage` (→ Flutter Secure Storage)
+4. JWT attached via interceptor to all `/api` requests
+5. 401 → redirect to login, 403 → dialog with "Access Denied"
+6. Role-based route guards check `user.role.name` and `user.orgType`
+
+### API Pattern
+- Base URL: `/api` (proxied to `http://localhost:9090`)
+- Response envelope: `{ success: boolean, message: string, data: T }`
+- Pagination: Spring Boot style `{ content, totalElements, totalPages, size, number, last }`
+- Success mutations show snackbar from `response.message`
+- Error responses show structured error messages
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **State Management Choice**: Riverpod is proposed over Bloc since Angular's signal-based reactive state maps directly to Riverpod's provider pattern. This is simpler for this project since there is only 1 store (`AuthStore`).
+
+> [!IMPORTANT]
+> **Project Location**: The Flutter app will be created at `/Users/manishmachha/Desktop/MyWorkspace/solventek-silverwind/silverwind-flutter`. Confirm this is acceptable.
+
+> [!IMPORTANT]
+> **Scope Prioritization**: This is a massive project (~60+ screens, 17 feature modules). I recommend building it in clear phases and verifying each phase. The implementation plan below covers ALL components, but execution will proceed phase by phase.
+
+---
+
+## Proposed Changes
+
+### Flutter Project Structure
+
+```
+silverwind-flutter/
+├── lib/
+│   ├── main.dart
+│   ├── app.dart
+│   ├── config/
+│   │   ├── environment.dart          # Dev/Prod config
+│   │   ├── app_theme.dart            # Full theme matching Angular design system
+│   │   ├── app_colors.dart           # Color constants
+│   │   ├── app_typography.dart       # Text styles
+│   │   └── app_constants.dart        # Spacing, radius, shadows
+│   ├── core/
+│   │   ├── models/                   # All 15 data models
+│   │   ├── services/                 # All 27+ services (Dio-based)
+│   │   ├── providers/                # Riverpod providers (auth, loading, dialog)
+│   │   ├── interceptors/             # Dio interceptors (5)
+│   │   ├── guards/                   # Route guards
+│   │   └── router/                   # GoRouter configuration
+│   ├── shared/
+│   │   └── widgets/                  # Reusable widgets (8+)
+│   ├── layout/
+│   │   ├── main_layout.dart
+│   │   ├── sidebar.dart
+│   │   ├── header.dart
+│   │   └── public_layout.dart
+│   ├── features/                     # 17 feature modules
+│   │   ├── auth/
+│   │   ├── dashboard/
+│   │   ├── admin/
+│   │   ├── vendors/
+│   │   ├── jobs/
+│   │   ├── applications/
+│   │   ├── candidates/
+│   │   ├── projects/
+│   │   ├── clients/
+│   │   ├── tickets/
+│   │   ├── holidays/
+│   │   ├── assets/
+│   │   ├── payroll/
+│   │   ├── attendance/
+│   │   ├── leave/
+│   │   ├── organization/
+│   │   └── notifications/
+│   └── public/                       # Public website pages
+│       ├── home/
+│       ├── about/
+│       ├── careers/
+│       ├── contact/
+│       ├── case_studies/
+│       ├── leadership/
+│       ├── login/
+│       ├── tracking/
+│       └── vms/
+└── pubspec.yaml
+```
+
+---
+
+### Phase 1: Foundation
+
+#### [NEW] [pubspec.yaml](file:///Users/manishmachha/Desktop/MyWorkspace/solventek-silverwind/silverwind-flutter/pubspec.yaml)
+Dependencies: `flutter_riverpod`, `go_router`, `dio`, `flutter_secure_storage`, `json_annotation`, `json_serializable`, `google_fonts`, `fl_chart`, `flutter_markdown`, `cached_network_image`, `intl`
+
+#### [NEW] [main.dart](file:///Users/manishmachha/Desktop/MyWorkspace/solventek-silverwind/silverwind-flutter/lib/main.dart)
+App entry point with `ProviderScope`, environment initialization
+
+#### [NEW] [app.dart](file:///Users/manishmachha/Desktop/MyWorkspace/solventek-silverwind/silverwind-flutter/lib/app.dart)
+Root `MaterialApp.router` with theme, GoRouter
+
+#### [NEW] [environment.dart](file:///Users/manishmachha/Desktop/MyWorkspace/solventek-silverwind/silverwind-flutter/lib/config/environment.dart)
+Dev/Prod config (API base URL: `http://localhost:9090/api` dev, prod placeholder)
+
+#### [NEW] [app_theme.dart](file:///Users/manishmachha/Desktop/MyWorkspace/solventek-silverwind/silverwind-flutter/lib/config/app_theme.dart)
+Full `ThemeData` matching Angular CSS variables - colors, typography, card themes, input decoration, button styles
+
+#### [NEW] [app_colors.dart](file:///Users/manishmachha/Desktop/MyWorkspace/solventek-silverwind/silverwind-flutter/lib/config/app_colors.dart)
+Static color constants matching all CSS variables
+
+#### [NEW] [app_constants.dart](file:///Users/manishmachha/Desktop/MyWorkspace/solventek-silverwind/silverwind-flutter/lib/config/app_constants.dart)
+Spacing, border radius, shadows, transitions
+
+---
+
+### Phase 2: Core Infrastructure
+
+#### [NEW] Models (15 files in `lib/core/models/`)
+- `auth_models.dart` - User, AuthResponse, Role, Permission, Organization, etc.
+- `api_response.dart` - ApiResponse\<T\>, ApiErrorResponse
+- `page_model.dart` - Page\<T\>, Pageable
+- `job_model.dart`, `application_model.dart`, `candidate_model.dart`, `client_model.dart`, `project_model.dart`, `asset_model.dart`, `holiday_model.dart`, `payroll_model.dart`, `ticket_model.dart`, `resume_analysis_model.dart`, `public_models.dart`
+
+#### [NEW] Dio Interceptors (5 files in `lib/core/interceptors/`)
+- `auth_interceptor.dart` - Attach Bearer token to `/api` requests
+- `loading_interceptor.dart` - Show/hide loading overlay, `X-Skip-Loading` header support
+- `error_interceptor.dart` - Parse `ApiErrorResponse`, show snackbar with status-specific messages
+- `success_interceptor.dart` - Show success snackbar for POST/PUT/PATCH/DELETE responses
+- `unauthorized_interceptor.dart` - Handle 403 with dialog
+
+#### [NEW] Services (in `lib/core/services/`)
+- `api_service.dart` - Dio-based HTTP client (get/post/put/patch/delete/download) matching Angular ApiService
+- `auth_service.dart` - Login, refreshUser, registerVendor, logout
+- `storage_service.dart` - Flutter Secure Storage wrapper
+- Plus 20+ domain services matching Angular (job, candidate, application, etc.)
+
+#### [NEW] Providers (in `lib/core/providers/`)
+- `auth_provider.dart` - Riverpod `StateNotifier` matching AuthStore (user, tokens, role checks, viewRole simulation, storage persistence)
+- `loading_provider.dart` - Active request counter
+- `dialog_provider.dart` - Dialog state
+
+#### [NEW] Router (in `lib/core/router/`)
+- `app_router.dart` - GoRouter with all routes, redirect logic for auth/role guards
+- `route_guards.dart` - authGuard, roleGuard redirect functions
+
+---
+
+### Phase 3: Shared Widgets
+
+#### [NEW] Widgets (8 files in `lib/shared/widgets/`)
+- `loading_modal.dart` - Full-screen loading overlay
+- `app_dialog.dart` - Success/warning/error dialog matching Angular DialogComponent
+- `confirm_modal.dart` - Confirmation dialog
+- `user_avatar.dart` - Avatar with gradient background and initials
+- `organization_logo.dart` - Org logo with fallback
+- `notification_dropdown.dart` - Notification bell with badge and dropdown
+- `timeline_widget.dart` - Vertical timeline component
+- `chatbot_widget.dart` - Chatbot FAB
+
+---
+
+### Phase 4: Layout
+
+#### [NEW] `lib/layout/main_layout.dart`
+Scaffold with sidebar drawer (mobile) / fixed sidebar (tablet+), header, content area. Exact match of Angular MainLayoutComponent template.
+
+#### [NEW] `lib/layout/sidebar.dart`
+Role-based menu sections with collapsible groups, notification badges, active link highlighting. Exact match of 7 menu sections from Angular SidebarComponent.
+
+#### [NEW] `lib/layout/header.dart`
+Top bar with hamburger menu, breadcrumb, notification bell, user avatar, view-role switcher (admin only).
+
+#### [NEW] `lib/layout/public_layout.dart`
+Public website layout with navigation header and footer.
+
+---
+
+### Phase 5: Public Pages (10 files in `lib/public/`)
+
+Each page recreated pixel-perfect from Angular counterpart:
+- `home_page.dart`, `about_page.dart`, `services_page.dart`, `careers_page.dart`, `case_studies_page.dart`, `leadership_page.dart`, `contact_page.dart`, `login_page.dart`
+- `tracking/tracking_login_page.dart`, `tracking/tracking_dashboard_page.dart`
+- `vms/` (VMS module pages)
+
+---
+
+### Phase 6: Feature Modules (17 modules, 40+ screens)
+
+Each module follows the pattern:
+```
+features/<module>/
+├── pages/           # Screen widgets
+├── widgets/         # Module-specific widgets
+└── <module>_service.dart  # (if not in core/services)
+```
+
+Key screens per module:
+- **Dashboard**: `role_dashboard_page.dart` (role-based content switching)
+- **Admin**: `user_list_page.dart`, `user_details_page.dart`, `audit_log_list_page.dart`
+- **Vendors**: `vendor_list_page.dart`, `vendor_detail_page.dart`
+- **Jobs**: `job_list_page.dart`, `job_create_page.dart`, `job_detail_page.dart`
+- **Applications**: `application_list_page.dart`, `application_detail_page.dart`, `vendor_application_list_page.dart`, `track_application_list_page.dart`
+- **Candidates**: `candidate_list_page.dart`, `candidate_form_page.dart`, `candidate_detail_page.dart`
+- **Projects**: `project_list_page.dart`, `project_detail_page.dart`
+- **Clients**: `client_list_page.dart`, `client_detail_page.dart`
+- **Tickets**: `ticket_list_page.dart`, `ticket_detail_page.dart`
+- **Holidays**: `holiday_list_page.dart`
+- **Assets**: `asset_list_page.dart`, `my_assets_page.dart`
+- **Payroll**: `payroll_management_page.dart`, `my_payslips_page.dart`
+- **Attendance**: `attendance_management_page.dart`, `my_attendance_page.dart`
+- **Leave**: `my_leaves_page.dart`, `leave_management_page.dart`, `leave_configuration_page.dart`
+- **Organization**: `approved_orgs_page.dart`, `my_organization_page.dart`
+- **Notifications**: `notifications_page.dart`
+
+---
+
+## Verification Plan
+
+### Automated Tests
+1. **Flutter build check (Android)**:
+   ```bash
+   cd /Users/manishmachha/Desktop/MyWorkspace/solventek-silverwind/silverwind-flutter
+   flutter build apk --debug
+   ```
+2. **Flutter build check (iOS)**:
+   ```bash
+   flutter build ios --debug --no-codesign
+   ```
+3. **Static analysis**:
+   ```bash
+   flutter analyze
+   ```
+
+### Manual Verification
+1. **Launch app on emulator/simulator**: Run `flutter run` and verify login screen appears
+2. **Auth flow**: Enter valid credentials → verify dashboard loads → verify sidebar shows correct role-based menu items
+3. **Navigation**: Tap each sidebar menu item → verify correct page loads, back navigation works
+4. **Role switching**: Log in as different roles (SUPER_ADMIN, EMPLOYEE, VENDOR) → verify sidebar and accessible routes differ
+5. **API integration**: With the backend running on `localhost:9090`, verify actual data loads on list pages
+
+> [!TIP]
+> I recommend we proceed phase-by-phase with verification checkpoints. Given the massive scope (~60+ screens), I'll implement Phases 1-4 (Foundation + Core + Shared + Layout) first, then proceed with Phase 5 (Public Pages) and Phase 6 (Feature Modules) incrementally.
