@@ -18,7 +18,7 @@ export class MyAssetsComponent implements OnInit {
 
   assignments = signal<AssetAssignment[]>([]);
   unreadAssetIds = new Set<string>();
-  isLoading = signal<boolean>(true);
+
   isRequesting: string | null = null;
 
   ngOnInit() {
@@ -39,7 +39,6 @@ export class MyAssetsComponent implements OnInit {
   }
 
   loadMyAssets() {
-    this.isLoading.set(true);
     this.assetService.getMyAssets().subscribe({
       next: (data) => {
         // Sort: notified first
@@ -49,11 +48,9 @@ export class MyAssetsComponent implements OnInit {
           return bHasNotif - aHasNotif;
         });
         this.assignments.set(sorted);
-        this.isLoading.set(false);
       },
       error: (err) => {
         console.error('Failed to load my assets', err);
-        this.isLoading.set(false);
       },
     });
   }

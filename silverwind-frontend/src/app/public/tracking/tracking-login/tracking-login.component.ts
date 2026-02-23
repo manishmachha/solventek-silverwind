@@ -31,7 +31,6 @@ export class TrackingLoginComponent {
   private router = inject(Router);
   private trackingService = inject(TrackingService);
 
-  isLoading = false;
   error = '';
 
   form: FormGroup = this.fb.group({
@@ -47,7 +46,6 @@ export class TrackingLoginComponent {
 
     const { applicationId, dateOfBirth } = this.form.value;
 
-    this.isLoading = true;
     this.error = '';
 
     const dobDate = new Date(dateOfBirth);
@@ -65,9 +63,8 @@ export class TrackingLoginComponent {
           state: { data: dashboardData },
         });
       },
-      error: () => {
+      error: (err) => {
         this.error = 'Invalid Application ID or Date of Birth';
-        this.isLoading = false;
       },
     });
   }

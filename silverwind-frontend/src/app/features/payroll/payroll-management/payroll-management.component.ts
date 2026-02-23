@@ -26,8 +26,6 @@ export class PayrollManagementComponent implements OnInit {
   salaryStructures = signal<SalaryStructure[]>([]);
   payrolls = signal<Payroll[]>([]);
   unreadPayrollIds = new Set<string>();
-  isLoadingStructures = signal<boolean>(true);
-  isLoadingPayrolls = signal<boolean>(false);
 
   activeTab: 'structures' | 'payrolls' = 'structures';
 
@@ -92,21 +90,17 @@ export class PayrollManagementComponent implements OnInit {
   }
 
   loadSalaryStructures() {
-    this.isLoadingStructures.set(true);
     this.payrollService.getAllSalaryStructures().subscribe({
       next: (data) => {
         this.salaryStructures.set(data);
-        this.isLoadingStructures.set(false);
       },
       error: (err) => {
         console.error('Failed to load salary structures', err);
-        this.isLoadingStructures.set(false);
       },
     });
   }
 
   loadPayrollHistory() {
-    this.isLoadingPayrolls.set(true);
     this.activeTab = 'payrolls';
     this.payrollService.getPayrollHistory(this.selectedMonth, this.selectedYear).subscribe({
       next: (data) => {
@@ -117,11 +111,9 @@ export class PayrollManagementComponent implements OnInit {
           return bHasNotif - aHasNotif;
         });
         this.payrolls.set(sorted);
-        this.isLoadingPayrolls.set(false);
       },
       error: (err) => {
         console.error('Failed to load payroll history', err);
-        this.isLoadingPayrolls.set(false);
       },
     });
   }

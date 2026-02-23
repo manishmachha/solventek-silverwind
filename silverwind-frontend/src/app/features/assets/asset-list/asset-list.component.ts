@@ -22,7 +22,7 @@ export class AssetListComponent implements OnInit {
   authStore = inject(AuthStore);
 
   assets = signal<Asset[]>([]);
-  isLoading = signal<boolean>(true);
+
   currentPage = signal<number>(0);
   totalPages = signal<number>(0);
   unreadAssetIds = new Set<string>();
@@ -57,7 +57,6 @@ export class AssetListComponent implements OnInit {
   }
 
   loadAssets() {
-    this.isLoading.set(true);
     this.assetService.listAssets(this.searchQuery, this.currentPage(), 10).subscribe({
       next: (page) => {
         // Sort: notified assets first
@@ -68,11 +67,9 @@ export class AssetListComponent implements OnInit {
         });
         this.assets.set(sorted);
         this.totalPages.set(page.totalPages);
-        this.isLoading.set(false);
       },
       error: (err) => {
         console.error('Failed to load assets', err);
-        this.isLoading.set(false);
       },
     });
   }

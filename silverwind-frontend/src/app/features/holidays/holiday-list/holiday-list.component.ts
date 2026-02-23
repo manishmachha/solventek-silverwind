@@ -21,7 +21,7 @@ export class HolidayListComponent implements OnInit {
 
   holidays = signal<Holiday[]>([]);
   unreadHolidayIds = new Set<string>();
-  isLoading = signal<boolean>(true);
+
   showModal = signal<boolean>(false);
 
   // Form State
@@ -52,7 +52,6 @@ export class HolidayListComponent implements OnInit {
   }
 
   loadHolidays() {
-    this.isLoading.set(true);
     this.holidayService.getHolidays().subscribe({
       next: (data) => {
         // Sort: notified first, then by date desc
@@ -63,11 +62,9 @@ export class HolidayListComponent implements OnInit {
           return new Date(b.date).getTime() - new Date(a.date).getTime();
         });
         this.holidays.set(sorted);
-        this.isLoading.set(false);
       },
       error: (err) => {
         console.error('Failed to load holidays', err);
-        this.isLoading.set(false);
       },
     });
   }
