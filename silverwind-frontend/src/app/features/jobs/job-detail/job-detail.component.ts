@@ -238,7 +238,7 @@ import { HeaderService } from '../../../core/services/header.service';
 
                 <button
                   *ngIf="canEnrich()"
-                  (click)="showEnrichForm = true"
+                  (click)="openEnrichForm()"
                   class="w-full inline-flex justify-center items-center px-4 py-3 text-sm font-medium rounded-xl text-white bg-linear-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg shadow-purple-200"
                 >
                   <i class="bi bi-magic mr-2"></i> Enrich Job
@@ -480,6 +480,13 @@ import { HeaderService } from '../../../core/services/header.service';
                   Cancel
                 </button>
                 <button
+                  type="button"
+                  (click)="skipEnrichment()"
+                  class="px-5 py-2.5 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 font-medium transition-colors"
+                >
+                  Skip Enrichment
+                </button>
+                <button
                   type="submit"
                   class="px-5 py-2.5 bg-linear-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 font-medium transition-all shadow-lg shadow-purple-200"
                 >
@@ -697,7 +704,7 @@ export class JobDetailComponent implements OnInit {
   canFinalVerify() {
     return (
       this.canPerformCriticalAction() && // TA cannot final verify/approve
-      this.job()?.status === 'TA_ENRICHED'
+      (this.job()?.status === 'TA_ENRICHED' || this.job()?.status === 'ADMIN_VERIFIED')
     );
   }
   canPublish() {
@@ -775,6 +782,30 @@ export class JobDetailComponent implements OnInit {
   verify() {
     if (confirm('Verify this job?')) {
       this.jobService.verifyJob(this.job()!.id).subscribe(() => this.loadJob());
+    }
+  }
+
+  openEnrichForm() {
+    this.showEnrichForm = true;
+    const currentJob = this.job();
+    if (currentJob) {
+      this.enrichForm.patchValue({
+        requirements: currentJob.requirements || '',
+        rolesAndResponsibilities: currentJob.rolesAndResponsibilities || '',
+        experience: currentJob.experience || '',
+        skills: currentJob.skills || '',
+      });
+    }
+  }
+
+  skipEnrichment() {
+    if (confirm('Are you sure you want to skip enrichment?')) {
+      this.jobService
+        .updateStatus(this.job()!.id, 'TA_ENRICHED', 'Enrichment skipped')
+        .subscribe(() => {
+          this.showEnrichForm = false;
+          this.loadJob();
+        });
     }
   }
 
