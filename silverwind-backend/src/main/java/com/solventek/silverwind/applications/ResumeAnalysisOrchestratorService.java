@@ -309,24 +309,59 @@ public class ResumeAnalysisOrchestratorService {
 
   public com.solventek.silverwind.recruitment.CandidateDTO.ParsedResume extractCandidateData(String resumeText) {
     String factsJson = extractFactsDeep(resumeText);
-    // Build a lenient mapper to handle Gemini occasionally returning JSON5-style
-    // output with unquoted field names, single quotes, or trailing commas.
-    com.fasterxml.jackson.core.JsonFactory lenientFactory = com.fasterxml.jackson.core.JsonFactory.builder()
+    ObjectMapper lenientMapper = buildLenientMapper();
+
+    // First attempt: parse with lenient mapper (handles unquoted keys, single
+    // quotes, etc.)
+    try {
+      return lenientMapper.readValue(factsJson,
+          com.solventek.silverwind.recruitment.CandidateDTO.ParsedResume.class);
+    } catch (JsonProcessingException firstEx) {
+      log.warn("Initial JSON parse failed ({}), attempting JSON repair...", firstEx.getMessage());
+    }
+
+    // Second attempt: repair common Gemini double-brace issue then re-parse.
+    // Gemini sometimes wraps array items in double braces: [{ {field:val} }]
+    // The resume schema has no legitimately double-nested anonymous objects,
+    // so { { → { and } } → } is safe here.
+    String repairedJson = repairAiJson(factsJson);
+    try {
+      return lenientMapper.readValue(repairedJson,
+          com.solventek.silverwind.recruitment.CandidateDTO.ParsedResume.class);
+    } catch (JsonProcessingException e) {
+      log.error("Failed to parse extracted facts into DTO after repair (json snippet: {})",
+          factsJson.length() > 200 ? factsJson.substring(0, 200) : factsJson, e);
+      throw new RuntimeException("Resume parsing failed", e);
+    }
+  }
+
+  /** Lenient Jackson mapper that tolerates common Gemini JSON quirks. */
+  private ObjectMapper buildLenientMapper() {
+    com.fasterxml.jackson.core.JsonFactory factory = com.fasterxml.jackson.core.JsonFactory.builder()
         .enable(com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_UNQUOTED_FIELD_NAMES)
         .enable(com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_SINGLE_QUOTES)
         .enable(com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_TRAILING_COMMA)
         .enable(com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_JAVA_COMMENTS)
         .build();
-    ObjectMapper lenientMapper = new ObjectMapper(lenientFactory)
+    return new ObjectMapper(factory)
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    try {
-      return lenientMapper.readValue(factsJson,
-          com.solventek.silverwind.recruitment.CandidateDTO.ParsedResume.class);
-    } catch (JsonProcessingException e) {
-      log.error("Failed to parse extracted facts into DTO (json snippet: {})",
-          factsJson.length() > 200 ? factsJson.substring(0, 200) : factsJson, e);
-      throw new RuntimeException("Resume parsing failed", e);
-    }
+  }
+
+  /**
+   * Repair common AI JSON generation issues.
+   * Gemini sometimes outputs double braces around array items: [{ {name: "x"} }]
+   * Stripping {{ → { and }} → } fixes this. Safe for this schema because no
+   * field in ParsedResume has a legitimately double-nested anonymous object.
+   */
+  private String repairAiJson(String json) {
+    if (json == null)
+      return "{}";
+    String repaired = json
+        .replaceAll("\\{\\s*\\{", "{")
+        .replaceAll("\\}\\s*\\}", "}");
+    log.debug("Repaired AI JSON (first 300 chars): {}",
+        repaired.length() > 300 ? repaired.substring(0, 300) : repaired);
+    return repaired;
   }
 
   public String extractFacts(String resumeText) {
