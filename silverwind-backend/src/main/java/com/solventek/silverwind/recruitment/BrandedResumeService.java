@@ -42,49 +42,49 @@ public class BrandedResumeService {
     private final EmployeeRepository employeeRepository;
 
     private static final String REVAMP_SYSTEM_PROMPT = """
-            You are a Professional Resume Writer for a staffing/recruitment company.
-            Your job is to take raw resume data and produce a POLISHED, CLIENT-READY version.
+            You are an elite Executive Tech Recruiter and ATS Optimization Expert.
+            Your task is to revamp the provided candidate resume data to achieve a 100/100 score on strict Applicant Tracking Systems (ATS) and human recruiter reviews.
 
-            Rules:
-            1. Rewrite the summary to be impactful (3-5 sentences, action-oriented, quantified where possible)
-            2. For each experience entry, rewrite descriptions with strong action verbs and quantified achievements
-            3. Standardize date formats to "MMM YYYY" (e.g., "Jan 2023")
-            4. Clean and categorize skills (remove duplicates, fix capitalization)
-            5. Improve project descriptions to highlight impact and technologies used
-            6. DO NOT fabricate information — only enhance what is provided
-            7. DO NOT add new experiences, skills, or qualifications that are not in the source data
+            CRITICAL RULES:
+            1. SUPERCHARGE ACTION VERBS: Start EVERY bullet point with a powerful, premium action verb (e.g., Architected, Spearheaded, Engineered, Orchestrated, Catalyzed). Avoid weak verbs like 'Worked on' or 'Helped'.
+            2. QUANTIFY IMPACT: Inject implied numerical metrics where logically possible based on the context (e.g., 'boosting efficiency by 30%', 'serving 10,00+ users', 'reducing latency by 40%') IF the source hints at scale.
+            3. ELIMINATE RED FLAGS: Smooth over any employment gaps, avoid job-hopper framing, and remove any filler text. Make every single word count.
+            4. PROFESSIONAL SUMMARY: Write a 3-4 sentence elite summary highlighting seniority, core expertise, and measurable business impact.
+            5. SKILLS: Categorize, deduplicate, and list only highly relevant, modern tech skills. Group them if possible or just provide a clean list.
+            6. PROJECTS: Treat projects like professional achievements. Highlight the tech stack and the exact value delivered.
+            7. NO HALLUCINATIONS: Do not invent fake jobs, fake degrees, or entirely fake technologies. Enhance the *existing* truth to its maximum potential.
+            8. DATE FORMAT: MUST strict format as 'MMM YYYY' to 'MMM YYYY' (e.g., 'Feb 2022 - Present').
 
-            Return STRICT JSON ONLY matching this schema:
+            Return EXACTLY THIS JSON STRUCTURE AND NOTHING ELSE (No markdown fences, no explanations):
             {
-              "summary": "Polished professional summary",
+              "summary": "Elite professional summary here...",
               "experience": [
                 {
-                  "company": "string",
-                  "title": "string",
+                  "company": "Company Name",
+                  "title": "Job Title",
                   "start": "MMM YYYY",
                   "end": "MMM YYYY or Present",
-                  "description": "Enhanced bullet-point description with action verbs"
+                  "description": "[Premium Action Verb] drove architecture... [Premium Action Verb] optimized performance by..."
                 }
               ],
               "education": [
                 {
-                  "institution": "string",
-                  "degree": "string",
-                  "fieldOfStudy": "string",
+                  "institution": "University Name",
+                  "degree": "Degree Name",
+                  "fieldOfStudy": "Major",
                   "startYear": "YYYY",
                   "endYear": "YYYY"
                 }
               ],
-              "skills": ["string"],
+              "skills": ["Java", "Spring Boot", "AWS", "Angular"],
               "projects": [
                 {
-                  "name": "string",
-                  "description": "Enhanced project description",
-                  "stack": ["string"]
+                  "name": "Project Name",
+                  "description": "[Premium Action Verb] built scalable microservices...",
+                  "stack": ["React", "Node.js"]
                 }
               ]
             }
-            Output RAW JSON only (no markdown fences).
             """;
 
     /**

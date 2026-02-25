@@ -12,48 +12,33 @@ import java.util.Map;
 
 /**
  * Generates professionally branded PDF resumes using OpenPDF.
- * Uses Solventek brand colors and layout with watermark.
+ * Features ultra-premium styling, ATS-friendly formatting, and image watermark.
  */
 @Service
 @Slf4j
 public class BrandedResumePdfService {
 
-    // Brand colors
-    private static final Color BRAND_PRIMARY = new Color(26, 35, 126); // Deep blue #1a237e
-    private static final Color BRAND_ACCENT = new Color(48, 63, 159); // Indigo #303f9f
-    private static final Color BRAND_LIGHT = new Color(197, 202, 233); // Light indigo #c5cae9
-    private static final Color TEXT_DARK = new Color(33, 33, 33);
-    private static final Color TEXT_SECONDARY = new Color(117, 117, 117);
-    private static final Color SECTION_BG = new Color(232, 234, 246); // Very light indigo
+    // Premium Color Palette
+    private static final Color BRAND_PRIMARY = new Color(17, 24, 39); // Deep Slate
+    private static final Color BRAND_ACCENT = new Color(37, 99, 235); // Modern Blue #2563eb
+    private static final Color BRAND_LIGHT = new Color(239, 246, 255); // Very light blue
+    private static final Color TEXT_DARK = new Color(31, 41, 55); // Gray 800
+    private static final Color TEXT_MUTED = new Color(107, 114, 128); // Gray 500
+    private static final Color BORDER_LIGHT = new Color(229, 231, 235); // Gray 200
     private static final Color WHITE = Color.WHITE;
 
-    // Fonts
-    private static final Font HEADER_FONT = new Font(Font.HELVETICA, 22, Font.BOLD, WHITE);
-    private static final Font NAME_FONT = new Font(Font.HELVETICA, 18, Font.BOLD, WHITE);
-    private static final Font CONTACT_FONT = new Font(Font.HELVETICA, 9, Font.NORMAL, BRAND_LIGHT);
-    private static final Font SECTION_TITLE_FONT = new Font(Font.HELVETICA, 13, Font.BOLD, BRAND_PRIMARY);
-    private static final Font SUBTITLE_FONT = new Font(Font.HELVETICA, 11, Font.BOLD, TEXT_DARK);
+    // Fonts - OpenPDF built-in
+    private static final Font HEADER_FONT = new Font(Font.HELVETICA, 28, Font.BOLD, BRAND_PRIMARY);
+    private static final Font CONTACT_FONT = new Font(Font.HELVETICA, 10, Font.NORMAL, TEXT_MUTED);
+    private static final Font SECTION_TITLE_FONT = new Font(Font.HELVETICA, 14, Font.BOLD, BRAND_ACCENT);
+    private static final Font CARD_TITLE_FONT = new Font(Font.HELVETICA, 12, Font.BOLD, TEXT_DARK);
+    private static final Font CARD_SUBTITLE_FONT = new Font(Font.HELVETICA, 11, Font.ITALIC, BRAND_ACCENT);
+    private static final Font DATE_FONT = new Font(Font.HELVETICA, 10, Font.BOLD, TEXT_MUTED);
     private static final Font BODY_FONT = new Font(Font.HELVETICA, 10, Font.NORMAL, TEXT_DARK);
-    private static final Font BODY_ITALIC = new Font(Font.HELVETICA, 10, Font.ITALIC, TEXT_SECONDARY);
-    private static final Font SKILL_FONT = new Font(Font.HELVETICA, 9, Font.NORMAL, BRAND_PRIMARY);
-    private static final Font FOOTER_FONT = new Font(Font.HELVETICA, 8, Font.ITALIC, TEXT_SECONDARY);
+    private static final Font BODY_ITALIC = new Font(Font.HELVETICA, 10, Font.ITALIC, TEXT_MUTED);
+    private static final Font SKILL_FONT = new Font(Font.HELVETICA, 9, Font.BOLD, BRAND_PRIMARY);
+    private static final Font FOOTER_FONT = new Font(Font.HELVETICA, 8, Font.NORMAL, TEXT_MUTED);
 
-    /**
-     * Generate a branded PDF resume from structured data.
-     *
-     * @param candidateName Full name
-     * @param email         Contact email
-     * @param phone         Phone number (nullable)
-     * @param location      City/location (nullable)
-     * @param summary       Professional summary
-     * @param experience    List of experience maps with keys: company, title,
-     *                      start, end, description
-     * @param education     List of education maps with keys: institution, degree,
-     *                      fieldOfStudy, startYear, endYear
-     * @param skills        List of skill names
-     * @param projects      List of project maps with keys: name, description, stack
-     * @return PDF as byte array
-     */
     public byte[] generate(
             String candidateName,
             String email,
@@ -64,33 +49,47 @@ public class BrandedResumePdfService {
             List<Map<String, Object>> education,
             List<String> skills,
             List<Map<String, Object>> projects) {
-        log.info("Generating branded resume PDF for: {}", candidateName);
+        log.info("Generating premium branded resume PDF for: {}", candidateName);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-        Document doc = new Document(PageSize.A4, 40, 40, 30, 40);
+        Document doc = new Document(PageSize.A4, 40, 40, 40, 40);
         try {
             PdfWriter writer = PdfWriter.getInstance(doc, baos);
-            writer.setPageEvent(new BrandedPageEvent());
+            writer.setPageEvent(new PremiumPageEvent());
             doc.open();
 
-            // === HEADER BAR ===
+            // === HEADER ===
             addHeader(doc, candidateName, email, phone, location);
-
-            doc.add(Chunk.NEWLINE);
+            doc.add(new Paragraph(" ", BODY_FONT)); // Spacing
 
             // === SUMMARY ===
             if (summary != null && !summary.isBlank()) {
                 addSectionTitle(doc, "PROFESSIONAL SUMMARY");
                 Paragraph p = new Paragraph(summary, BODY_FONT);
-                p.setSpacingAfter(10);
+                p.setSpacingAfter(15);
+                p.setLeading(14f);
                 doc.add(p);
+            }
+
+            // === SKILLS (Top level for impact) ===
+            if (skills != null && !skills.isEmpty()) {
+                addSectionTitle(doc, "CORE COMPETENCIES");
+                addSkills(doc, skills);
             }
 
             // === EXPERIENCE ===
             if (experience != null && !experience.isEmpty()) {
                 addSectionTitle(doc, "PROFESSIONAL EXPERIENCE");
                 for (Map<String, Object> exp : experience) {
-                    addExperience(doc, exp);
+                    addExperienceCard(doc, exp);
+                }
+            }
+
+            // === PROJECTS ===
+            if (projects != null && !projects.isEmpty()) {
+                addSectionTitle(doc, "KEY INITIATIVES & PROJECTS");
+                for (Map<String, Object> proj : projects) {
+                    addProjectCard(doc, proj);
                 }
             }
 
@@ -98,278 +97,300 @@ public class BrandedResumePdfService {
             if (education != null && !education.isEmpty()) {
                 addSectionTitle(doc, "EDUCATION");
                 for (Map<String, Object> edu : education) {
-                    addEducation(doc, edu);
-                }
-            }
-
-            // === SKILLS ===
-            if (skills != null && !skills.isEmpty()) {
-                addSectionTitle(doc, "TECHNICAL SKILLS");
-                addSkills(doc, skills);
-            }
-
-            // === PROJECTS ===
-            if (projects != null && !projects.isEmpty()) {
-                addSectionTitle(doc, "KEY PROJECTS");
-                for (Map<String, Object> proj : projects) {
-                    addProject(doc, proj);
+                    addEducationCard(doc, edu);
                 }
             }
 
             doc.close();
-            log.info("Branded resume PDF generated: {} bytes", baos.size());
-
+            return baos.toByteArray();
         } catch (Exception e) {
-            log.error("Failed to generate branded resume PDF", e);
+            log.error("Failed to generate premium branded resume PDF", e);
             throw new RuntimeException("PDF generation failed", e);
         }
-
-        return baos.toByteArray();
     }
 
     private void addHeader(Document doc, String name, String email, String phone, String location)
             throws DocumentException {
-        // Header table with brand color background
-        PdfPTable headerTable = new PdfPTable(1);
+        PdfPTable headerTable = new PdfPTable(2);
         headerTable.setWidthPercentage(100);
+        headerTable.setWidths(new float[] { 65, 35 });
 
-        PdfPCell headerCell = new PdfPCell();
-        headerCell.setBackgroundColor(BRAND_PRIMARY);
-        headerCell.setPadding(20);
-        headerCell.setBorder(PdfPCell.NO_BORDER);
+        // Left: Name & Logo
+        PdfPCell leftCell = new PdfPCell();
+        leftCell.setBorder(PdfPCell.NO_BORDER);
+        leftCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 
-        // Company branding (Image Logo)
         try {
-            Image logo = Image.getInstance(
-                    getClass().getClassLoader()
-                            .getResource("logos/Solventek_logo_compressed.png"));
-            logo.scaleToFit(150, 40); // Adjust size as needed
-            logo.setSpacingAfter(8);
-            headerCell.addElement(logo);
+            Image logo = Image
+                    .getInstance(getClass().getClassLoader().getResource("logos/Solventek_logo_compressed.png"));
+            logo.scaleToFit(140, 40);
+            logo.setSpacingAfter(10);
+            leftCell.addElement(logo);
         } catch (Exception e) {
-            log.warn("Could not load Solventek logo image, falling back to text", e);
-            Paragraph branding = new Paragraph("SOLVENTEK", HEADER_FONT);
-            branding.setSpacingAfter(8);
-            headerCell.addElement(branding);
+            log.warn("Logo not found", e);
+            Paragraph fallback = new Paragraph("SOLVENTEK", new Font(Font.HELVETICA, 16, Font.BOLD, BRAND_ACCENT));
+            fallback.setSpacingAfter(10);
+            leftCell.addElement(fallback);
         }
 
-        // Candidate name
         if (name != null) {
-            Paragraph nameP = new Paragraph(name, NAME_FONT);
-            nameP.setSpacingAfter(5);
-            headerCell.addElement(nameP);
+            Paragraph nameP = new Paragraph(name.toUpperCase(), HEADER_FONT);
+            leftCell.addElement(nameP);
         }
+        headerTable.addCell(leftCell);
 
-        // Contact info line
-        StringBuilder contact = new StringBuilder();
+        // Right: Contact info
+        PdfPCell rightCell = new PdfPCell();
+        rightCell.setBorder(PdfPCell.NO_BORDER);
+        rightCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        rightCell.setVerticalAlignment(Element.ALIGN_BOTTOM);
+
+        Paragraph contactP = new Paragraph();
+        contactP.setAlignment(Element.ALIGN_RIGHT);
+        contactP.setLeading(14f);
+
         if (email != null)
-            contact.append(email);
-        if (phone != null) {
-            if (!contact.isEmpty())
-                contact.append("  |  ");
-            contact.append(phone);
-        }
-        if (location != null) {
-            if (!contact.isEmpty())
-                contact.append("  |  ");
-            contact.append(location);
-        }
-        if (!contact.isEmpty()) {
-            Paragraph contactP = new Paragraph(contact.toString(), CONTACT_FONT);
-            headerCell.addElement(contactP);
-        }
+            contactP.add(new Chunk(email + "\n", CONTACT_FONT));
+        if (phone != null)
+            contactP.add(new Chunk(phone + "\n", CONTACT_FONT));
+        if (location != null)
+            contactP.add(new Chunk(location, CONTACT_FONT));
 
-        headerTable.addCell(headerCell);
+        rightCell.addElement(contactP);
+        headerTable.addCell(rightCell);
+
+        // Bottom divider below header
+        PdfPCell dividerCell = new PdfPCell();
+        dividerCell.setColspan(2);
+        dividerCell.setBorder(PdfPCell.BOTTOM);
+        dividerCell.setBorderWidthBottom(1f);
+        dividerCell.setBorderColorBottom(BORDER_LIGHT);
+        dividerCell.setPaddingTop(10f);
+        headerTable.addCell(dividerCell);
+
         doc.add(headerTable);
     }
 
     private void addSectionTitle(Document doc, String title) throws DocumentException {
-        // Divider line
         PdfPTable divider = new PdfPTable(1);
         divider.setWidthPercentage(100);
-        divider.setSpacingBefore(12);
+        divider.setSpacingBefore(15);
+        divider.setSpacingAfter(10);
+
         PdfPCell divCell = new PdfPCell();
-        divCell.setBorderWidthTop(2);
-        divCell.setBorderColorTop(BRAND_ACCENT);
-        divCell.setBorderWidthBottom(0);
-        divCell.setBorderWidthLeft(0);
-        divCell.setBorderWidthRight(0);
-        divCell.setPaddingTop(6);
+        divCell.setBorder(PdfPCell.BOTTOM);
+        divCell.setBorderWidthBottom(2f);
+        divCell.setBorderColorBottom(BRAND_ACCENT);
+        divCell.setPaddingBottom(4f);
         divCell.setPhrase(new Phrase(title, SECTION_TITLE_FONT));
+
         divider.addCell(divCell);
         doc.add(divider);
     }
 
-    private void addExperience(Document doc, Map<String, Object> exp) throws DocumentException {
+    private void addExperienceCard(Document doc, Map<String, Object> exp) throws DocumentException {
         String title = safeStr(exp, "title");
         String company = safeStr(exp, "company");
         String start = safeStr(exp, "start");
         String end = safeStr(exp, "end");
         String desc = safeStr(exp, "description");
 
-        // Title + Company row
-        PdfPTable row = new PdfPTable(2);
-        row.setWidthPercentage(100);
-        row.setWidths(new float[] { 70, 30 });
-        row.setSpacingBefore(6);
+        PdfPTable card = new PdfPTable(2);
+        card.setWidthPercentage(100);
+        card.setWidths(new float[] { 75, 25 });
+        card.setSpacingAfter(12);
 
+        // Left padding for the "Timeline" look
         PdfPCell leftCell = new PdfPCell();
-        leftCell.setBorder(PdfPCell.NO_BORDER);
-        Paragraph titleP = new Paragraph(title, SUBTITLE_FONT);
-        if (company != null && !company.isBlank()) {
-            titleP.add(new Chunk(" at " + company, BODY_ITALIC));
-        }
-        leftCell.addElement(titleP);
-        row.addCell(leftCell);
+        leftCell.setBorder(PdfPCell.LEFT);
+        leftCell.setBorderWidthLeft(3f);
+        leftCell.setBorderColorLeft(BRAND_LIGHT);
+        leftCell.setPaddingLeft(12f);
+        leftCell.setPaddingBottom(5f);
 
+        Paragraph titleP = new Paragraph(title, CARD_TITLE_FONT);
+        if (company != null && !company.isBlank()) {
+            titleP.add(new Chunk(" | " + company, CARD_SUBTITLE_FONT));
+        }
+        titleP.setSpacingAfter(6);
+        leftCell.addElement(titleP);
+
+        if (desc != null && !desc.isBlank()) {
+            Paragraph descP = new Paragraph(desc, BODY_FONT);
+            descP.setLeading(14f);
+            leftCell.addElement(descP);
+        }
+        card.addCell(leftCell);
+
+        // Right side dates
         PdfPCell rightCell = new PdfPCell();
         rightCell.setBorder(PdfPCell.NO_BORDER);
         rightCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+
         String dateRange = (start != null ? start : "") + " — " + (end != null ? end : "Present");
-        Paragraph dateP = new Paragraph(dateRange, BODY_ITALIC);
+        Paragraph dateP = new Paragraph(dateRange, DATE_FONT);
         dateP.setAlignment(Element.ALIGN_RIGHT);
         rightCell.addElement(dateP);
-        row.addCell(rightCell);
 
-        doc.add(row);
-
-        // Description
-        if (desc != null && !desc.isBlank()) {
-            Paragraph descP = new Paragraph(desc, BODY_FONT);
-            descP.setIndentationLeft(10);
-            descP.setSpacingAfter(6);
-            doc.add(descP);
-        }
+        card.addCell(rightCell);
+        doc.add(card);
     }
 
-    private void addEducation(Document doc, Map<String, Object> edu) throws DocumentException {
+    private void addProjectCard(Document doc, Map<String, Object> proj) throws DocumentException {
+        String name = safeStr(proj, "name");
+        String desc = safeStr(proj, "description");
+        Object stackObj = proj.get("stack");
+
+        PdfPTable card = new PdfPTable(1);
+        card.setWidthPercentage(100);
+        card.setSpacingAfter(12);
+
+        PdfPCell cell = new PdfPCell();
+        cell.setBorder(PdfPCell.LEFT);
+        cell.setBorderWidthLeft(3f);
+        cell.setBorderColorLeft(BRAND_ACCENT);
+        cell.setPaddingLeft(12f);
+        cell.setPaddingBottom(5f);
+
+        Paragraph titleP = new Paragraph(name != null ? name : "Project", CARD_TITLE_FONT);
+        titleP.setSpacingAfter(6);
+        cell.addElement(titleP);
+
+        if (desc != null && !desc.isBlank()) {
+            Paragraph descP = new Paragraph(desc, BODY_FONT);
+            descP.setLeading(14f);
+            cell.addElement(descP);
+        }
+
+        if (stackObj instanceof List<?> stack && !stack.isEmpty()) {
+            String stackStr = "Technologies: " + String.join(", ", stack.stream().map(Object::toString).toList());
+            Paragraph stackP = new Paragraph(stackStr, BODY_ITALIC);
+            stackP.setSpacingBefore(6);
+            cell.addElement(stackP);
+        }
+        card.addCell(cell);
+        doc.add(card);
+    }
+
+    private void addEducationCard(Document doc, Map<String, Object> edu) throws DocumentException {
         String institution = safeStr(edu, "institution");
         String degree = safeStr(edu, "degree");
         String field = safeStr(edu, "fieldOfStudy");
         String startYear = safeStr(edu, "startYear");
         String endYear = safeStr(edu, "endYear");
 
-        PdfPTable row = new PdfPTable(2);
-        row.setWidthPercentage(100);
-        row.setWidths(new float[] { 70, 30 });
-        row.setSpacingBefore(4);
+        PdfPTable card = new PdfPTable(2);
+        card.setWidthPercentage(100);
+        card.setWidths(new float[] { 75, 25 });
+        card.setSpacingAfter(10);
 
         PdfPCell leftCell = new PdfPCell();
         leftCell.setBorder(PdfPCell.NO_BORDER);
+
         String degreeText = (degree != null ? degree : "") + (field != null ? " in " + field : "");
-        Paragraph degP = new Paragraph(degreeText, SUBTITLE_FONT);
+        Paragraph degP = new Paragraph(degreeText, CARD_TITLE_FONT);
         leftCell.addElement(degP);
+
         if (institution != null && !institution.isBlank()) {
-            leftCell.addElement(new Paragraph(institution, BODY_FONT));
+            Paragraph instP = new Paragraph(institution, CARD_SUBTITLE_FONT);
+            instP.setSpacingBefore(2);
+            leftCell.addElement(instP);
         }
-        row.addCell(leftCell);
+        card.addCell(leftCell);
 
         PdfPCell rightCell = new PdfPCell();
         rightCell.setBorder(PdfPCell.NO_BORDER);
         String years = (startYear != null ? startYear : "") + " — " + (endYear != null ? endYear : "");
-        Paragraph yearsP = new Paragraph(years, BODY_ITALIC);
+        Paragraph yearsP = new Paragraph(years, DATE_FONT);
         yearsP.setAlignment(Element.ALIGN_RIGHT);
         rightCell.addElement(yearsP);
-        row.addCell(rightCell);
+        card.addCell(rightCell);
 
-        doc.add(row);
+        doc.add(card);
     }
 
     private void addSkills(Document doc, List<String> skills) throws DocumentException {
-        // Skills as a wrapped grid of chip-like cells
-        PdfPTable table = new PdfPTable(5);
+        PdfPTable table = new PdfPTable(4);
         table.setWidthPercentage(100);
-        table.setSpacingBefore(4);
-        table.setSpacingAfter(8);
+        table.setSpacingAfter(15);
+        table.setWidths(new float[] { 25, 25, 25, 25 });
 
         for (String skill : skills) {
             PdfPCell cell = new PdfPCell(new Phrase(skill, SKILL_FONT));
-            cell.setBackgroundColor(SECTION_BG);
-            cell.setPadding(6);
-            cell.setBorderWidth(0.5f);
-            cell.setBorderColor(BRAND_LIGHT);
+            cell.setBackgroundColor(BRAND_LIGHT);
+            cell.setPaddingTop(5f);
+            cell.setPaddingBottom(7f);
+            cell.setBorderWidth(1f);
+            cell.setBorderColor(WHITE); // White border acts as inner margin
             cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
             table.addCell(cell);
         }
 
-        // Fill remaining cells in the last row
-        int remainder = skills.size() % 5;
+        int remainder = skills.size() % 4;
         if (remainder != 0) {
-            for (int i = 0; i < 5 - remainder; i++) {
-                PdfPCell emptyCell = new PdfPCell(new Phrase(""));
-                emptyCell.setBorder(PdfPCell.NO_BORDER);
-                table.addCell(emptyCell);
+            for (int i = 0; i < 4 - remainder; i++) {
+                PdfPCell empty = new PdfPCell();
+                empty.setBorder(PdfPCell.NO_BORDER);
+                table.addCell(empty);
             }
         }
-
         doc.add(table);
-    }
-
-    private void addProject(Document doc, Map<String, Object> proj) throws DocumentException {
-        String name = safeStr(proj, "name");
-        String desc = safeStr(proj, "description");
-        Object stackObj = proj.get("stack");
-
-        Paragraph projP = new Paragraph(name != null ? name : "Project", SUBTITLE_FONT);
-        projP.setSpacingBefore(4);
-        doc.add(projP);
-
-        if (desc != null && !desc.isBlank()) {
-            Paragraph descP = new Paragraph(desc, BODY_FONT);
-            descP.setIndentationLeft(10);
-            doc.add(descP);
-        }
-
-        if (stackObj instanceof List<?> stack && !stack.isEmpty()) {
-            String stackStr = "Tech: " + String.join(", ", stack.stream().map(Object::toString).toList());
-            Paragraph stackP = new Paragraph(stackStr, BODY_ITALIC);
-            stackP.setIndentationLeft(10);
-            stackP.setSpacingAfter(4);
-            doc.add(stackP);
-        }
     }
 
     private String safeStr(Map<String, Object> map, String key) {
         Object val = map.get(key);
-        return val != null ? val.toString() : null;
+        return val != null ? val.toString().trim() : null;
     }
 
-    /**
-     * Page event handler for watermark and footer.
-     */
-    private static class BrandedPageEvent extends PdfPageEventHelper {
-
+    private static class PremiumPageEvent extends PdfPageEventHelper {
         @Override
         public void onEndPage(PdfWriter writer, Document document) {
             PdfContentByte canvas = writer.getDirectContentUnder();
 
-            // Watermark — diagonal "SOLVENTEK"
-            canvas.saveState();
-            PdfGState gs = new PdfGState();
-            gs.setFillOpacity(0.06f);
-            canvas.setGState(gs);
-            canvas.setColorFill(BRAND_PRIMARY);
-            canvas.beginText();
-            BaseFont bf;
+            // Image Watermark
             try {
-                bf = BaseFont.createFont(BaseFont.HELVETICA_BOLD, BaseFont.WINANSI, BaseFont.NOT_EMBEDDED);
-            } catch (Exception e) {
-                return;
-            }
-            canvas.setFontAndSize(bf, 72);
-            canvas.showTextAligned(Element.ALIGN_CENTER, "SOLVENTEK",
-                    297.5f, 421, 45);
-            canvas.endText();
-            canvas.restoreState();
+                Image watermark = Image
+                        .getInstance(getClass().getClassLoader().getResource("logos/Solventek_logo_compressed.png"));
+                // Extremely subtle image watermark in the center
+                float width = 400f;
+                float height = watermark.getScaledHeight() * (width / watermark.getScaledWidth());
+                watermark.scaleToFit(width, height);
+                watermark.setAbsolutePosition(
+                        (document.getPageSize().getWidth() - width) / 2,
+                        (document.getPageSize().getHeight() - height) / 2);
+                watermark.setRotationDegrees(45f);
 
-            // Footer
+                canvas.saveState();
+                PdfGState gs = new PdfGState();
+                gs.setFillOpacity(0.04f); // Very faint
+                canvas.setGState(gs);
+                canvas.addImage(watermark);
+                canvas.restoreState();
+            } catch (Exception e) {
+                // Ignore watermark errors silently
+            }
+
+            // High-end Footer
             PdfContentByte cb = writer.getDirectContent();
-            Phrase footer = new Phrase(
-                    "Prepared by Solventek  •  Confidential  •  Page " + writer.getPageNumber(),
-                    FOOTER_FONT);
-            ColumnText.showTextAligned(cb, Element.ALIGN_CENTER, footer,
-                    (document.right() - document.left()) / 2 + document.leftMargin(),
-                    document.bottom() - 15, 0);
+            cb.saveState();
+
+            // Draw a subtle line above footer
+            cb.setColorStroke(BORDER_LIGHT);
+            cb.setLineWidth(1f);
+            cb.moveTo(document.left(), document.bottom() - 10);
+            cb.lineTo(document.right(), document.bottom() - 10);
+            cb.stroke();
+
+            Phrase leftFooter = new Phrase("Solventek Exec Search  |  Confidential", FOOTER_FONT);
+            ColumnText.showTextAligned(cb, Element.ALIGN_LEFT, leftFooter,
+                    document.left(), document.bottom() - 25, 0);
+
+            Phrase rightFooter = new Phrase("Page " + writer.getPageNumber(), FOOTER_FONT);
+            ColumnText.showTextAligned(cb, Element.ALIGN_RIGHT, rightFooter,
+                    document.right(), document.bottom() - 25, 0);
+
+            cb.restoreState();
         }
     }
 }
