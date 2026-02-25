@@ -56,7 +56,7 @@ public class Organization extends BaseEntity {
     // --- Business Details ---
     private Integer employeeCount; // Number of employees
     private Integer yearsInBusiness; // Years of operation
-    @Column(length = 1000)
+    @Column(length = 10000)
     private String serviceOfferings; // Comma-separated services offered
     @Column(length = 1000)
     private String keyClients; // Notable clients (optional)

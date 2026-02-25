@@ -37,8 +37,10 @@ public class NotificationService {
 
     /**
      * Send a rich notification asynchronously with all metadata.
-     * This is the async entry point - runs in separate thread so main transaction is not blocked.
-     * NOTE: Returns Notification for backward compatibility, but the actual work is done async.
+     * This is the async entry point - runs in separate thread so main transaction
+     * is not blocked.
+     * NOTE: Returns Notification for backward compatibility, but the actual work is
+     * done async.
      */
     public Notification sendNotification(NotificationBuilder builder) {
         log.debug("Queueing async notification of type: {} to user: {}", builder.category, builder.recipientId);
@@ -73,8 +75,10 @@ public class NotificationService {
 
             notificationRepository.save(note);
 
-            // Send Email (also async via EmailService)
-            if (recipient.getEmail() != null && !recipient.getEmail().isEmpty()) {
+            // Only send email if explicitly requested via .withEmail() — prevents
+            // blasting every admin with an email for every notification and avoids
+            // Yahoo BizMail auth lockouts from too many simultaneous SMTP connections.
+            if (builder.sendEmail && recipient.getEmail() != null && !recipient.getEmail().isEmpty()) {
                 emailService.sendSimpleMessage(
                         recipient.getEmail(),
                         "Silverwind Notification: " + builder.title,
@@ -276,6 +280,14 @@ public class NotificationService {
         String actionUrl;
         String iconType;
         Map<String, Object> metadata;
+        /**
+         * When true the notification service will also send a plain-text email to the
+         * recipient.
+         * Default is FALSE — most in-app notifications should NOT send an email to
+         * avoid
+         * overwhelming SMTP quotas (especially with bulk org-wide notifications).
+         */
+        boolean sendEmail = false;
 
         public static NotificationBuilder create() {
             return new NotificationBuilder();
@@ -332,6 +344,15 @@ public class NotificationService {
                 this.metadata = new HashMap<>();
             }
             this.metadata.put(key, value);
+            return this;
+        }
+
+        /**
+         * Opt-in to sending a plain-text email alongside the in-app notification.
+         * Use sparingly — only for external recipients or high-urgency alerts.
+         */
+        public NotificationBuilder withEmail() {
+            this.sendEmail = true;
             return this;
         }
     }

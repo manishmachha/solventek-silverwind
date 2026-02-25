@@ -63,9 +63,9 @@ public class ApplicationService {
                                                         "Job not found with ID: " + jobId));
                         Organization vendor = null;
                         if (vendorOrgId != null) {
-                            vendor = organizationRepository.findById(vendorOrgId)
-                                            .orElseThrow(() -> new EntityNotFoundException(
-                                                            "Vendor organization not found: " + vendorOrgId));
+                                vendor = organizationRepository.findById(vendorOrgId)
+                                                .orElseThrow(() -> new EntityNotFoundException(
+                                                                "Vendor organization not found: " + vendorOrgId));
                         }
 
                         if (applicationRepository.existsByJobIdAndEmail(jobId, request.getEmail())) {
@@ -80,69 +80,74 @@ public class ApplicationService {
                         Candidate existingCandidate = null;
 
                         if (request.getCandidateId() != null) {
-                            existingCandidate = candidateRepository.findById(request.getCandidateId()).orElse(null);
+                                existingCandidate = candidateRepository.findById(request.getCandidateId()).orElse(null);
                         }
 
                         // Determine folder structure names for potential use
                         String vendorName = "Direct_Applicants";
                         if (vendor != null) {
-                            vendorName = vendor.getName().replaceAll("[^a-zA-Z0-9_-]", "_");
+                                vendorName = vendor.getName().replaceAll("[^a-zA-Z0-9_-]", "_");
                         }
-                        String applicantName = (request.getFirstName() + "_" + request.getLastName()).replaceAll("[^a-zA-Z0-9_-]", "_");
-                        
-                        // Construct target resume path: job-applications/<vendor>/<applicant>/resume/<applicant>.ext
-                        // Note: Extension might be unknown if we don't have the file yet, but we will determine it.
+                        String applicantName = (request.getFirstName() + "_" + request.getLastName())
+                                        .replaceAll("[^a-zA-Z0-9_-]", "_");
+
+                        // Construct target resume path:
+                        // job-applications/<vendor>/<applicant>/resume/<applicant>.ext
+                        // Note: Extension might be unknown if we don't have the file yet, but we will
+                        // determine it.
 
                         if (resumeFile != null && !resumeFile.isEmpty()) {
                                 log.debug("Processing new resume file upload: {}", resumeFile.getOriginalFilename());
-                                
+
                                 String originalFilename = resumeFile.getOriginalFilename();
                                 String extension = "pdf";
                                 if (originalFilename != null && originalFilename.contains(".")) {
-                                    extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
+                                        extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
                                 }
-                                
-                                String customPath = String.format("job-applications/%s/%s/resume/%s.%s", 
-                                    vendorName, applicantName, applicantName, extension);
-                                
+
+                                String customPath = String.format("job-applications/%s/%s/resume/%s.%s",
+                                                vendorName, applicantName, applicantName, extension);
+
                                 var result = ingestionService.storeAndExtract(resumeFile, customPath);
                                 resumePath = result.filePath();
                                 resumeText = result.extractedText();
-                                
+
                         } else if (existingCandidate != null && existingCandidate.getResumeFilePath() != null) {
                                 log.debug("Using existing resume for candidate: {}", existingCandidate.getId());
                                 String currentPath = existingCandidate.getResumeFilePath();
-                                
+
                                 // Check if we need to move it
                                 if (!currentPath.startsWith("job-applications/")) {
-                                    log.info("Moving resume from legacy/generic path '{}' to application structure", currentPath);
-                                    
-                                    // Determine extension from current path
-                                    String extension = "pdf";
-                                    if (currentPath.contains(".")) {
-                                        extension = currentPath.substring(currentPath.lastIndexOf(".") + 1);
-                                    }
-                                    
-                                    String newPath = String.format("job-applications/%s/%s/resume/%s.%s", 
-                                        vendorName, applicantName, applicantName, extension);
-                                        
-                                    // Move the file
-                                    try {
-                                        ingestionService.moveKey(currentPath, newPath);
-                                        
-                                        // Update Candidate
-                                        existingCandidate.setResumeFilePath(newPath);
-                                        candidateRepository.save(existingCandidate);
-                                        
-                                        resumePath = newPath;
-                                    } catch (Exception e) {
-                                        log.error("Failed to move resume file for candidate: {}", existingCandidate.getId(), e);
-                                        // Fallback to existing path if move fails
-                                        resumePath = currentPath;
-                                    }
+                                        log.info("Moving resume from legacy/generic path '{}' to application structure",
+                                                        currentPath);
+
+                                        // Determine extension from current path
+                                        String extension = "pdf";
+                                        if (currentPath.contains(".")) {
+                                                extension = currentPath.substring(currentPath.lastIndexOf(".") + 1);
+                                        }
+
+                                        String newPath = String.format("job-applications/%s/%s/resume/%s.%s",
+                                                        vendorName, applicantName, applicantName, extension);
+
+                                        // Move the file
+                                        try {
+                                                ingestionService.moveKey(currentPath, newPath);
+
+                                                // Update Candidate
+                                                existingCandidate.setResumeFilePath(newPath);
+                                                candidateRepository.save(existingCandidate);
+
+                                                resumePath = newPath;
+                                        } catch (Exception e) {
+                                                log.error("Failed to move resume file for candidate: {}",
+                                                                existingCandidate.getId(), e);
+                                                // Fallback to existing path if move fails
+                                                resumePath = currentPath;
+                                        }
                                 } else {
-                                    // Already in correct structure, just link it
-                                    resumePath = currentPath;
+                                        // Already in correct structure, just link it
+                                        resumePath = currentPath;
                                 }
                                 resumeText = ingestionService.extractTextFromPath(resumePath);
                         }
@@ -167,7 +172,8 @@ public class ApplicationService {
                                         .skills(request.getSkills())
                                         .location(request.getLocation())
                                         .vendor(vendor)
-                                        .status(ApplicationStatus.APPLIED) // Public/Direct applications start as APPLIED
+                                        .status(ApplicationStatus.APPLIED) // Public/Direct applications start as
+                                                                           // APPLIED
                                         .build();
 
                         applicationRepository.save(app);
@@ -191,7 +197,7 @@ public class ApplicationService {
                                                 NotificationService.NotificationBuilder
                                                                 .create()
                                                                 .recipient(admin.getId())
-                                                                .title("📋 New Application Received")
+                                                                .title("New Application Received")
                                                                 .body(request.getFirstName() + " "
                                                                                 + request.getLastName()
                                                                                 + " applied for "
@@ -214,52 +220,54 @@ public class ApplicationService {
                         // Notify Candidate if they are a registered user
                         if (targetUserId != null) {
                                 notificationService.sendNotification(
-                                        NotificationService.NotificationBuilder.create()
-                                                .recipient(targetUserId)
-                                                .title("Application Submitted Successfully")
-                                                .body("Your application for " + job.getTitle() + " at " + job.getOrganization().getName() + " has been received.")
-                                                .category(NotificationCategory.APPLICATION)
-                                                .priority(NotificationPriority.NORMAL)
-                                                .refEntity("APPLICATION", app.getId())
-                                                .actionUrl("/applications/" + app.getId())
-                                                .icon("bi-check-circle")
-                                );
+                                                NotificationService.NotificationBuilder.create()
+                                                                .recipient(targetUserId)
+                                                                .title("Application Submitted Successfully")
+                                                                .body("Your application for " + job.getTitle() + " at "
+                                                                                + job.getOrganization().getName()
+                                                                                + " has been received.")
+                                                                .category(NotificationCategory.APPLICATION)
+                                                                .priority(NotificationPriority.NORMAL)
+                                                                .refEntity("APPLICATION", app.getId())
+                                                                .actionUrl("/applications/" + app.getId())
+                                                                .icon("bi-check-circle"));
                         }
 
                         // Send Rich Email to Candidate (Application ID + DOB reminder)
                         try {
-                            String trackingLink = "http://localhost:4200/track"; // TO-DO: Use env config
-                            String htmlBody = String.format("""
-                                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-                                    <div style="text-align: center; margin-bottom: 20px;">
-                                        <h2 style="color: #2c3e50;">Application Received!</h2>
-                                    </div>
-                                    <p>Dear %s,</p>
-                                    <p>Thank you for applying for the position of <strong>%s</strong> at <strong>%s</strong>.</p>
-                                    
-                                    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #0d6efd;">
-                                        <p style="margin: 0; font-size: 14px; color: #6c757d;">Your Application ID:</p>
-                                        <p style="margin: 5px 0 0; font-size: 24px; font-weight: bold; color: #0d6efd;">#%s</p>
-                                        <p style="margin: 10px 0 0; font-size: 12px; color: #6c757d;">Keep this ID safe. You will need it along with your Date of Birth to track your application.</p>
-                                    </div>
+                                String trackingLink = "http://localhost:4200/track"; // TO-DO: Use env config
+                                String htmlBody = String.format(
+                                                """
+                                                                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                                                                    <div style="text-align: center; margin-bottom: 20px;">
+                                                                        <h2 style="color: #2c3e50;">Application Received!</h2>
+                                                                    </div>
+                                                                    <p>Dear %s,</p>
+                                                                    <p>Thank you for applying for the position of <strong>%s</strong> at <strong>%s</strong>.</p>
 
-                                    <div style="text-align: center; margin-top: 30px;">
-                                        <a href="%s" style="background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Track Application Status</a>
-                                    </div>
-                                    
-                                    <p style="margin-top: 30px; font-size: 12px; color: #999;">If you did not submit this application, please ignore this email.</p>
-                                </div>
-                                """, 
-                                request.getFirstName(), 
-                                job.getTitle(), 
-                                job.getOrganization().getName(),
-                                app.getId(), 
-                                trackingLink
-                            );
+                                                                    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #0d6efd;">
+                                                                        <p style="margin: 0; font-size: 14px; color: #6c757d;">Your Application ID:</p>
+                                                                        <p style="margin: 5px 0 0; font-size: 24px; font-weight: bold; color: #0d6efd;">#%s</p>
+                                                                        <p style="margin: 10px 0 0; font-size: 12px; color: #6c757d;">Keep this ID safe. You will need it along with your Date of Birth to track your application.</p>
+                                                                    </div>
 
-                            emailService.sendRichMessage(request.getEmail(), "Application Received - " + job.getTitle(), htmlBody);
+                                                                    <div style="text-align: center; margin-top: 30px;">
+                                                                        <a href="%s" style="background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Track Application Status</a>
+                                                                    </div>
+
+                                                                    <p style="margin-top: 30px; font-size: 12px; color: #999;">If you did not submit this application, please ignore this email.</p>
+                                                                </div>
+                                                                """,
+                                                request.getFirstName(),
+                                                job.getTitle(),
+                                                job.getOrganization().getName(),
+                                                app.getId(),
+                                                trackingLink);
+
+                                emailService.sendRichMessage(request.getEmail(),
+                                                "Application Received - " + job.getTitle(), htmlBody);
                         } catch (Exception e) {
-                            log.error("Failed to construct/send candidate email", e);
+                                log.error("Failed to construct/send candidate email", e);
                         }
 
                         // Trigger AI Analysis AFTER the transaction commits
@@ -352,16 +360,16 @@ public class ApplicationService {
                         // Notify Candidate
                         if (targetUserId != null) {
                                 notificationService.sendNotification(
-                                        NotificationService.NotificationBuilder.create()
-                                                .recipient(targetUserId)
-                                                .title("Application Status Update")
-                                                .body("Your application for " + app.getJob().getTitle() + " has been updated to: " + status)
-                                                .category(NotificationCategory.APPLICATION)
-                                                .priority(NotificationPriority.NORMAL)
-                                                .refEntity("APPLICATION", app.getId())
-                                                .actionUrl("/applications/" + app.getId())
-                                                .icon("bi-info-circle")
-                                );
+                                                NotificationService.NotificationBuilder.create()
+                                                                .recipient(targetUserId)
+                                                                .title("Application Status Update")
+                                                                .body("Your application for " + app.getJob().getTitle()
+                                                                                + " has been updated to: " + status)
+                                                                .category(NotificationCategory.APPLICATION)
+                                                                .priority(NotificationPriority.NORMAL)
+                                                                .refEntity("APPLICATION", app.getId())
+                                                                .actionUrl("/applications/" + app.getId())
+                                                                .icon("bi-info-circle"));
                         }
                         log.info("Status updated successfully for Application ID: {}", applicationId);
                         return enhanceApplication(app);
@@ -374,15 +382,15 @@ public class ApplicationService {
         private String getStatusEmoji(ApplicationStatus status) {
                 log.trace("Getting emoji for status: {}", status);
                 return switch (status) {
-                        case ONBOARDED -> "🎉";
-                        case REJECTED, DROPPED -> "❌";
-                        case OFFERED -> "💼";
-                        case INTERVIEW_SCHEDULED -> "📅";
-                        case SHORTLISTED -> "⭐";
-                        case INTERVIEW_PASSED -> "✅";
-                        case INTERVIEW_FAILED -> "😔";
-                        case ONBOARDING_IN_PROGRESS -> "";
-                        default -> "🔄";
+                        case ONBOARDED -> "[Onboarded]";
+                        case REJECTED, DROPPED -> "[Rejected]";
+                        case OFFERED -> "[Offered]";
+                        case INTERVIEW_SCHEDULED -> "[Interview]";
+                        case SHORTLISTED -> "[Shortlisted]";
+                        case INTERVIEW_PASSED -> "[Passed]";
+                        case INTERVIEW_FAILED -> "[Failed]";
+                        case ONBOARDING_IN_PROGRESS -> "[In Progress]";
+                        default -> "[Update]";
                 };
         }
 
@@ -478,16 +486,18 @@ public class ApplicationService {
                         // Notify Candidate
                         if (targetUserId != null) {
                                 notificationService.sendNotification(
-                                        NotificationService.NotificationBuilder.create()
-                                                .recipient(targetUserId)
-                                                .title("Application Decision Update")
-                                                .body("An update has been made to your application for " + app.getJob().getTitle() + ". Please check your status.")
-                                                .category(NotificationCategory.APPLICATION)
-                                                .priority(NotificationPriority.HIGH)
-                                                .refEntity("APPLICATION", app.getId())
-                                                .actionUrl("/applications/" + app.getId())
-                                                .icon(approved ? "bi-check-circle-fill" : "bi-x-circle-fill")
-                                );
+                                                NotificationService.NotificationBuilder.create()
+                                                                .recipient(targetUserId)
+                                                                .title("Application Decision Update")
+                                                                .body("An update has been made to your application for "
+                                                                                + app.getJob().getTitle()
+                                                                                + ". Please check your status.")
+                                                                .category(NotificationCategory.APPLICATION)
+                                                                .priority(NotificationPriority.HIGH)
+                                                                .refEntity("APPLICATION", app.getId())
+                                                                .actionUrl("/applications/" + app.getId())
+                                                                .icon(approved ? "bi-check-circle-fill"
+                                                                                : "bi-x-circle-fill"));
                         }
 
                         log.info("Client decision processed for Application ID: {}", applicationId);
@@ -506,34 +516,35 @@ public class ApplicationService {
                 log.info("Uploading document '{}' (Category: {}) for Application ID: {} by {}",
                                 file.getOriginalFilename(), category, applicationId, uploadedBy);
                 JobApplication app = applicationRepository.findById(applicationId).orElseThrow();
-                
+
                 // Determine folder structure names
                 String vendorName = "Direct_Applicants";
                 if (app.getVendor() != null) {
-                    vendorName = app.getVendor().getName().replaceAll("[^a-zA-Z0-9_-]", "_");
+                        vendorName = app.getVendor().getName().replaceAll("[^a-zA-Z0-9_-]", "_");
                 }
                 String applicantName = (app.getFirstName() + "_" + app.getLastName()).replaceAll("[^a-zA-Z0-9_-]", "_");
-                
+
                 String originalFilename = file.getOriginalFilename();
                 String extension = "";
                 String baseFilename = "file";
-                
+
                 if (originalFilename != null) {
-                    int dotIndex = originalFilename.lastIndexOf(".");
-                    if (dotIndex != -1) {
-                        extension = originalFilename.substring(dotIndex); // includes dot
-                        baseFilename = originalFilename.substring(0, dotIndex);
-                    } else {
-                        baseFilename = originalFilename;
-                    }
+                        int dotIndex = originalFilename.lastIndexOf(".");
+                        if (dotIndex != -1) {
+                                extension = originalFilename.substring(dotIndex); // includes dot
+                                baseFilename = originalFilename.substring(0, dotIndex);
+                        } else {
+                                baseFilename = originalFilename;
+                        }
                 }
-                
+
                 String sanitizedCategory = category.replaceAll("[^a-zA-Z0-9_-]", "_");
                 String sanitizedFilename = baseFilename.replaceAll("[^a-zA-Z0-9_-]", "_");
-                
-                // Construct path: job-applications/<vendor>/<applicant>/documents/<category>-<filename>.ext
-                String customPath = String.format("job-applications/%s/%s/documents/%s-%s%s", 
-                                    vendorName, applicantName, sanitizedCategory, sanitizedFilename, extension);
+
+                // Construct path:
+                // job-applications/<vendor>/<applicant>/documents/<category>-<filename>.ext
+                String customPath = String.format("job-applications/%s/%s/documents/%s-%s%s",
+                                vendorName, applicantName, sanitizedCategory, sanitizedFilename, extension);
 
                 var result = ingestionService.storeAndExtract(file, customPath);
 
@@ -604,41 +615,56 @@ public class ApplicationService {
                         try {
                                 // 1. Notify Actor (Confirmation)
                                 notificationService.sendNotification(
-                                        NotificationService.NotificationBuilder.create()
-                                                .recipient(actor.getId())
-                                                .title("Comment Added")
-                                                .body("You added a comment to " + app.getFirstName() + " " + app.getLastName() + "'s application.")
-                                                .category(NotificationCategory.APPLICATION)
-                                                .priority(NotificationPriority.LOW)
-                                                .refEntity("APPLICATION", app.getId())
-                                                .actionUrl("/applications/" + app.getId())
-                                                .icon("bi-chat-left-text")
-                                );
+                                                NotificationService.NotificationBuilder.create()
+                                                                .recipient(actor.getId())
+                                                                .title("Comment Added")
+                                                                .body("You added a comment to " + app.getFirstName()
+                                                                                + " " + app.getLastName()
+                                                                                + "'s application.")
+                                                                .category(NotificationCategory.APPLICATION)
+                                                                .priority(NotificationPriority.LOW)
+                                                                .refEntity("APPLICATION", app.getId())
+                                                                .actionUrl("/applications/" + app.getId())
+                                                                .icon("bi-chat-left-text"));
 
                                 // 2. Notify Target Audience
                                 // Determine if Actor is Vendor or Client
-                                boolean isActorVendor = app.getVendor() != null && app.getVendor().getId().equals(actor.getOrganization().getId());
-                                Organization targetOrg = isActorVendor ? app.getJob().getOrganization() : app.getVendor();
+                                boolean isActorVendor = app.getVendor() != null
+                                                && app.getVendor().getId().equals(actor.getOrganization().getId());
+                                Organization targetOrg = isActorVendor ? app.getJob().getOrganization()
+                                                : app.getVendor();
 
                                 if (targetOrg != null) {
-                                        java.util.List<com.solventek.silverwind.auth.Employee> recipients = employeeRepository.findByOrganizationId(targetOrg.getId());
-                                        
+                                        java.util.List<com.solventek.silverwind.auth.Employee> recipients = employeeRepository
+                                                        .findByOrganizationId(targetOrg.getId());
+
                                         for (Employee recipient : recipients) {
                                                 // Don't notify self if logic somehow overlaps
-                                                if (recipient.getId().equals(actor.getId())) continue;
+                                                if (recipient.getId().equals(actor.getId()))
+                                                        continue;
 
                                                 notificationService.sendNotification(
-                                                        NotificationService.NotificationBuilder.create()
-                                                                .recipient(recipient.getId())
-                                                                .title("New Comment on Application")
-                                                                .body(actor.getFirstName() + " added a comment: \"" + (message.length() > 50 ? message.substring(0, 47) + "..." : message) + "\"")
-                                                                .category(NotificationCategory.APPLICATION)
-                                                                .priority(NotificationPriority.NORMAL)
-                                                                .refEntity("APPLICATION", app.getId())
-                                                                .actionUrl("/applications/" + app.getId())
-                                                                .icon("bi-chat-dots")
-                                                                .withMetadata("commenter", actor.getFirstName() + " " + actor.getLastName())
-                                                );
+                                                                NotificationService.NotificationBuilder.create()
+                                                                                .recipient(recipient.getId())
+                                                                                .title("New Comment on Application")
+                                                                                .body(actor.getFirstName()
+                                                                                                + " added a comment: \""
+                                                                                                + (message.length() > 50
+                                                                                                                ? message.substring(
+                                                                                                                                0,
+                                                                                                                                47)
+                                                                                                                                + "..."
+                                                                                                                : message)
+                                                                                                + "\"")
+                                                                                .category(NotificationCategory.APPLICATION)
+                                                                                .priority(NotificationPriority.NORMAL)
+                                                                                .refEntity("APPLICATION", app.getId())
+                                                                                .actionUrl("/applications/"
+                                                                                                + app.getId())
+                                                                                .icon("bi-chat-dots")
+                                                                                .withMetadata("commenter", actor
+                                                                                                .getFirstName() + " "
+                                                                                                + actor.getLastName()));
                                         }
                                 }
 
@@ -655,27 +681,29 @@ public class ApplicationService {
                                 .orElseThrow(() -> new EntityNotFoundException("Application not found"));
                 return enhanceApplication(app);
         }
-    public org.springframework.core.io.Resource downloadResume(UUID applicationId) {
-        JobApplication app = getApplication(applicationId);
-        if (app.getResumeFilePath() == null) {
-            throw new EntityNotFoundException("Resume not found for application");
-        }
-        return ingestionService.downloadResume(app.getResumeFilePath());
-    }
 
-    public org.springframework.core.io.Resource downloadDocumentResource(UUID docId) {
-        ApplicationDocuments doc = getDocument(docId);
-        return ingestionService.downloadResume(doc.getFilePath());
-    }
-    private JobApplication enhanceApplication(JobApplication app) {
-        if (app != null) {
-            if (app.getJob() != null && app.getJob().getOrganization() != null) {
-                organizationService.enhanceOrganization(app.getJob().getOrganization());
-            }
-            if (app.getVendor() != null) {
-                organizationService.enhanceOrganization(app.getVendor());
-            }
+        public org.springframework.core.io.Resource downloadResume(UUID applicationId) {
+                JobApplication app = getApplication(applicationId);
+                if (app.getResumeFilePath() == null) {
+                        throw new EntityNotFoundException("Resume not found for application");
+                }
+                return ingestionService.downloadResume(app.getResumeFilePath());
         }
-        return app;
-    }
+
+        public org.springframework.core.io.Resource downloadDocumentResource(UUID docId) {
+                ApplicationDocuments doc = getDocument(docId);
+                return ingestionService.downloadResume(doc.getFilePath());
+        }
+
+        private JobApplication enhanceApplication(JobApplication app) {
+                if (app != null) {
+                        if (app.getJob() != null && app.getJob().getOrganization() != null) {
+                                organizationService.enhanceOrganization(app.getJob().getOrganization());
+                        }
+                        if (app.getVendor() != null) {
+                                organizationService.enhanceOrganization(app.getVendor());
+                        }
+                }
+                return app;
+        }
 }

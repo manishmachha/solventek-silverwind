@@ -27,8 +27,6 @@ import java.util.UUID;
 @Slf4j
 public class ResumeIngestionService {
 
-
-
     private final StorageService storageService;
 
     public record IngestionResult(String filePath, String extractedText) {
@@ -43,8 +41,9 @@ public class ResumeIngestionService {
     /**
      * Store a file and extract its text content.
      *
-     * @param file The MultipartFile to ingest
-     * @param customKey Optional custom storage key/path. If null, a default path is generated.
+     * @param file      The MultipartFile to ingest
+     * @param customKey Optional custom storage key/path. If null, a default path is
+     *                  generated.
      * @return IngestionResult containing the storage key and extracted text
      */
     public IngestionResult storeAndExtract(MultipartFile file, String customKey) {
@@ -52,14 +51,14 @@ public class ResumeIngestionService {
             log.info("Starting ingestion for file: {}", file.getOriginalFilename());
 
             String storageKey;
-            
+
             if (customKey != null && !customKey.isBlank()) {
                 // Use provided custom key directly
                 storageKey = storageService.uploadWithKey(file, customKey);
             } else {
                 // Default legacy behavior: generate path in resumes/
                 String originalFilename = file.getOriginalFilename();
-                String extension = "pdf"; 
+                String extension = "pdf";
                 if (originalFilename != null && originalFilename.contains(".")) {
                     extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
                 }
@@ -160,19 +159,47 @@ public class ResumeIngestionService {
         log.debug("Extracting text from file: {}", filename);
         String lower = filename.toLowerCase();
 
+        String raw;
         if (lower.endsWith(".pdf")) {
             try (PDDocument document = Loader.loadPDF(inputStream.readAllBytes())) {
                 PDFTextStripper stripper = new PDFTextStripper();
-                return stripper.getText(document);
+                raw = stripper.getText(document);
             }
         } else if (lower.endsWith(".docx")) {
             try (XWPFDocument doc = new XWPFDocument(inputStream);
-                 XWPFWordExtractor extractor = new XWPFWordExtractor(doc)) {
-                return extractor.getText();
+                    XWPFWordExtractor extractor = new XWPFWordExtractor(doc)) {
+                raw = extractor.getText();
             }
         } else {
             // Fallback for text files
-            return new String(inputStream.readAllBytes());
+            raw = new String(inputStream.readAllBytes());
         }
+        return sanitizeForDb(raw);
+    }
+
+    /**
+     * Strips supplementary-plane (4-byte) Unicode characters that MariaDB's
+     * "utf8" charset (actually utf8mb3) cannot store, causing error 1366.
+     * These commonly appear in PDFs as symbol bullets (●, ▶), checkboxes (☑),
+     * and various emoji glyphs.
+     *
+     * Note: After the V4 Flyway migration runs and upgrades the columns to
+     * utf8mb4 this guard is kept as a safety net for any future schema gaps.
+     */
+    private String sanitizeForDb(String text) {
+        if (text == null)
+            return null;
+        StringBuilder sb = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (Character.isHighSurrogate(c)) {
+                // Skip the surrogate pair (2 chars = 1 supplementary code point)
+                i++; // skip low surrogate
+                sb.append(' '); // replace with space so words don't merge
+            } else if (!Character.isSurrogate(c)) {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 }

@@ -37,25 +37,26 @@ public class Candidate extends BaseEntity {
     @ElementCollection
     private List<String> skills;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
     private String summary;
 
     private String linkedInUrl;
     private String portfolioUrl;
 
     // Resume File Details
-    private String resumeFilePath;         // Internal storage path
+    private String resumeFilePath; // Internal storage path
     private String resumeOriginalFileName; // Original filename for display
-    private String resumeContentType;      // MIME type
+    private String resumeContentType; // MIME type
 
-    // Parsed Details (JSON stored as text/jsonb depending on DB, using TEXT for simplicity)
-    @Column(columnDefinition = "TEXT")
+    // Parsed Details (JSON stored as text/jsonb depending on DB, using TEXT for
+    // simplicity)
+    @Column(columnDefinition = "LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
     private String experienceDetailsJson; // JSON array of experience
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
     private String educationDetailsJson; // JSON array of education
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
     private String aiAnalysisJson; // General AI Analysis Result
 
     @ManyToOne(fetch = FetchType.LAZY)
