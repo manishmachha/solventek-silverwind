@@ -42,9 +42,11 @@ public class S3StorageService implements StorageService {
 
     @PostConstruct
     public void init() {
-        log.info("Initializing S3 Storage Service for bucket: {} in region: {}", awsProperties.getBucketName(), awsProperties.getRegion());
+        log.info("Initializing S3 Storage Service for bucket: {} in region: {}", awsProperties.getBucketName(),
+                awsProperties.getRegion());
 
-        AwsBasicCredentials credentials = AwsBasicCredentials.create(awsProperties.getAccessKey(), awsProperties.getSecretKey());
+        AwsBasicCredentials credentials = AwsBasicCredentials.create(awsProperties.getAccessKey(),
+                awsProperties.getSecretKey());
         StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(credentials);
 
         this.s3Client = S3Client.builder()
@@ -136,7 +138,8 @@ public class S3StorageService implements StorageService {
 
     @Override
     public String getPresignedUrl(String key, Duration expiration) {
-        log.debug("Generating presigned URL for: bucket={}, key={}, expiration={}", awsProperties.getBucketName(), key, expiration);
+        log.debug("Generating presigned URL for: bucket={}, key={}, expiration={}", awsProperties.getBucketName(), key,
+                expiration);
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(awsProperties.getBucketName())
@@ -144,7 +147,8 @@ public class S3StorageService implements StorageService {
                 .build();
 
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(expiration != null ? expiration : Duration.ofMinutes(awsProperties.getPresignedUrlExpirationMinutes()))
+                .signatureDuration(expiration != null ? expiration
+                        : Duration.ofMinutes(awsProperties.getPresignedUrlExpirationMinutes()))
                 .getObjectRequest(getObjectRequest)
                 .build();
 
@@ -218,9 +222,25 @@ public class S3StorageService implements StorageService {
         }
     }
 
+    @Override
+    public String uploadBytes(byte[] data, String key, String contentType) {
+        log.info("Uploading {} bytes to S3 with key: bucket={}, key={}", data.length, awsProperties.getBucketName(),
+                key);
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(awsProperties.getBucketName())
+                .key(key)
+                .contentType(contentType)
+                .contentLength((long) data.length)
+                .build();
+        s3Client.putObject(request, RequestBody.fromBytes(data));
+        log.info("Successfully uploaded bytes to S3: {}", key);
+        return key;
+    }
+
     private String generateKey(String directory, String originalFilename) {
         String uuid = UUID.randomUUID().toString();
-        String sanitizedFilename = originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "file";
+        String sanitizedFilename = originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_")
+                : "file";
         return String.format("%s/%s_%s", directory, uuid, sanitizedFilename);
     }
 }

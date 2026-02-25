@@ -38,6 +38,7 @@ public class CandidateService {
     private final OrganizationService organizationService;
     private final ResumeIngestionService resumeIngestionService;
     private final ResumeAnalysisOrchestratorService resumeAnalysisService;
+    private final BrandedResumeService brandedResumeService;
     private final NotificationService notificationService;
     private final TimelineService timelineService;
     private final EmployeeRepository employeeRepository; // Needed for finding admins
@@ -158,6 +159,14 @@ public class CandidateService {
             log.warn("Failed to dispatch async analysis for candidate {}: {}", candidate.getId(), e.getMessage());
         }
 
+        // Dispatch branded resume generation asynchronously
+        try {
+            brandedResumeService.generateBrandedResumeAsync(candidate.getId());
+        } catch (Exception e) {
+            log.warn("Failed to dispatch branded resume generation for candidate {}: {}", candidate.getId(),
+                    e.getMessage());
+        }
+
         // Notify Org Admins
         try {
             // 1. Notify Vendor Admins (Non-Employee roles in Vendor Org)
@@ -239,6 +248,13 @@ public class CandidateService {
         c.setSummary(request.getSummary());
         c.setLinkedInUrl(request.getLinkedInUrl());
         candidateRepository.save(c);
+
+        // Regenerate branded resume if content changed
+        try {
+            brandedResumeService.generateBrandedResumeAsync(c.getId());
+        } catch (Exception e) {
+            log.warn("Failed to dispatch branded resume regeneration for candidate {}: {}", c.getId(), e.getMessage());
+        }
 
         timelineService.createEvent(c.getOrganization().getId(), "CANDIDATE", c.getId(), "UPDATE",
                 "Candidate Updated", null, "Profile details updated", null);
@@ -372,6 +388,14 @@ public class CandidateService {
                     candidate.getId(), ingestionResult.extractedText(), factsJson);
         } catch (Exception e) {
             log.warn("Failed to dispatch async analysis for candidate {} (update): {}", candidate.getId(),
+                    e.getMessage());
+        }
+
+        // Dispatch branded resume generation asynchronously
+        try {
+            brandedResumeService.generateBrandedResumeAsync(candidate.getId());
+        } catch (Exception e) {
+            log.warn("Failed to dispatch branded resume generation for candidate {} (update): {}", candidate.getId(),
                     e.getMessage());
         }
 

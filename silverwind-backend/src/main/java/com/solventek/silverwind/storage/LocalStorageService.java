@@ -78,12 +78,12 @@ public class LocalStorageService implements StorageService {
             if (key.contains("..")) {
                 throw new RuntimeException("Invalid key containing '..'");
             }
-            
+
             Path targetPath = rootLocation.resolve(key).normalize();
             if (!targetPath.startsWith(rootLocation)) {
                 throw new RuntimeException("Invalid key, outside upload root");
             }
-            
+
             // Create parent directories
             Files.createDirectories(targetPath.getParent());
 
@@ -188,9 +188,31 @@ public class LocalStorageService implements StorageService {
         }
     }
 
+    @Override
+    public String uploadBytes(byte[] data, String key, String contentType) {
+        log.info("Uploading {} bytes locally with key: {}", data.length, key);
+        try {
+            if (key.contains("..")) {
+                throw new RuntimeException("Invalid key containing '..'");
+            }
+            Path targetPath = rootLocation.resolve(key).normalize();
+            if (!targetPath.startsWith(rootLocation)) {
+                throw new RuntimeException("Invalid key, outside upload root");
+            }
+            Files.createDirectories(targetPath.getParent());
+            Files.write(targetPath, data);
+            log.info("Successfully uploaded bytes locally: {}", key);
+            return key;
+        } catch (IOException e) {
+            log.error("Failed to upload bytes locally: {}", key, e);
+            throw new RuntimeException("Failed to store bytes locally", e);
+        }
+    }
+
     private String generateKey(String directory, String originalFilename) {
         String uuid = UUID.randomUUID().toString();
-        String sanitizedFilename = originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "file";
+        String sanitizedFilename = originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_")
+                : "file";
         return String.format("%s/%s_%s", directory, uuid, sanitizedFilename);
     }
 

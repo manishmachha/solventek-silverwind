@@ -2,6 +2,8 @@ import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CandidateService } from '../../services/candidate.service';
+import { BrandedResumeService } from '../../services/branded-resume.service';
+import { BrandedResume } from '../../models/branded-resume.model';
 import { Candidate, CandidateExperience } from '../../models/candidate.model'; // Assuming CandidateExperience is exported
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -547,6 +549,62 @@ import { ClientSubmissionsComponent } from '../client-submissions/client-submiss
             </div>
           </div>
 
+          <!-- Branded Resume -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <i class="bi bi-file-earmark-pdf-fill text-indigo-500"></i> Branded Resume
+            </h3>
+            <div *ngIf="brandedResume(); else noBranded">
+              <div class="flex items-center gap-2 mb-3">
+                <span
+                  class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                  [ngClass]="{
+                    'bg-green-100 text-green-700': brandedResume()!.status === 'COMPLETED',
+                    'bg-yellow-100 text-yellow-700': brandedResume()!.status === 'GENERATING',
+                    'bg-red-100 text-red-700': brandedResume()!.status === 'FAILED',
+                  }"
+                >
+                  {{ brandedResume()!.status }}
+                </span>
+                <span class="text-xs text-gray-400">v{{ brandedResume()!.version }}</span>
+              </div>
+              <p class="text-xs text-gray-500 mb-3">
+                {{ brandedResume()!.createdAt | date: 'medium' }}
+              </p>
+              <div class="flex flex-col gap-2">
+                <button
+                  *ngIf="brandedResume()!.status === 'COMPLETED'"
+                  (click)="downloadBrandedResume()"
+                  class="w-full px-3 py-2 rounded-lg text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <i class="bi bi-download"></i> Download Branded Resume
+                </button>
+                <a
+                  [routerLink]="['/candidates/resumes', brandedResume()!.id]"
+                  class="w-full px-3 py-2 rounded-lg text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all flex items-center justify-center gap-2 cursor-pointer text-decoration-none"
+                >
+                  <i class="bi bi-eye"></i> View Details
+                </a>
+                <button
+                  (click)="regenerateBrandedResume()"
+                  class="w-full px-3 py-2 rounded-lg text-sm font-semibold text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <i class="bi bi-arrow-clockwise"></i> Regenerate
+                </button>
+              </div>
+            </div>
+            <ng-template #noBranded>
+              <p class="text-gray-400 text-sm italic">No branded resume generated yet.</p>
+              <button
+                *ngIf="!authStore.isEmployee()"
+                (click)="regenerateBrandedResume()"
+                class="mt-3 w-full px-3 py-2 rounded-lg text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <i class="bi bi-magic"></i> Generate Now
+              </button>
+            </ng-template>
+          </div>
+
           <!-- Organization Details (Visible to Solventek) -->
           <div
             *ngIf="candidate()!.organization && authStore.orgType() === 'SOLVENTEK'"
@@ -650,9 +708,11 @@ export class CandidateDetailComponent implements OnInit {
   private router = inject(Router);
   private candidateService = inject(CandidateService);
   private snackBar = inject(MatSnackBar);
+  private brandedResumeService = inject(BrandedResumeService);
   public authStore = inject(AuthStore);
 
   candidate = signal<Candidate | null>(null);
+  brandedResume = signal<BrandedResume | null>(null);
   uploading = signal(false);
   skillsExpanded = signal(false);
 
@@ -667,8 +727,46 @@ export class CandidateDetailComponent implements OnInit {
 
   loadCandidate(id: string) {
     this.candidateService.getCandidate(id).subscribe({
-      next: (c) => this.candidate.set(c),
+      next: (c) => {
+        this.candidate.set(c);
+        this.loadBrandedResume(c.id);
+      },
       error: (err) => console.error('Failed to load candidate', err),
+    });
+  }
+
+  loadBrandedResume(candidateId: string) {
+    this.brandedResumeService.getLatest(candidateId).subscribe({
+      next: (br) => this.brandedResume.set(br),
+      error: () => this.brandedResume.set(null),
+    });
+  }
+
+  downloadBrandedResume() {
+    const br = this.brandedResume();
+    if (!br) return;
+    this.brandedResumeService.download(br.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = br.originalFileName || 'branded-resume.pdf';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => this.snackBar.open('Download failed', 'Close', { duration: 3000 }),
+    });
+  }
+
+  regenerateBrandedResume() {
+    const c = this.candidate();
+    if (!c) return;
+    this.brandedResumeService.regenerate(c.id).subscribe({
+      next: () => {
+        this.snackBar.open('Branded resume generation started!', 'OK', { duration: 3000 });
+        setTimeout(() => this.loadBrandedResume(c.id), 10000);
+      },
+      error: () => this.snackBar.open('Regeneration failed', 'Close', { duration: 3000 }),
     });
   }
 
