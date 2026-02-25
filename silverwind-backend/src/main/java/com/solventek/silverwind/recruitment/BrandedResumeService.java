@@ -105,8 +105,9 @@ public class BrandedResumeService {
     /**
      * Generate a branded resume (synchronous core logic).
      */
+    @org.springframework.transaction.annotation.Transactional
     public BrandedResume generateBrandedResume(UUID candidateId) {
-        Candidate candidate = candidateRepository.findById(candidateId)
+        Candidate candidate = candidateRepository.findByIdWithDetails(candidateId)
                 .orElseThrow(() -> new EntityNotFoundException("Candidate not found: " + candidateId));
 
         Organization org = candidate.getOrganization();

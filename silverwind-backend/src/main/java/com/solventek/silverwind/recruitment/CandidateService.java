@@ -21,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -147,25 +149,33 @@ public class CandidateService {
 
         candidateRepository.save(candidate);
 
-        // Dispatch AI general analysis asynchronously — runs in background after
-        // response is sent.
-        // The candidate.aiAnalysisJson will be updated once analysis completes (~15s
-        // later).
-        try {
-            String factsJson = objectMapper.writeValueAsString(parsedData);
-            resumeAnalysisService.runCandidateAnalysisAsync(
-                    candidate.getId(), ingestionResult.extractedText(), factsJson);
-        } catch (Exception e) {
-            log.warn("Failed to dispatch async analysis for candidate {}: {}", candidate.getId(), e.getMessage());
-        }
+        // Dispatch background tasks AFTER the transaction commits to avoid
+        // EntityNotFoundException
+        final CandidateDTO.ParsedResume finalParsedData = parsedData;
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        // Dispatch AI general analysis asynchronously
+                        try {
+                            String factsJson = objectMapper.writeValueAsString(finalParsedData);
+                            resumeAnalysisService.runCandidateAnalysisAsync(
+                                    candidate.getId(), ingestionResult.extractedText(), factsJson);
+                        } catch (Exception e) {
+                            log.warn("Failed to dispatch async analysis for candidate {}: {}", candidate.getId(),
+                                    e.getMessage());
+                        }
 
-        // Dispatch branded resume generation asynchronously
-        try {
-            brandedResumeService.generateBrandedResumeAsync(candidate.getId());
-        } catch (Exception e) {
-            log.warn("Failed to dispatch branded resume generation for candidate {}: {}", candidate.getId(),
-                    e.getMessage());
-        }
+                        // Dispatch branded resume generation asynchronously
+                        try {
+                            brandedResumeService.generateBrandedResumeAsync(candidate.getId());
+                        } catch (Exception e) {
+                            log.warn("Failed to dispatch branded resume generation for candidate {}: {}",
+                                    candidate.getId(),
+                                    e.getMessage());
+                        }
+                    }
+                });
 
         // Notify Org Admins
         try {
