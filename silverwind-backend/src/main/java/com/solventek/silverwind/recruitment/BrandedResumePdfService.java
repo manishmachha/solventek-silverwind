@@ -123,36 +123,26 @@ public class BrandedResumePdfService {
         try {
             Image logo1 = Image
                     .getInstance(getClass().getClassLoader().getResource("logos/Solventek_logo_compact.png"));
-            logo1.scaleToFit(40, 40);
+            logo1.scaleToFit(38, 38);
 
             Image logo2 = Image.getInstance(getClass().getClassLoader().getResource("logos/solventek_logo_text.png"));
-            logo2.scaleToFit(140, 40);
+            logo2.scaleToFit(140, 38);
 
-            PdfPTable logoTable = new PdfPTable(2);
-            logoTable.setWidths(new float[] { 1, 3.5f });
-            logoTable.setWidthPercentage(45);
-            logoTable.setHorizontalAlignment(Element.ALIGN_LEFT);
+            Paragraph logoP = new Paragraph();
+            // Use Chunk to perfectly align images inline with a fixed horizontal gap
+            Chunk c1 = new Chunk(logo1, 0, -8, true);
+            Chunk c2 = new Chunk(logo2, 0, -8, true);
 
-            PdfPCell c1 = new PdfPCell(logo1);
-            c1.setBorder(PdfPCell.NO_BORDER);
-            c1.setVerticalAlignment(Element.ALIGN_MIDDLE);
-            c1.setHorizontalAlignment(Element.ALIGN_LEFT);
-            c1.setPaddingRight(10f);
+            logoP.add(c1);
+            logoP.add(new Chunk("    ")); // 4 spaces for a clean gap
+            logoP.add(c2);
+            logoP.setSpacingAfter(15);
 
-            PdfPCell c2 = new PdfPCell(logo2);
-            c2.setBorder(PdfPCell.NO_BORDER);
-            c2.setVerticalAlignment(Element.ALIGN_MIDDLE);
-            c2.setHorizontalAlignment(Element.ALIGN_LEFT);
-
-            logoTable.addCell(c1);
-            logoTable.addCell(c2);
-
-            logoTable.setSpacingAfter(10);
-            leftCell.addElement(logoTable);
+            leftCell.addElement(logoP);
         } catch (Exception e) {
             log.warn("Logos not found", e);
             Paragraph fallback = new Paragraph("SOLVENTEK", new Font(Font.HELVETICA, 16, Font.BOLD, BRAND_ACCENT));
-            fallback.setSpacingAfter(10);
+            fallback.setSpacingAfter(15);
             leftCell.addElement(fallback);
         }
 
@@ -221,6 +211,7 @@ public class BrandedResumePdfService {
         PdfPTable card = new PdfPTable(1);
         card.setWidthPercentage(100);
         card.setSpacingAfter(12);
+        card.setSplitLate(false); // Fixes large vertical gaps; splits immediately if it doesn't fit
 
         PdfPCell cell = new PdfPCell();
         cell.setBorder(PdfPCell.LEFT);
@@ -292,6 +283,7 @@ public class BrandedResumePdfService {
         PdfPTable card = new PdfPTable(1);
         card.setWidthPercentage(100);
         card.setSpacingAfter(12);
+        card.setSplitLate(false);
 
         PdfPCell cell = new PdfPCell();
         cell.setBorder(PdfPCell.LEFT);
@@ -345,6 +337,7 @@ public class BrandedResumePdfService {
         card.setWidthPercentage(100);
         card.setWidths(new float[] { 75, 25 });
         card.setSpacingAfter(10);
+        card.setSplitLate(false);
 
         PdfPCell leftCell = new PdfPCell();
         leftCell.setBorder(PdfPCell.NO_BORDER);
