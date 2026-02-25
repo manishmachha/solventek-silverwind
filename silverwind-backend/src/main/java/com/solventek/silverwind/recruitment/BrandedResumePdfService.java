@@ -121,13 +121,36 @@ public class BrandedResumePdfService {
         leftCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 
         try {
-            Image logo = Image
-                    .getInstance(getClass().getClassLoader().getResource("logos/Solventek_logo_compressed.png"));
-            logo.scaleToFit(140, 40);
-            logo.setSpacingAfter(10);
-            leftCell.addElement(logo);
+            Image logo1 = Image
+                    .getInstance(getClass().getClassLoader().getResource("logos/Solventek_logo_compact.png"));
+            logo1.scaleToFit(40, 40);
+
+            Image logo2 = Image.getInstance(getClass().getClassLoader().getResource("logos/solventek_logo_text.png"));
+            logo2.scaleToFit(140, 40);
+
+            PdfPTable logoTable = new PdfPTable(2);
+            logoTable.setWidths(new float[] { 1, 3.5f });
+            logoTable.setWidthPercentage(45);
+            logoTable.setHorizontalAlignment(Element.ALIGN_LEFT);
+
+            PdfPCell c1 = new PdfPCell(logo1);
+            c1.setBorder(PdfPCell.NO_BORDER);
+            c1.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            c1.setHorizontalAlignment(Element.ALIGN_LEFT);
+            c1.setPaddingRight(10f);
+
+            PdfPCell c2 = new PdfPCell(logo2);
+            c2.setBorder(PdfPCell.NO_BORDER);
+            c2.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            c2.setHorizontalAlignment(Element.ALIGN_LEFT);
+
+            logoTable.addCell(c1);
+            logoTable.addCell(c2);
+
+            logoTable.setSpacingAfter(10);
+            leftCell.addElement(logoTable);
         } catch (Exception e) {
-            log.warn("Logo not found", e);
+            log.warn("Logos not found", e);
             Paragraph fallback = new Paragraph("SOLVENTEK", new Font(Font.HELVETICA, 16, Font.BOLD, BRAND_ACCENT));
             fallback.setSpacingAfter(10);
             leftCell.addElement(fallback);
@@ -195,44 +218,69 @@ public class BrandedResumePdfService {
         String end = safeStr(exp, "end");
         String desc = safeStr(exp, "description");
 
-        PdfPTable card = new PdfPTable(2);
+        PdfPTable card = new PdfPTable(1);
         card.setWidthPercentage(100);
-        card.setWidths(new float[] { 75, 25 });
         card.setSpacingAfter(12);
 
-        // Left padding for the "Timeline" look
-        PdfPCell leftCell = new PdfPCell();
-        leftCell.setBorder(PdfPCell.LEFT);
-        leftCell.setBorderWidthLeft(3f);
-        leftCell.setBorderColorLeft(BRAND_LIGHT);
-        leftCell.setPaddingLeft(12f);
-        leftCell.setPaddingBottom(5f);
+        PdfPCell cell = new PdfPCell();
+        cell.setBorder(PdfPCell.LEFT);
+        cell.setBorderWidthLeft(3f);
+        cell.setBorderColorLeft(BRAND_LIGHT);
+        cell.setPaddingLeft(12f);
+        cell.setPaddingBottom(5f);
 
+        // Header Row (Title | Company Date)
+        PdfPTable headerTable = new PdfPTable(2);
+        headerTable.setWidthPercentage(100);
+        headerTable.setWidths(new float[] { 70, 30 });
+
+        PdfPCell titleCell = new PdfPCell();
+        titleCell.setBorder(PdfPCell.NO_BORDER);
         Paragraph titleP = new Paragraph(title, CARD_TITLE_FONT);
         if (company != null && !company.isBlank()) {
             titleP.add(new Chunk(" | " + company, CARD_SUBTITLE_FONT));
         }
-        titleP.setSpacingAfter(6);
-        leftCell.addElement(titleP);
+        titleCell.addElement(titleP);
 
-        if (desc != null && !desc.isBlank()) {
-            Paragraph descP = new Paragraph(desc, BODY_FONT);
-            descP.setLeading(14f);
-            leftCell.addElement(descP);
-        }
-        card.addCell(leftCell);
-
-        // Right side dates
-        PdfPCell rightCell = new PdfPCell();
-        rightCell.setBorder(PdfPCell.NO_BORDER);
-        rightCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-
+        PdfPCell dateCell = new PdfPCell();
+        dateCell.setBorder(PdfPCell.NO_BORDER);
+        dateCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         String dateRange = (start != null ? start : "") + " — " + (end != null ? end : "Present");
         Paragraph dateP = new Paragraph(dateRange, DATE_FONT);
         dateP.setAlignment(Element.ALIGN_RIGHT);
-        rightCell.addElement(dateP);
+        dateCell.addElement(dateP);
 
-        card.addCell(rightCell);
+        headerTable.addCell(titleCell);
+        headerTable.addCell(dateCell);
+
+        cell.addElement(headerTable);
+
+        // Add a small spacer
+        Paragraph spacer = new Paragraph(" ", new Font(Font.HELVETICA, 4));
+        cell.addElement(spacer);
+
+        if (desc != null && !desc.isBlank()) {
+            com.lowagie.text.List list = new com.lowagie.text.List(com.lowagie.text.List.UNORDERED, 10f);
+            list.setListSymbol(new Chunk("• ", BODY_FONT));
+
+            String[] bullets = desc.split("\\n");
+            for (String bullet : bullets) {
+                String cleanBullet = bullet.trim();
+                // Strip existing literal dash or bullet if the AI added it
+                if (cleanBullet.startsWith("-") || cleanBullet.startsWith("•") || cleanBullet.startsWith("*")) {
+                    cleanBullet = cleanBullet.substring(1).trim();
+                }
+                if (!cleanBullet.isBlank()) {
+                    ListItem item = new ListItem(cleanBullet, BODY_FONT);
+                    item.setSpacingAfter(4f);
+                    item.setLeading(14f);
+                    list.add(item);
+                }
+            }
+            cell.addElement(list);
+        }
+
+        card.addCell(cell);
         doc.add(card);
     }
 
@@ -257,12 +305,26 @@ public class BrandedResumePdfService {
         cell.addElement(titleP);
 
         if (desc != null && !desc.isBlank()) {
-            Paragraph descP = new Paragraph(desc, BODY_FONT);
-            descP.setLeading(14f);
-            cell.addElement(descP);
+            com.lowagie.text.List list = new com.lowagie.text.List(com.lowagie.text.List.UNORDERED, 10f);
+            list.setListSymbol(new Chunk("• ", BODY_FONT));
+
+            String[] bullets = desc.split("\\n");
+            for (String bullet : bullets) {
+                String cleanBullet = bullet.trim();
+                if (cleanBullet.startsWith("-") || cleanBullet.startsWith("•") || cleanBullet.startsWith("*")) {
+                    cleanBullet = cleanBullet.substring(1).trim();
+                }
+                if (!cleanBullet.isBlank()) {
+                    ListItem item = new ListItem(cleanBullet, BODY_FONT);
+                    item.setSpacingAfter(4f);
+                    item.setLeading(14f);
+                    list.add(item);
+                }
+            }
+            cell.addElement(list);
         }
 
-        if (stackObj instanceof List<?> stack && !stack.isEmpty()) {
+        if (stackObj instanceof java.util.List<?> stack && !stack.isEmpty()) {
             String stackStr = "Technologies: " + String.join(", ", stack.stream().map(Object::toString).toList());
             Paragraph stackP = new Paragraph(stackStr, BODY_ITALIC);
             stackP.setSpacingBefore(6);
@@ -309,7 +371,7 @@ public class BrandedResumePdfService {
         doc.add(card);
     }
 
-    private void addSkills(Document doc, List<String> skills) throws DocumentException {
+    private void addSkills(Document doc, java.util.List<String> skills) throws DocumentException {
         PdfPTable table = new PdfPTable(4);
         table.setWidthPercentage(100);
         table.setSpacingAfter(15);
@@ -351,7 +413,7 @@ public class BrandedResumePdfService {
             // Image Watermark
             try {
                 Image watermark = Image
-                        .getInstance(getClass().getClassLoader().getResource("logos/Solventek_logo_compressed.png"));
+                        .getInstance(getClass().getClassLoader().getResource("logos/Solventek_logo_compact.png"));
                 // Extremely subtle image watermark in the center
                 float width = 400f;
                 float height = watermark.getScaledHeight() * (width / watermark.getScaledWidth());
@@ -359,7 +421,8 @@ public class BrandedResumePdfService {
                 watermark.setAbsolutePosition(
                         (document.getPageSize().getWidth() - width) / 2,
                         (document.getPageSize().getHeight() - height) / 2);
-                watermark.setRotationDegrees(45f);
+                // Based on user request, orient horizontally instead of diagonally
+                watermark.setRotationDegrees(0f);
 
                 canvas.saveState();
                 PdfGState gs = new PdfGState();

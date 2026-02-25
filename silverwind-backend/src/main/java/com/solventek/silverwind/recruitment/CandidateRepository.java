@@ -15,6 +15,6 @@ public interface CandidateRepository extends JpaRepository<Candidate, UUID> {
 
     Optional<Candidate> findByEmailAndOrganizationId(String email, UUID organizationId);
 
-    @org.springframework.data.jpa.repository.Query("SELECT c FROM Candidate c LEFT JOIN FETCH c.skills JOIN FETCH c.organization WHERE c.id = :id")
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM Candidate c LEFT JOIN FETCH c.skills LEFT JOIN FETCH c.organization WHERE c.id = :id")
     Optional<Candidate> findByIdWithDetails(@org.springframework.data.repository.query.Param("id") UUID id);
 }

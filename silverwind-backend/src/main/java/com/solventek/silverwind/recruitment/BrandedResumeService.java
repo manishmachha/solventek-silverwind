@@ -48,10 +48,10 @@ public class BrandedResumeService {
             CRITICAL RULES:
             1. SUPERCHARGE ACTION VERBS: Start EVERY bullet point with a powerful, premium action verb (e.g., Architected, Spearheaded, Engineered, Orchestrated, Catalyzed). Avoid weak verbs like 'Worked on' or 'Helped'.
             2. QUANTIFY IMPACT: Inject implied numerical metrics where logically possible based on the context (e.g., 'boosting efficiency by 30%', 'serving 10,00+ users', 'reducing latency by 40%') IF the source hints at scale.
-            3. ELIMINATE RED FLAGS: Smooth over any employment gaps, avoid job-hopper framing, and remove any filler text. Make every single word count.
+            3. ELIMINATE RED FLAGS: Smooth over employment gaps and avoid job-hopper framing. MUST keep ALL education records. Do not drop degrees.
             4. PROFESSIONAL SUMMARY: Write a 3-4 sentence elite summary highlighting seniority, core expertise, and measurable business impact.
             5. SKILLS: Categorize, deduplicate, and list only highly relevant, modern tech skills. Group them if possible or just provide a clean list.
-            6. PROJECTS: Treat projects like professional achievements. Highlight the tech stack and the exact value delivered.
+            6. PROJECTS: Treat projects like professional achievements. Highlight the tech stack and the exact value delivered. If the original source lists projects as experience, maintain them but enhance the descriptions.
             7. NO HALLUCINATIONS: Do not invent fake jobs, fake degrees, or entirely fake technologies. Enhance the *existing* truth to its maximum potential.
             8. DATE FORMAT: MUST strict format as 'MMM YYYY' to 'MMM YYYY' (e.g., 'Feb 2022 - Present').
 
@@ -64,7 +64,7 @@ public class BrandedResumeService {
                   "title": "Job Title",
                   "start": "MMM YYYY",
                   "end": "MMM YYYY or Present",
-                  "description": "[Premium Action Verb] drove architecture... [Premium Action Verb] optimized performance by..."
+                  "description": "[Premium Action Verb] drove architecture...\\n[Premium Action Verb] optimized performance by..."
                 }
               ],
               "education": [
@@ -231,8 +231,11 @@ public class BrandedResumeService {
         }
 
         try {
-            return objectMapper.writeValueAsString(data);
+            String json = objectMapper.writeValueAsString(data);
+            log.info("[branded-resume] Source Candidate Data Built: {}", json);
+            return json;
         } catch (JsonProcessingException e) {
+            log.error("[branded-resume] Error building source data JSON", e);
             return "{}";
         }
     }
@@ -244,6 +247,7 @@ public class BrandedResumeService {
                 new UserMessage("SOURCE RESUME DATA:\n" + sourceDataJson)));
 
         String raw = chatClient.prompt(prompt).call().content();
+        log.info("[branded-resume] Raw AI Output Received: \n{}", raw);
         return extractFirstJsonObject(raw);
     }
 
@@ -266,16 +270,16 @@ public class BrandedResumeService {
                     .enable(com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_JAVA_COMMENTS)
                     .build();
             ObjectMapper mapper = new ObjectMapper(factory);
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            mapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
             // Repair common AI double braces if present
             String repaired = json == null ? "{}" : json.replaceAll("\\{\\s*\\{", "{").replaceAll("\\}\\s*\\}", "}");
 
-            return mapper.readValue(repaired, new TypeReference<Map<String, Object>>() {
+            return mapper.readValue(repaired, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {
             });
         } catch (Exception e) {
             log.warn("Failed to parse revamped JSON: {}", e.getMessage());
-            return Collections.emptyMap();
+            return java.util.Collections.emptyMap();
         }
     }
 
