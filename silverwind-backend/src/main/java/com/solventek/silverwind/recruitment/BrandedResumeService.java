@@ -130,10 +130,12 @@ public class BrandedResumeService {
         try {
             // 1. Build source data JSON from candidate fields
             String sourceDataJson = buildSourceDataJson(candidate);
+            log.info("[branded-resume] Source data for AI: {}", sourceDataJson);
 
             // 2. Revamp content using Gemini AI
             log.info("[branded-resume] Revamping content with AI for candidate: {}", candidateId);
             String revampedJson = revampContentWithAI(sourceDataJson);
+            log.info("[branded-resume] Revamped JSON from AI: {}", revampedJson);
             resume.setRevampedContentJson(revampedJson);
 
             // 3. Parse revamped content
@@ -254,12 +256,21 @@ public class BrandedResumeService {
         return s;
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, Object> parseJsonMap(String json) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
+            com.fasterxml.jackson.core.JsonFactory factory = com.fasterxml.jackson.core.JsonFactory.builder()
+                    .enable(com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_UNQUOTED_FIELD_NAMES)
+                    .enable(com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_SINGLE_QUOTES)
+                    .enable(com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_TRAILING_COMMA)
+                    .enable(com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_JAVA_COMMENTS)
+                    .build();
+            ObjectMapper mapper = new ObjectMapper(factory);
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            return mapper.readValue(json, new TypeReference<Map<String, Object>>() {
+
+            // Repair common AI double braces if present
+            String repaired = json == null ? "{}" : json.replaceAll("\\{\\s*\\{", "{").replaceAll("\\}\\s*\\}", "}");
+
+            return mapper.readValue(repaired, new TypeReference<Map<String, Object>>() {
             });
         } catch (Exception e) {
             log.warn("Failed to parse revamped JSON: {}", e.getMessage());
@@ -293,7 +304,6 @@ public class BrandedResumeService {
         return Collections.emptyList();
     }
 
-    @SuppressWarnings("unchecked")
     private List<String> safeStringList(Map<String, Object> map, String key) {
         Object val = map.get(key);
         if (val instanceof List<?> list) {

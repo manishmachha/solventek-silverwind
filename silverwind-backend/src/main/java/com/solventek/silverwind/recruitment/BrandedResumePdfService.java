@@ -1,7 +1,6 @@
 package com.solventek.silverwind.recruitment;
 
 import com.lowagie.text.*;
-import com.lowagie.text.Font;
 import com.lowagie.text.pdf.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,7 +37,6 @@ public class BrandedResumePdfService {
     private static final Font BODY_ITALIC = new Font(Font.HELVETICA, 10, Font.ITALIC, TEXT_SECONDARY);
     private static final Font SKILL_FONT = new Font(Font.HELVETICA, 9, Font.NORMAL, BRAND_PRIMARY);
     private static final Font FOOTER_FONT = new Font(Font.HELVETICA, 8, Font.ITALIC, TEXT_SECONDARY);
-    private static final Font WATERMARK_FONT = new Font(Font.HELVETICA, 52, Font.BOLD, new Color(220, 220, 230, 80));
 
     /**
      * Generate a branded PDF resume from structured data.
@@ -140,10 +138,20 @@ public class BrandedResumePdfService {
         headerCell.setPadding(20);
         headerCell.setBorder(PdfPCell.NO_BORDER);
 
-        // Company branding
-        Paragraph branding = new Paragraph("SOLVENTEK", HEADER_FONT);
-        branding.setSpacingAfter(8);
-        headerCell.addElement(branding);
+        // Company branding (Image Logo)
+        try {
+            Image logo = Image.getInstance(
+                    getClass().getClassLoader()
+                            .getResource("logos/Solventek_logo_compressed.png"));
+            logo.scaleToFit(150, 40); // Adjust size as needed
+            logo.setSpacingAfter(8);
+            headerCell.addElement(logo);
+        } catch (Exception e) {
+            log.warn("Could not load Solventek logo image, falling back to text", e);
+            Paragraph branding = new Paragraph("SOLVENTEK", HEADER_FONT);
+            branding.setSpacingAfter(8);
+            headerCell.addElement(branding);
+        }
 
         // Candidate name
         if (name != null) {
