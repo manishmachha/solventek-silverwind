@@ -31,7 +31,7 @@ services:
     restart: always
     environment:
       # Database (use external RDS)
-      SPRING_DATASOURCE_URL: jdbc:mariadb://${DB_HOST}:${DB_PORT:-3306}/${DB_NAME:-cyb6de8lrehzuc6e_solventek_silverwind}
+      SPRING_DATASOURCE_URL: jdbc:mariadb://${DB_HOST}:${DB_PORT:-3306}/${DB_NAME:-cyb6de8lrehzuc6e_solventek_silverwind}?characterEncoding=utf8mb4&useUnicode=true
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       # AWS S3 (enabled in production)

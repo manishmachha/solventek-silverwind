@@ -41,7 +41,7 @@ services:
     container_name: silverwind-backend
     environment:
       # Database
-      SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/solventek_silverwind
+      SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/solventek_silverwind?characterEncoding=utf8mb4&useUnicode=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-root}
       # AWS S3 (disabled by default for local dev)
