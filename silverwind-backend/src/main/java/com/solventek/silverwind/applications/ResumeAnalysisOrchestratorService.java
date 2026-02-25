@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solventek.silverwind.applications.dtos.AnalysisResultDTO;
 import com.solventek.silverwind.jobs.Job;
+import com.solventek.silverwind.recruitment.CandidateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -34,6 +35,35 @@ public class ResumeAnalysisOrchestratorService {
   private final ObjectMapper objectMapper;
   private final com.solventek.silverwind.notifications.NotificationService notificationService;
   private final com.solventek.silverwind.auth.EmployeeRepository employeeRepository;
+  private final CandidateRepository candidateRepository;
+
+  // -------------------- CANDIDATE ANALYSIS (ASYNC) --------------------
+
+  /**
+   * Runs the general AI analysis for a candidate in a background thread.
+   * Called after candidateRepository.save() so the HTTP response is not blocked.
+   * Updates candidate.aiAnalysisJson once the analysis completes.
+   */
+  @Async("analysisExecutor")
+  public void runCandidateAnalysisAsync(java.util.UUID candidateId, String resumeText, String factsJson) {
+    log.info("[async] Starting general AI analysis for candidate ID: {} on thread: {}",
+        candidateId, Thread.currentThread().getName());
+    try {
+      AnalysisResultDTO result = analyzeCandidate(resumeText, factsJson);
+      candidateRepository.findById(candidateId).ifPresentOrElse(candidate -> {
+        try {
+          candidate.setAiAnalysisJson(objectMapper.writeValueAsString(result));
+          candidateRepository.save(candidate);
+          log.info("[async] General AI analysis saved for candidate ID: {}", candidateId);
+        } catch (JsonProcessingException e) {
+          log.error("[async] Failed to serialize analysis result for candidate {}: {}", candidateId, e.getMessage());
+        }
+      }, () -> log.warn("[async] Candidate {} not found when saving analysis result", candidateId));
+    } catch (Exception e) {
+      log.error("[async] General AI analysis failed for candidate {}: {}", candidateId, e.getMessage(), e);
+      // Swallow — non-critical background task, candidate already saved successfully
+    }
+  }
 
   // -------------------- PASS A: FACT EXTRACTION --------------------
 

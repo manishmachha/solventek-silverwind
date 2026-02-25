@@ -115,11 +115,9 @@ public class CandidateService {
                 if (parsedData.getTotalExperienceYears() != null) {
                     candidate.setExperienceYears(parsedData.getTotalExperienceYears());
                 } else {
-                    // Fallback: Estimate from experience list if needed, or default to 0
                     candidate.setExperienceYears(0.0);
                 }
 
-                // Set current designation if present
                 parsedData.getExperience().stream()
                         .filter(e -> Boolean.TRUE.equals(e.getIsCurrent()))
                         .findFirst()
@@ -130,17 +128,7 @@ public class CandidateService {
                 candidate.setEducationDetailsJson(objectMapper.writeValueAsString(parsedData.getEducation()));
             }
 
-            // 4. Run General AI Analysis
-            try {
-                // We need facts as JSON string. We can re-serialize parsedData or just use what
-                // we have.
-                String factsJson = objectMapper.writeValueAsString(parsedData);
-                var analysisResult = resumeAnalysisService.analyzeCandidate(ingestionResult.extractedText(), factsJson);
-                candidate.setAiAnalysisJson(objectMapper.writeValueAsString(analysisResult));
-            } catch (Exception e) {
-                log.error("Failed to run general analysis", e);
-                // Non-blocking, continue
-            }
+            // AI analysis runs asynchronously after save — not blocking the response
 
         } catch (JsonProcessingException e) {
             log.warn("Failed to serialize candidate details", e);
@@ -157,6 +145,18 @@ public class CandidateService {
         candidate.setOrganization(org);
 
         candidateRepository.save(candidate);
+
+        // Dispatch AI general analysis asynchronously — runs in background after
+        // response is sent.
+        // The candidate.aiAnalysisJson will be updated once analysis completes (~15s
+        // later).
+        try {
+            String factsJson = objectMapper.writeValueAsString(parsedData);
+            resumeAnalysisService.runCandidateAnalysisAsync(
+                    candidate.getId(), ingestionResult.extractedText(), factsJson);
+        } catch (Exception e) {
+            log.warn("Failed to dispatch async analysis for candidate {}: {}", candidate.getId(), e.getMessage());
+        }
 
         // Notify Org Admins
         try {
@@ -335,12 +335,10 @@ public class CandidateService {
             if (parsedData.getExperience() != null) {
                 candidate.setExperienceDetailsJson(objectMapper.writeValueAsString(parsedData.getExperience()));
 
-                // Experience Years
                 if (parsedData.getTotalExperienceYears() != null) {
                     candidate.setExperienceYears(parsedData.getTotalExperienceYears());
                 }
 
-                // Set current designation/company if present
                 parsedData.getExperience().stream()
                         .filter(e -> Boolean.TRUE.equals(e.getIsCurrent()))
                         .findFirst()
@@ -354,14 +352,7 @@ public class CandidateService {
                 candidate.setEducationDetailsJson(objectMapper.writeValueAsString(parsedData.getEducation()));
             }
 
-            // 4. Run General AI Analysis (Update)
-            try {
-                String factsJson = objectMapper.writeValueAsString(parsedData);
-                var analysisResult = resumeAnalysisService.analyzeCandidate(ingestionResult.extractedText(), factsJson);
-                candidate.setAiAnalysisJson(objectMapper.writeValueAsString(analysisResult));
-            } catch (Exception e) {
-                log.error("Failed to run general analysis during update", e);
-            }
+            // AI analysis runs asynchronously after save — not blocking the response
 
         } catch (JsonProcessingException e) {
             log.warn("Failed to serialize candidate details", e);
@@ -373,6 +364,16 @@ public class CandidateService {
         candidate.setResumeContentType(file.getContentType());
 
         candidateRepository.save(candidate);
+
+        // Dispatch AI general analysis asynchronously
+        try {
+            String factsJson = objectMapper.writeValueAsString(parsedData);
+            resumeAnalysisService.runCandidateAnalysisAsync(
+                    candidate.getId(), ingestionResult.extractedText(), factsJson);
+        } catch (Exception e) {
+            log.warn("Failed to dispatch async analysis for candidate {} (update): {}", candidate.getId(),
+                    e.getMessage());
+        }
 
         timelineService.createEvent(candidate.getOrganization().getId(), "CANDIDATE", candidate.getId(),
                 "RESUME_UPDATE",
