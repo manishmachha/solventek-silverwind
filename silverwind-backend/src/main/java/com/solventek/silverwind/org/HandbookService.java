@@ -146,14 +146,6 @@ public class HandbookService {
                 
                 // Also upload to storage so it can be downloaded
                 try {
-                    // Create a MultipartFile adapter or just upload bytes?
-                    // StorageService accepts MultipartFile. Let's skip storage upload for default for now
-                    // OR implementing a simple MockMultipartFile is complex here without spring-test.
-                    // We will just index it. The download might fail until first upload.
-                    // BETTER: If we want download to work for default, we should upload it.
-                    // But StorageService interface takes MultipartFile. 
-                    // Let's defer storage upload for the default classpath item to keep it simple.
-                    // Users are expected to upload a fresh one if they want to manage it.
                 } catch (Exception e) {
                     log.warn("Could not upload default handbook to storage", e);
                 }

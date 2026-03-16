@@ -18,21 +18,6 @@ import { Ticket } from '../../../../core/models/ticket.model';
 import { MatDialog } from '@angular/material/dialog';
 import { TicketCreateComponent } from '../../../portal/ticket-management/ticket-create/ticket-create.component';
 
-// Using relative path to access core/services properly:
-// Features is at src/app/features
-// Admin is at src/app/features/admin
-// TicketManagement is at src/app/features/admin/ticket-management
-// TicketList is at src/app/features/admin/ticket-management/ticket-list
-// TicketService is at src/app/core/services/ticket.service.ts
-// So path is ../../../../../core/services/ticket.service.ts? No.
-// src/app/features/admin/ticket-management/ticket-list -> ../../../../../core
-// Let's use relative path carefully or absolute import if configured.
-// I'll stick to ../../../../../core/services/ticket.service which is safe.
-// Wait, in TicketListComponent (Portal) I used '../../../../core/services/ticket.service'.
-// Portal is src/app/features/portal/ticket-management/ticket-list.
-// Admin is src/app/features/admin/ticket-management/ticket-list.
-// So same depth.
-
 @Component({
   selector: 'app-admin-ticket-list',
   standalone: true,

@@ -64,14 +64,7 @@ public class ClientService {
                                     .title("New Client Added")
                                     .body("Client " + savedClient.getName() + " has been added.")
                                     .category(NotificationCategory.CLIENT)
-                                    // I should check if I need CLIENT category.
-                                    // Notification.java didn't have CLIENT. I'll
-                                    // stick to SYSTEM or maybe ORGANIZATION?
-                                    // Let's use SYSTEM for now or add CLIENT to
-                                    // enum if strictly needed. Actually I just
-                                    // added CANDIDATE. I should probably add
-                                    // CLIENT too if I want to be consistent. But
-                                    // for now SYSTEM is safe.
+
                                     .priority(NotificationPriority.NORMAL)
                                     .actionUrl("/clients/" + client.getId())
                                     .icon("bi-building"));

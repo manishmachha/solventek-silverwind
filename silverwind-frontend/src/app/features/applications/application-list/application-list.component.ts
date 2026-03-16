@@ -157,13 +157,7 @@ export class ApplicationListComponent implements OnInit, AfterViewInit {
   loadApplications() {
     this.appService
       .getApplications(undefined, 0, 20, 'INBOUND')
-      .pipe
-      // SwitchMap to handle analysis fetching sequentially after page load
-      // But we need to return the page content with analysis enriched
-      // We can't easily chain operators here without importing RxJS operators.
-      // I will implement it inside the subscribe for simplicity given standard Angular setup,
-      // but ensuring data source is set ONCE.
-      ()
+      .pipe()
       .subscribe((page) => {
         // If empty, just set and return
         if (!page.content || page.content.length === 0) {

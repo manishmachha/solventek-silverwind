@@ -208,22 +208,6 @@ export class HeaderComponent {
 
   setStartView(view: 'ADMIN' | 'TA' | 'EMPLOYEE') {
     if (view === 'ADMIN') {
-      // Revert to actual role (null effectively resets to actual in store logic if implemented as such,
-      // but store logic says: if role === actualRole, set null.
-      // So if I am SUPER_ADMIN, passing SUPER_ADMIN cleans it.
-      // But here I'll just pass null to be safe?
-      // The store implementation: `setViewRole(role: string | null)`
-      // If I pass 'SUPER_ADMIN' and actual is 'SUPER_ADMIN', it sets null.
-      // Check authStore logic:
-      /*
-        if (role === this.actualRole()) {
-          this._viewRole.set(null);
-        } else {
-          this._viewRole.set(role);
-        }
-      */
-      // So passing the actual role is fine.
-      // However, 'ADMIN' is not a role name. I should pass the actual role name.
       this.authStore.setViewRole(this.authStore.actualRole());
     } else if (view === 'TA') {
       this.authStore.setViewRole('TA');

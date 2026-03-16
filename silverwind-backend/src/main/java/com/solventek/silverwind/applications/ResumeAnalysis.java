@@ -22,11 +22,7 @@ import java.util.UUID;
 public class ResumeAnalysis extends BaseEntity {
 
     @Column(nullable = false)
-    private UUID applicationId; // Loose coupling or ManyToOne? Let's use loose for now to avoid circular
-                                          // deps, or update JobApplication to have OneToMany.
-    // Actually looser coupling by ID is fine here, but usually a Join is better.
-    // The reference used loose ID. I'll stick to ID for simplicity unless I need
-    // traverse.
+    private UUID applicationId; 
 
     private String model; // e.g., "gemini-pro"
 

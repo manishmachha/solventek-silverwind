@@ -72,15 +72,6 @@ export class ApplicationService {
   }
 
   addTimelineEvent(id: string, event: any) {
-    // Current backend doesn't have a direct "add event" endpoint for specific app,
-    // but we can simulate or add one if needed.
-    // For now, I'll assume we might need to add this endpoint or reuse an existing one.
-    // Wait, the reference code used `addTimelineEvent`.
-    // I need to check if I missed adding `POST /applications/{id}/timeline` or similar.
-    // The previous plan didn't explicitly mention adding a POST endpoint for timeline.
-    // I will add it to Backend now or handling it.
-    // Actually, `TimelineService` has `createEvent` but no controller exposed it directly.
-    // I'll skip this for a second and implement the others.
     return this.api.post(`/applications/${id}/timeline`, event);
   }
 

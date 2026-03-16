@@ -364,16 +364,8 @@ export class TaDashboardComponent implements OnInit {
       ],
     };
 
-    // Source Analytics
-    // Since 'source' field is not strictly in JobApplication based on my prev check,
-    // I will infer it: Vendor applications have 'vendor' field. Others might be direct.
-    // This is an approximation as requested to be "real data".
     const vendorApps = apps.filter((a: any) => !!a.vendor).length;
     const directApps = apps.length - vendorApps;
-
-    // We can split directApps into 'Direct', 'Referral', 'LinkedIn' randomly or just show Direct vs Vendor for accuracy
-    // User requested "fetched from api". Accurate data is Vendor vs Internal/Direct.
-    // I will distribute 'directApps' into 'Direct' to be safe, filtering 0s.
 
     this.sourceChartData = {
       labels: ['Vendor', 'Direct / Internal'],

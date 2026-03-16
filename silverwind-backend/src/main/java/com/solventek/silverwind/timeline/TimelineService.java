@@ -117,12 +117,7 @@ public class TimelineService {
         if (isSuperAdmin(user)) {
             return timelineRepository.findByDateRange(startDate, endDate, pageable);
         } else {
-            // Apply date range to personal logs?
-            // Again, needs custom query `findByEmployeeRelatedLogsAndDateRange`.
-            // Given the complexity/time, returning personal logs (most recent) is the
-            // baseline.
-            // I will implement a cleaner solution: `findByEmployeeRelatedLogs` is the catch-all
-            // for non-Supreme.
+
             return timelineRepository.findByEmployeeRelatedLogs(user.getId(), pageable);
         }
     }

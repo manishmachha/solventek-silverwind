@@ -90,10 +90,7 @@ public class OrganizationService {
             notifySolventekAdmins("New Vendor Registration",
                     "New vendor " + org.getName() + " has registered.",
                     "ORGANIZATION", org.getId()); // Helper method update needed, or inline here.
-            // Let's optimize. The helper `notifySolventekAdmins` is simple but doesn't
-            // support actionUrl.
-            // I will inline the logic or create a better helper.
-            // Inline for now to be precise.
+            
             organizationRepository.findByType(OrganizationType.SOLVENTEK).stream().findFirst()
                     .ifPresent(solventek -> {
                         employeeRepository.findByOrganizationId(solventek.getId()).forEach(admin -> {
