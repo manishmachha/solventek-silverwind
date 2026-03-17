@@ -23,10 +23,10 @@ public class Notification extends BaseEntity {
     @JsonIgnore
     private Employee recipient;
 
-    @Column(nullable = false, columnDefinition = "VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+    @Column(nullable = false)
     private String title;
 
-    @Column(length = 1000, columnDefinition = "VARCHAR(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+    @Column(length = 1000)
     private String body;
 
     @Column(name = "read_at")

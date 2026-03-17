@@ -126,7 +126,7 @@ public class HandbookService {
                             doc_hash VARCHAR(255),
                             page_start INT,
                             page_end INT,
-                            raw_content LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+                            raw_content TEXT
                         )
                     """);
         } catch (Exception e) {

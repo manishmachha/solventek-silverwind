@@ -50,9 +50,9 @@ public class BrandedResume extends BaseEntity {
     @Builder.Default
     private Status status = Status.GENERATING;
 
-    @Column(columnDefinition = "LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+    @Column(columnDefinition = "TEXT")
     private String revampedContentJson;
 
-    @Column(columnDefinition = "TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+    @Column(columnDefinition = "TEXT")
     private String generationNotes;
 }

@@ -63,7 +63,7 @@ public class JobApplication extends BaseEntity {
 
     private String resumeFilePath;
 
-    @Column(columnDefinition = "TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+    @Column(columnDefinition = "TEXT")
     private String resumeText; // Extracted text for AI analysis
 
     @ManyToOne(fetch = FetchType.LAZY)

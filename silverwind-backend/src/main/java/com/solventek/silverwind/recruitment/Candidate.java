@@ -37,7 +37,7 @@ public class Candidate extends BaseEntity {
     @ElementCollection
     private List<String> skills;
 
-    @Column(columnDefinition = "LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+    @Column(columnDefinition = "TEXT")
     private String summary;
 
     private String linkedInUrl;
@@ -50,13 +50,13 @@ public class Candidate extends BaseEntity {
 
     // Parsed Details (JSON stored as text/jsonb depending on DB, using TEXT for
     // simplicity)
-    @Column(columnDefinition = "LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+    @Column(columnDefinition = "TEXT")
     private String experienceDetailsJson; // JSON array of experience
 
-    @Column(columnDefinition = "LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+    @Column(columnDefinition = "TEXT")
     private String educationDetailsJson; // JSON array of education
 
-    @Column(columnDefinition = "LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+    @Column(columnDefinition = "TEXT")
     private String aiAnalysisJson; // General AI Analysis Result
 
     @ManyToOne(fetch = FetchType.LAZY)
