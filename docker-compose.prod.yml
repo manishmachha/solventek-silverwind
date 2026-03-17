@@ -2,35 +2,67 @@
 # Uses pre-built images from container registry
 
 services:
+  # PostgreSQL with pgvector
+  postgres:
+  image: pgvector/pgvector:pg16
+  container_name: silverwind-postgres
+  restart: always
+  environment:
+    POSTGRES_DB: ${DB_NAME:-silverwind}
+    POSTGRES_USER: ${DB_USER:-postgres}
+    POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+  ports:
+    - "5432:5432"
+  volumes:
+    - postgres_data:/var/lib/postgresql/data
+    - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+  networks:
+    - silverwind-network
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+
   # Spring Boot Backend
   backend:
     image: ${DOCKER_REGISTRY}/silverwind-backend:${IMAGE_TAG:-latest}
     container_name: silverwind-backend
     restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
-      # Database (use external RDS)
-      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT:-5432}/${DB_NAME:-silverwind}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-      # AWS S3 (enabled in production)
+      # Now points to local postgres container
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-silverwind}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
+
+      # AWS S3
       AWS_S3_ENABLED: "true"
       AWS_S3_BUCKET: ${AWS_S3_BUCKET}
       AWS_REGION: ${AWS_REGION}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+
       # JWT
       APP_JWT_SECRET: ${JWT_SECRET}
+
       # Google AI
       SPRING_AI_GOOGLE_GENAI_API_KEY: ${GOOGLE_AI_API_KEY:-}
       GOOGLE_AI_API_KEY: ${GOOGLE_AI_API_KEY:-}
+
       # JVM
       JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+
     deploy:
       resources:
         limits:
           memory: 3500M
+
     expose:
       - "9090"
+
     healthcheck:
       test:
         [
@@ -45,19 +77,24 @@ services:
       timeout: 10s
       start_period: 60s
       retries: 3
+
     networks:
       - silverwind-network
+
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
 
-  # Angular Frontend with Nginx
+  # Angular Frontend
   frontend:
     image: ${DOCKER_REGISTRY}/silverwind-frontend:${IMAGE_TAG:-latest}
     container_name: silverwind-frontend
     restart: always
+    depends_on:
+      backend:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -65,11 +102,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    depends_on:
-      backend:
-        condition: service_healthy
     volumes:
-      # SSL certificates (mount from host)
       - /etc/letsencrypt:/etc/letsencrypt:ro
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:80/health"]
@@ -84,6 +117,9 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+volumes:
+  postgres_data:
 
 networks:
   silverwind-network:
