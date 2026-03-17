@@ -21,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -38,6 +40,7 @@ public class CandidateService {
     private final OrganizationService organizationService;
     private final ResumeIngestionService resumeIngestionService;
     private final ResumeAnalysisOrchestratorService resumeAnalysisService;
+    private final BrandedResumeService brandedResumeService;
     private final NotificationService notificationService;
     private final TimelineService timelineService;
     private final EmployeeRepository employeeRepository; // Needed for finding admins
@@ -115,11 +118,9 @@ public class CandidateService {
                 if (parsedData.getTotalExperienceYears() != null) {
                     candidate.setExperienceYears(parsedData.getTotalExperienceYears());
                 } else {
-                    // Fallback: Estimate from experience list if needed, or default to 0
                     candidate.setExperienceYears(0.0);
                 }
 
-                // Set current designation if present
                 parsedData.getExperience().stream()
                         .filter(e -> Boolean.TRUE.equals(e.getIsCurrent()))
                         .findFirst()
@@ -130,17 +131,7 @@ public class CandidateService {
                 candidate.setEducationDetailsJson(objectMapper.writeValueAsString(parsedData.getEducation()));
             }
 
-            // 4. Run General AI Analysis
-            try {
-                // We need facts as JSON string. We can re-serialize parsedData or just use what
-                // we have.
-                String factsJson = objectMapper.writeValueAsString(parsedData);
-                var analysisResult = resumeAnalysisService.analyzeCandidate(ingestionResult.extractedText(), factsJson);
-                candidate.setAiAnalysisJson(objectMapper.writeValueAsString(analysisResult));
-            } catch (Exception e) {
-                log.error("Failed to run general analysis", e);
-                // Non-blocking, continue
-            }
+            // AI analysis runs asynchronously after save — not blocking the response
 
         } catch (JsonProcessingException e) {
             log.warn("Failed to serialize candidate details", e);
@@ -157,6 +148,34 @@ public class CandidateService {
         candidate.setOrganization(org);
 
         candidateRepository.save(candidate);
+
+        // Dispatch background tasks AFTER the transaction commits to avoid
+        // EntityNotFoundException
+        final CandidateDTO.ParsedResume finalParsedData = parsedData;
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        // Dispatch AI general analysis asynchronously
+                        try {
+                            String factsJson = objectMapper.writeValueAsString(finalParsedData);
+                            resumeAnalysisService.runCandidateAnalysisAsync(
+                                    candidate.getId(), ingestionResult.extractedText(), factsJson);
+                        } catch (Exception e) {
+                            log.warn("Failed to dispatch async analysis for candidate {}: {}", candidate.getId(),
+                                    e.getMessage());
+                        }
+
+                        // Dispatch branded resume generation asynchronously
+                        try {
+                            brandedResumeService.generateBrandedResumeAsync(candidate.getId());
+                        } catch (Exception e) {
+                            log.warn("Failed to dispatch branded resume generation for candidate {}: {}",
+                                    candidate.getId(),
+                                    e.getMessage());
+                        }
+                    }
+                });
 
         // Notify Org Admins
         try {
@@ -239,6 +258,13 @@ public class CandidateService {
         c.setSummary(request.getSummary());
         c.setLinkedInUrl(request.getLinkedInUrl());
         candidateRepository.save(c);
+
+        // Regenerate branded resume if content changed
+        try {
+            brandedResumeService.generateBrandedResumeAsync(c.getId());
+        } catch (Exception e) {
+            log.warn("Failed to dispatch branded resume regeneration for candidate {}: {}", c.getId(), e.getMessage());
+        }
 
         timelineService.createEvent(c.getOrganization().getId(), "CANDIDATE", c.getId(), "UPDATE",
                 "Candidate Updated", null, "Profile details updated", null);
@@ -335,12 +361,10 @@ public class CandidateService {
             if (parsedData.getExperience() != null) {
                 candidate.setExperienceDetailsJson(objectMapper.writeValueAsString(parsedData.getExperience()));
 
-                // Experience Years
                 if (parsedData.getTotalExperienceYears() != null) {
                     candidate.setExperienceYears(parsedData.getTotalExperienceYears());
                 }
 
-                // Set current designation/company if present
                 parsedData.getExperience().stream()
                         .filter(e -> Boolean.TRUE.equals(e.getIsCurrent()))
                         .findFirst()
@@ -354,14 +378,7 @@ public class CandidateService {
                 candidate.setEducationDetailsJson(objectMapper.writeValueAsString(parsedData.getEducation()));
             }
 
-            // 4. Run General AI Analysis (Update)
-            try {
-                String factsJson = objectMapper.writeValueAsString(parsedData);
-                var analysisResult = resumeAnalysisService.analyzeCandidate(ingestionResult.extractedText(), factsJson);
-                candidate.setAiAnalysisJson(objectMapper.writeValueAsString(analysisResult));
-            } catch (Exception e) {
-                log.error("Failed to run general analysis during update", e);
-            }
+            // AI analysis runs asynchronously after save — not blocking the response
 
         } catch (JsonProcessingException e) {
             log.warn("Failed to serialize candidate details", e);
@@ -373,6 +390,24 @@ public class CandidateService {
         candidate.setResumeContentType(file.getContentType());
 
         candidateRepository.save(candidate);
+
+        // Dispatch AI general analysis asynchronously
+        try {
+            String factsJson = objectMapper.writeValueAsString(parsedData);
+            resumeAnalysisService.runCandidateAnalysisAsync(
+                    candidate.getId(), ingestionResult.extractedText(), factsJson);
+        } catch (Exception e) {
+            log.warn("Failed to dispatch async analysis for candidate {} (update): {}", candidate.getId(),
+                    e.getMessage());
+        }
+
+        // Dispatch branded resume generation asynchronously
+        try {
+            brandedResumeService.generateBrandedResumeAsync(candidate.getId());
+        } catch (Exception e) {
+            log.warn("Failed to dispatch branded resume generation for candidate {} (update): {}", candidate.getId(),
+                    e.getMessage());
+        }
 
         timelineService.createEvent(candidate.getOrganization().getId(), "CANDIDATE", candidate.getId(),
                 "RESUME_UPDATE",

@@ -16,7 +16,6 @@ export class LoginComponent {
   authService = inject(AuthService);
   router = inject(Router);
 
-  isLoading = signal(false);
   error = signal<string | null>(null);
 
   loginForm = this.fb.group({
@@ -33,7 +32,6 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.valid) {
-      this.isLoading.set(true);
       this.error.set(null);
       const { email, password } = this.loginForm.value;
 
@@ -46,8 +44,7 @@ export class LoginComponent {
 
           this.router.navigate(['/dashboard']);
         },
-        error: () => {
-          this.isLoading.set(false);
+        error: (err) => {
           this.error.set('Invalid credentials. Please check your email and password.');
         },
       });

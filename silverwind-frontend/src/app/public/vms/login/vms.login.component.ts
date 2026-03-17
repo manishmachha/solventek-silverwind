@@ -16,7 +16,6 @@ export class VMSLoginComponent {
   authService = inject(AuthService);
   router = inject(Router);
 
-  isLoading = signal(false);
   error = signal<string | null>(null);
   hidePassword = signal(true);
 
@@ -32,7 +31,6 @@ export class VMSLoginComponent {
 
   onSubmit() {
     if (this.loginForm.valid) {
-      this.isLoading.set(true);
       this.error.set(null);
       const { email, password } = this.loginForm.value;
 
@@ -45,8 +43,7 @@ export class VMSLoginComponent {
 
           this.router.navigate(['/dashboard']);
         },
-        error: () => {
-          this.isLoading.set(false);
+        error: (err) => {
           this.error.set('Invalid credentials. Please check your email and password.');
         },
       });

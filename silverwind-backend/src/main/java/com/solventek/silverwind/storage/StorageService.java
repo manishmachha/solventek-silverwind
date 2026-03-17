@@ -7,7 +7,8 @@ import java.time.Duration;
 
 /**
  * Storage service interface for file operations.
- * Implementations include S3StorageService (production) and LocalStorageService (development).
+ * Implementations include S3StorageService (production) and LocalStorageService
+ * (development).
  */
 public interface StorageService {
 
@@ -15,7 +16,8 @@ public interface StorageService {
      * Upload a file to storage.
      *
      * @param file      The file to upload
-     * @param directory The directory/prefix for the file (e.g., "resumes", "logos", "documents")
+     * @param directory The directory/prefix for the file (e.g., "resumes", "logos",
+     *                  "documents")
      * @return The storage key/path of the uploaded file
      */
     String upload(MultipartFile file, String directory);
@@ -69,4 +71,16 @@ public interface StorageService {
     void move(String sourceKey, String destinationKey);
 
     boolean exists(String key);
+
+    /**
+     * Upload raw bytes to storage with a specific key.
+     * Used for generated files (e.g. branded resume PDFs) that don't come from a
+     * MultipartFile.
+     *
+     * @param data        The raw bytes to upload
+     * @param key         The full storage key (path + filename)
+     * @param contentType The MIME type of the content
+     * @return The used storage key
+     */
+    String uploadBytes(byte[] data, String key, String contentType);
 }

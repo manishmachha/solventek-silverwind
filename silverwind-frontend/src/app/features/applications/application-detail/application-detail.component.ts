@@ -23,6 +23,8 @@ import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { ApplicationService } from '../../../core/services/application.service';
 import { DialogService } from '../../../core/services/dialog.service';
 import { HeaderService } from '../../../core/services/header.service';
+import { BrandedResumeService } from '../../candidates/services/branded-resume.service';
+import { BrandedResume } from '../../candidates/models/branded-resume.model';
 import { JobApplication, ApplicationStatus } from '../../../core/models/application.model';
 import { AuthStore } from '../../../core/stores/auth.store';
 import { OrganizationLogoComponent } from '../../../shared/components/organization-logo/organization-logo.component';
@@ -54,6 +56,7 @@ export class ApplicationDetailComponent implements OnInit {
   private appService = inject(ApplicationService);
   private headerService = inject(HeaderService);
   private dialogService = inject(DialogService);
+  private brandedResumeService = inject(BrandedResumeService);
   private authStore = inject(AuthStore);
 
   // Permission Signal
@@ -83,6 +86,7 @@ export class ApplicationDetailComponent implements OnInit {
 
   // State Signals
   application = signal<JobApplication | null>(null);
+  brandedResume = signal<BrandedResume | null>(null);
   analysis = signal<any>(null);
   timeline = signal<any[]>([]);
   documents = signal<any[]>([]);
@@ -276,8 +280,18 @@ export class ApplicationDetailComponent implements OnInit {
       next: (app) => {
         this.application.set(app);
         this.loading.set(false);
+        if (app.candidate?.id) {
+          this.loadBrandedResume(app.candidate.id);
+        }
       },
       error: () => this.loading.set(false),
+    });
+  }
+
+  loadBrandedResume(candidateId: string) {
+    this.brandedResumeService.getLatest(candidateId).subscribe({
+      next: (br) => this.brandedResume.set(br),
+      error: () => this.brandedResume.set(null),
     });
   }
 
@@ -336,6 +350,22 @@ export class ApplicationDetailComponent implements OnInit {
         console.error('Failed to download resume', err);
         this.dialogService.open('Error', 'Failed to download resume. The file may not exist.');
       },
+    });
+  }
+
+  downloadBrandedResume() {
+    const br = this.brandedResume();
+    if (!br) return;
+    this.brandedResumeService.download(br.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = br.originalFileName || 'branded-resume.pdf';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => this.dialogService.open('Error', 'Failed to download branded resume.'),
     });
   }
 

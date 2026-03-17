@@ -164,10 +164,9 @@ interface GroupedNotifications {
         <div *ngIf="hasMore" class="p-4 border-t border-gray-100 text-center">
           <button
             (click)="loadMore()"
-            [disabled]="isLoading()"
-            class="px-6 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition-colors disabled:opacity-50"
+            class="px-6 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition-colors"
           >
-            {{ isLoading() ? 'Loading...' : 'Load more' }}
+            Load more
           </button>
         </div>
       </div>
@@ -181,7 +180,6 @@ export class NotificationsComponent implements OnInit {
 
   notifications = signal<Notification[]>([]);
   unreadCount = signal(0);
-  isLoading = signal(false);
 
   activeFilter: 'all' | 'unread' = 'all';
   filters = [
@@ -205,7 +203,6 @@ export class NotificationsComponent implements OnInit {
   }
 
   loadNotifications() {
-    this.isLoading.set(true);
     this.currentPage = 0;
     const unreadOnly = this.activeFilter === 'unread';
 
@@ -218,16 +215,12 @@ export class NotificationsComponent implements OnInit {
             read: n.readAt != null,
           }));
           this.notifications.set(mapped);
-          this.hasMore = !page.last;
           this.hasReadNotifications = mapped.some((n) => n.read);
-          this.isLoading.set(false);
         },
-        error: () => this.isLoading.set(false),
       });
   }
 
   loadMore() {
-    this.isLoading.set(true);
     this.currentPage++;
     const unreadOnly = this.activeFilter === 'unread';
 
@@ -241,9 +234,7 @@ export class NotificationsComponent implements OnInit {
           }));
           this.notifications.update((current) => [...current, ...mapped]);
           this.hasMore = !page.last;
-          this.isLoading.set(false);
         },
-        error: () => this.isLoading.set(false),
       });
   }
 

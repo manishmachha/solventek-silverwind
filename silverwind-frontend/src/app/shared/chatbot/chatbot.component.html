@@ -92,7 +92,6 @@
           class="voice-btn"
           [class.mic-active]="isListening"
           (click)="toggleVoiceInput()"
-          [disabled]="isLoading()"
           title="Voice input"
         >
           <i class="bi" [class.bi-mic-fill]="isListening" [class.bi-mic]="!isListening"></i>
@@ -101,17 +100,15 @@
       <input
         #messageInput
         type="text"
-        [(ngModel)]="inputMessage"
         (keydown)="handleKeyPress($event)"
         placeholder="Type a message..."
-        [disabled]="isLoading()"
         class="message-input"
         autocomplete="off"
       />
       <button
         class="send-btn"
         (click)="sendMessage()"
-        [disabled]="!inputMessage.trim() || isLoading()"
+        [disabled]="!inputMessage.trim()"
         title="Send message"
       >
         <i class="bi bi-send-fill" style="transform: translateX(1px)"></i>

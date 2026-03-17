@@ -13,18 +13,9 @@ import java.util.Map;
 @Slf4j
 public class HiringRubricService {
 
-   // In a real implementation, this would query a VectorStore.
-   // For this port, we will stick to a static or simple keyword-based rubric
-   // retrieval
-   // to keep it functional without external Vector DB setup (unless PGVector is
-   // compliant).
-   // Given the prompt "refer to ... project", I assume we want logic.
-   // I'll provide a simplified "Rule Based" rubric for now which is quite
-   // effective.
-
    public List<Document> retrieveRelevantRubric(String query) {
       log.info("Retrieving relevant rubric for query: {}", query);
-      // Return standard engineering rubric
+
       String text = """
             RUBRIC AND VERIFICATION STANDARDS:
 

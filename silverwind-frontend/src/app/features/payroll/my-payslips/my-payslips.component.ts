@@ -20,7 +20,7 @@ export class MyPayslipsComponent implements OnInit {
   payslips = signal<Payroll[]>([]);
   unreadPayslipIds = new Set<string>();
   salaryStructure = signal<SalaryStructure | null>(null);
-  isLoading = signal<boolean>(true);
+
   isDownloading: string | null = null;
 
   selectedYear = new Date().getFullYear();
@@ -48,7 +48,6 @@ export class MyPayslipsComponent implements OnInit {
   }
 
   loadPayslips() {
-    this.isLoading.set(true);
     this.payrollService.getMyPayrollHistory(this.selectedYear).subscribe({
       next: (data) => {
         // Sort: notified first
@@ -58,11 +57,9 @@ export class MyPayslipsComponent implements OnInit {
           return bHasNotif - aHasNotif;
         });
         this.payslips.set(sorted);
-        this.isLoading.set(false);
       },
       error: (err) => {
         console.error('Failed to load payslips', err);
-        this.isLoading.set(false);
       },
     });
   }

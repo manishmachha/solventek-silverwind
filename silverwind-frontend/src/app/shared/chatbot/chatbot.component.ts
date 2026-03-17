@@ -42,7 +42,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   // State using Signals to match reference implementation and fix NG0100
   isOpen = signal(false);
   isMinimized = signal(false);
-  isLoading = signal(false);
+
   messages = signal<ChatMessage[]>([]);
 
   inputMessage = '';
@@ -135,7 +135,7 @@ Just ask me anything!`,
 
   sendMessage() {
     const message = this.inputMessage.trim();
-    if (!message || this.isLoading()) return;
+    if (!message) return;
 
     // Add user message
     this.messages.update((msgs) => [
@@ -148,7 +148,6 @@ Just ask me anything!`,
     ]);
 
     this.inputMessage = '';
-    this.isLoading.set(true);
 
     // Determine intent to send
     const intent = this.selectedIntent === 'AUTO' ? undefined : this.selectedIntent;
@@ -165,12 +164,9 @@ Just ask me anything!`,
             timestamp: new Date(),
           },
         ]);
-
-        this.isLoading.set(false);
       },
       error: (err) => {
         console.error(err);
-        this.isLoading.set(false);
 
         this.messages.update((msgs) => [
           ...msgs,

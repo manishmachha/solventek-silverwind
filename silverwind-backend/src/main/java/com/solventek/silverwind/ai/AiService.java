@@ -55,8 +55,6 @@ public class AiService {
             String response = chatClientBuilder.build().prompt(prompt).call().content();
             log.debug("Received AI response for Job ID: {}", jobId);
 
-            // Mocking structured parse for safety in this demo, real app use
-            // BeanOutputConverter
             Map<String, Object> insights = Map.of(
                     "raw_analysis", response,
                     "generated_at", LocalDateTime.now().toString());

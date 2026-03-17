@@ -49,7 +49,7 @@ export class UserDetailsComponent implements OnInit {
   private authStore = inject(AuthStore);
 
   user = signal<User | null>(null);
-  isLoading = signal(true);
+
   profilePhotoUrl = signal<string | null>(null);
 
   // Computed Permissions
@@ -86,18 +86,15 @@ export class UserDetailsComponent implements OnInit {
           this.loadUser(me.id);
         } else {
           // Fallback if not loaded yet (should replace with effect or waiting)
-          this.isLoading.set(false);
         }
       }
     });
   }
 
   loadUser(id: string) {
-    this.isLoading.set(true);
     this.userService.getUser(id).subscribe({
       next: (data) => {
         this.user.set(data);
-        this.isLoading.set(false);
         this.profilePhotoUrl.set(data.profilePhotoUrl || null);
 
         // Sync with AuthStore if it's the current user
@@ -106,7 +103,6 @@ export class UserDetailsComponent implements OnInit {
         }
       },
       error: () => {
-        this.isLoading.set(false);
         if (!this.router.url.includes('/profile')) {
           this.router.navigate(['/admin/employees']);
         }
