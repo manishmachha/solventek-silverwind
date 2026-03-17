@@ -94,7 +94,6 @@ public class ApplicationService {
                         // Construct target resume path:
                         // job-applications/<vendor>/<applicant>/resume/<applicant>.ext
 
-
                         if (resumeFile != null && !resumeFile.isEmpty()) {
                                 log.debug("Processing new resume file upload: {}", resumeFile.getOriginalFilename());
 

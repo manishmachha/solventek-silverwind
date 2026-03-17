@@ -73,7 +73,8 @@ public class TimelineService {
     }
 
     private boolean isSuperAdmin(UserPrincipal user) {
-        if (user == null) return false;
+        if (user == null)
+            return false;
         Employee employee = employeeRepository.findById(user.getId()).orElse(null);
         return employee != null && employee.getRole() != null && "SUPER_ADMIN".equals(employee.getRole().getName());
     }

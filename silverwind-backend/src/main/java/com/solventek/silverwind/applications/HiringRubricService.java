@@ -13,7 +13,6 @@ import java.util.Map;
 @Slf4j
 public class HiringRubricService {
 
-   
    public List<Document> retrieveRelevantRubric(String query) {
       log.info("Retrieving relevant rubric for query: {}", query);
 

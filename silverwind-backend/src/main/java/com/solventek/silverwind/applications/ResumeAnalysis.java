@@ -22,7 +22,7 @@ import java.util.UUID;
 public class ResumeAnalysis extends BaseEntity {
 
     @Column(nullable = false)
-    private UUID applicationId; 
+    private UUID applicationId;
 
     private String model; // e.g., "gemini-pro"
 

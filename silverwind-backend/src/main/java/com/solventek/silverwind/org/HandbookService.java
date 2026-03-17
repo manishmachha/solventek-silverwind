@@ -103,7 +103,8 @@ public class HandbookService {
      */
     public String getHandbookUrl() {
         if (!storageService.exists(STORAGE_KEY)) {
-            // Fallback: If not in storage but we have default resource, return null or handle gracefully
+            // Fallback: If not in storage but we have default resource, return null or
+            // handle gracefully
             // Ideally we upload default to storage on init if missing.
             return null;
         }
@@ -119,21 +120,22 @@ public class HandbookService {
         // Ensure standard handbook table exists
         try {
             jdbcTemplate.execute("""
-                CREATE TABLE IF NOT EXISTS handbook_chunks (
-                    chunk_id VARCHAR(36) PRIMARY KEY,
-                    source VARCHAR(255),
-                    doc_hash VARCHAR(255),
-                    page_start INT,
-                    page_end INT,
-                    raw_content LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
-                )
-            """);
+                        CREATE TABLE IF NOT EXISTS handbook_chunks (
+                            chunk_id VARCHAR(36) PRIMARY KEY,
+                            source VARCHAR(255),
+                            doc_hash VARCHAR(255),
+                            page_start INT,
+                            page_end INT,
+                            raw_content LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+                        )
+                    """);
         } catch (Exception e) {
             log.error("Failed to ensure handbook_chunks table exists", e);
         }
 
         // Check if we have any chunks indexed
-        Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM handbook_chunks WHERE source=?", Integer.class, SOURCE);
+        Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM handbook_chunks WHERE source=?",
+                Integer.class, SOURCE);
         if (count != null && count > 0) {
             log.info("Handbook already indexed. Skipping default init.");
             return;
@@ -143,7 +145,7 @@ public class HandbookService {
         try {
             if (defaultPdfResource.exists()) {
                 byte[] bytes = defaultPdfResource.getInputStream().readAllBytes();
-                
+
                 // Also upload to storage so it can be downloaded
                 try {
                 } catch (Exception e) {
@@ -187,11 +189,13 @@ public class HandbookService {
                 // Index Note
                 String indexNote = chatClient.prompt()
                         .system(s -> s.text(INDEX_SYSTEM))
-                        .user(u -> u.text(String.format(INDEX_USER_TEMPLATE, c.pageStart() + "-" + c.pageEnd(), safeTrunc(raw, 12000))))
+                        .user(u -> u.text(String.format(INDEX_USER_TEMPLATE, c.pageStart() + "-" + c.pageEnd(),
+                                safeTrunc(raw, 12000))))
                         .call()
                         .content();
-                
-                if (indexNote == null) indexNote = "";
+
+                if (indexNote == null)
+                    indexNote = "";
 
                 String embeddingText = """
                         === INDEX NOTE ===
@@ -256,7 +260,8 @@ public class HandbookService {
     }
 
     private String normalize(String s) {
-        if (s == null) return "";
+        if (s == null)
+            return "";
         String out = s.replace("\r", "");
         out = out.replaceAll("-\\n", "");
         out = out.replaceAll("\\n{3,}", "\n\n");
@@ -293,7 +298,8 @@ public class HandbookService {
 
     private boolean looksLikeTableRow(String line) {
         String l = line.trim();
-        return !l.isBlank() && (PIPE_TABLE.matcher(l).matches() || DASH_ROW.matcher(l).matches() || MULTISPACE_COLS.matcher(l).matches());
+        return !l.isBlank() && (PIPE_TABLE.matcher(l).matches() || DASH_ROW.matcher(l).matches()
+                || MULTISPACE_COLS.matcher(l).matches());
     }
 
     private List<Chunk> buildLargeChunks(List<PageText> pages) {
@@ -308,7 +314,8 @@ public class HandbookService {
             int j = i + 1;
             while (j < pages.size()) {
                 String next = "\n=== PAGE " + pages.get(j).page() + " ===\n" + pages.get(j).text() + "\n\n";
-                if (buf.length() + next.length() > TARGET_CHUNK_CHARS) break;
+                if (buf.length() + next.length() > TARGET_CHUNK_CHARS)
+                    break;
                 buf.append(next);
                 endPage = pages.get(j).page();
                 j++;
@@ -321,7 +328,8 @@ public class HandbookService {
     }
 
     private static String safeTrunc(String s, int maxChars) {
-        if (s == null) return "";
+        if (s == null)
+            return "";
         s = s.trim();
         return s.length() <= maxChars ? s : s.substring(0, maxChars) + "\n\n[TRUNCATED]";
     }
@@ -335,6 +343,9 @@ public class HandbookService {
         }
     }
 
-    private record PageText(int page, String text) {}
-    private record Chunk(int pageStart, int pageEnd, String content) {}
+    private record PageText(int page, String text) {
+    }
+
+    private record Chunk(int pageStart, int pageEnd, String content) {
+    }
 }
